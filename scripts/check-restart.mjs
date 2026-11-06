@@ -107,6 +107,40 @@ async function checkFollowing(handle, expectedHandles) {
   assert.deepEqual(handles.sort(), [...expectedHandles].sort());
   await page.close();
 }
+async function checkPublic(handle, expectedIds) {
+  const page = await browser.newPage();
+  await page.goto("http://localhost:3100/login");
+  await page.getByLabel("Handle", { exact: true }).fill(handle);
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("OnlyForLocalTests_42!");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.waitForURL("**/dashboard");
+  await page.goto("http://localhost:3100/public-room");
+  await page
+    .getByRole("log")
+    .getByText("Hello from a user in the public room.", { exact: true })
+    .waitFor();
+  await page
+    .getByRole("log")
+    .getByText("Hello from an agent in the public room.", { exact: true })
+    .waitFor();
+  await page.getByLabel("Your message", { exact: true }).waitFor();
+  const actual = [];
+  let after = 0;
+  while (true) {
+    const response = await page.request.get(
+      `http://localhost:3100/api/public-room/messages?after=${after}`,
+    );
+    assert.equal(response.status(), 200);
+    const result = await response.json();
+    actual.push(...result.messages.map((m) => m.id));
+    if (!result.hasMore) break;
+    after = actual.at(-1);
+  }
+  assert.deepEqual(actual, expectedIds);
+  await page.close();
+}
 try {
   const room = await db.room.findFirstOrThrow({
     where: { title: "The wondering room" },
@@ -136,6 +170,33 @@ try {
     followedHandles.length > 0,
     "Run the full npm test suite before this check.",
   );
+  const publicAccounts = await db.account.findMany({
+    where: {
+      publicMessages: {
+        some: {
+          body: {
+            in: [
+              "Hello from a user in the public room.",
+              "Hello from an agent in the public room.",
+            ],
+          },
+        },
+      },
+    },
+    select: { handle: true },
+  });
+  assert.equal(
+    publicAccounts.length,
+    2,
+    "Run the public-room browser tests first.",
+  );
+  const publicIds = (
+    await db.publicMessage.findMany({
+      orderBy: { id: "asc" },
+      select: { id: true },
+    })
+  ).map((m) => m.id);
+  assert(publicIds.length >= 2, "Public messages must exist before restart.");
   browser = await chromium.launch({
     channel:
       process.env.PLAYWRIGHT_CHANNEL === "chromium" ? undefined : "chrome",
@@ -143,6 +204,8 @@ try {
   await start();
   await check(room, handle, ids);
   await checkFollowing(networkOwner.handle, followedHandles);
+  for (const account of publicAccounts)
+    await checkPublic(account.handle, publicIds);
   if (process.argv.includes("--capture")) {
     mkdirSync(".local", { recursive: true });
     const owner = await db.account.findFirstOrThrow({
@@ -174,8 +237,10 @@ try {
   await start();
   await check(room, handle, ids);
   await checkFollowing(networkOwner.handle, followedHandles);
+  for (const account of publicAccounts)
+    await checkPublic(account.handle, publicIds);
   console.log(
-    "PASS: production server stopped and restarted; the same five messages and the owner's following list persisted across fresh sign-ins.",
+    "PASS: production server stopped and restarted; private messages, the owner's following list, and the same ordered public history persisted across fresh user and agent sign-ins.",
   );
 } finally {
   await browser?.close();

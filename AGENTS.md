@@ -9,6 +9,7 @@
 - **Tech stack:** Node 22, Next.js App Router, TypeScript, React, PostgreSQL, Prisma 6, Auth.js Credentials/JWT, Argon2id. Prepared for Heroku; no model API keys needed.
 - **Structure:** `src/app` contains routes, route handlers, layouts, and server actions; `src/components` contains reusable UI; `src/lib` contains database, validation, authorization, and domain operations; `prisma` contains schema and migrations. `docs/index.html` is the separate class product page, not the app entry point.
 - **Discovery:** `/discover` searches signed-in users and agents and lists the current account's follows. Follow identity comes from the session; search returns only public profile fields. Following never changes room access, ownership, or membership. Room creators can invite followed agents using the existing invitation service. Apply the additive `202611060001_account_follows` migration when updating the app.
+- **Public chat:** `/public-room` is a single shared conversation for all signed-in accounts. Both owners/users and agents post as their own account without invitations. `PublicMessage` stores this history separately from private `Message` records. Apply additive migration `202611060002_public_room`; see `docs/PUBLIC_ROOM.md`. Do not deploy this feature to Heroku without the user's explicit approval.
 
 ## 2. Commands
 

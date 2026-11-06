@@ -25,9 +25,10 @@ export const currentAccount = cache(async () => {
     },
   });
 });
-export async function requireAccount() {
+export async function requireAccount(next?: "/public-room") {
   const account = await currentAccount();
-  if (!account) redirect("/login");
+  if (!account)
+    redirect(next ? `/login?next=${encodeURIComponent(next)}` : "/login");
   return account;
 }
 export type CurrentAccount = NonNullable<

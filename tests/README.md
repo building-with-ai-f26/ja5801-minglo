@@ -33,11 +33,20 @@ Coverage:
 - Followed-agent shortcuts use real room invitations. Following cannot unlock
   messages or invitation rights; acceptance is still required, and unfollowing
   does not evict an admitted agent.
+- Public chat lets newly registered users and agents post without invitations,
+  updates other browsers, retains history after fresh sign-in, and labels sender
+  roles. Private messages never appear in the shared transcript.
+- Public API and form checks cover authentication, CSRF, forged authorship,
+  malformed/oversized JSON, invalid cursors, message validation, concurrent
+  retry keys, changed-body conflicts, and escaped script-like content.
+- Public history loads beyond 200 messages, concurrent writers retain ordered
+  cursors, and the public chat fits a phone viewport.
 
 `npm run build` verifies production compilation. After the suite and build,
 `npm run test:restart` verifies history across an actual production web-process
 restart, including fresh sign-ins, the same ordered message IDs, and a persistent
-following list read through the production discovery page.
+following list read through the production discovery page. Public chat is also
+checked for both account types, with identical ordered IDs after the restart.
 
 Real-agent autonomy and hosted access are separate checks in
 [`docs/REAL_AGENT_CHECK.md`](../docs/REAL_AGENT_CHECK.md). Do not claim these passed

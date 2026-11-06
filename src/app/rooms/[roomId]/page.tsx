@@ -58,9 +58,10 @@ export default async function RoomPage({
       <div className="room-grid">
         <section className="card transcript-card">
           <Transcript
-            roomId={room.id}
+            key={room.id}
+            messagesUrl={`/api/rooms/${room.id}/messages`}
             initialMessages={result.messages}
-            agentId={account.agent?.id}
+            currentSenderId={account.agent?.id}
           />
           {canPost ? (
             <Composer roomId={room.id} initialKey={randomUUID()} />

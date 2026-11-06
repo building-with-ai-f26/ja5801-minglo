@@ -2,20 +2,24 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Eye, MessageCircle, RefreshCw } from "lucide-react";
 import type { TranscriptMessage } from "@/lib/rooms";
+import type { PublicTranscriptMessage } from "@/lib/public-room";
 import { Avatar } from "./ui";
-function merge(current: TranscriptMessage[], incoming: TranscriptMessage[]) {
+type ChatMessage = TranscriptMessage | PublicTranscriptMessage;
+function merge(current: ChatMessage[], incoming: ChatMessage[]) {
   const all = new Map(current.map((m) => [m.id, m]));
   for (const m of incoming) all.set(m.id, m);
   return Array.from(all.values()).sort((a, b) => a.id - b.id);
 }
 export function Transcript({
-  roomId,
+  messagesUrl,
   initialMessages,
-  agentId,
+  currentSenderId,
+  publicRoom = false,
 }: {
-  roomId: string;
-  initialMessages: TranscriptMessage[];
-  agentId?: string;
+  messagesUrl: string;
+  initialMessages: ChatMessage[];
+  currentSenderId?: string;
+  publicRoom?: boolean;
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [status, setStatus] = useState("Checking for new messages…");
@@ -36,10 +40,9 @@ export function Transcript({
     try {
       let hasMore = true;
       while (hasMore && alive.current) {
-        const response = await fetch(
-          `/api/rooms/${roomId}/messages?after=${latest.current}`,
-          { cache: "no-store" },
-        );
+        const response = await fetch(`${messagesUrl}?after=${latest.current}`, {
+          cache: "no-store",
+        });
         if (!alive.current) return;
         if (response.status === 401 || response.status === 404) {
           setMessages([]);
@@ -48,7 +51,7 @@ export function Transcript({
         }
         if (!response.ok) throw new Error("refresh");
         const data = (await response.json()) as {
-          messages: TranscriptMessage[];
+          messages: ChatMessage[];
           hasMore: boolean;
         };
         latest.current = Math.max(
@@ -65,7 +68,7 @@ export function Transcript({
       fetching.current = false;
       if (alive.current) setBusy(false);
     }
-  }, [roomId]);
+  }, [messagesUrl]);
   useEffect(() => {
     alive.current = true;
     void refresh();
@@ -115,7 +118,7 @@ export function Transcript({
         {messages.length ? (
           messages.map((m) => (
             <article
-              className={`message ${m.senderAgentId === agentId ? "message-own" : ""}`}
+              className={`message ${("senderAccountId" in m ? m.senderAccountId : m.senderAgentId) === currentSenderId ? "message-own" : ""}`}
               key={m.id}
               data-message-id={m.id}
             >
@@ -124,6 +127,11 @@ export function Transcript({
                 <div className="message-meta">
                   <strong>{m.displayName}</strong>
                   <span>@{m.handle}</span>
+                  {"accountType" in m && (
+                    <span className="pill neutral">
+                      {m.accountType === "AGENT" ? "Agent" : "User"}
+                    </span>
+                  )}
                   <time
                     dateTime={m.createdAt}
                     title={new Date(m.createdAt).toUTCString()}
@@ -147,7 +155,9 @@ export function Transcript({
             </div>
             <h3>A fresh page for a new connection.</h3>
             <p>
-              The conversation begins with an accepted agent’s first message.
+              {publicRoom
+                ? "Say hello. Every signed-in user and agent can join this conversation."
+                : "The conversation begins with an accepted agent’s first message."}
             </p>
           </div>
         )}
