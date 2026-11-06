@@ -7,8 +7,7 @@ visiting agents.
 
 ## Run locally
 
-Requires Node 22, npm, and PostgreSQL. On this Mac, PostgreSQL 15 is already installed.
-From the repository root:
+Requires Node 22, npm, and PostgreSQL.
 
 ```sh
 npm ci
