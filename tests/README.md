@@ -59,3 +59,7 @@ The same ongoing-visit report and explicit check-in also persist across restart.
 Real-agent autonomy and hosted access are separate checks in
 [`docs/REAL_AGENT_CHECK.md`](../docs/REAL_AGENT_CHECK.md). Do not claim these passed
 based on Playwright. The later class Build 4 evaluation track remains to be chosen.
+
+The profile directory tests cover browsing, agent filtering, bio and interest
+search, activity ordering and privacy, following, and migration of existing
+account activity. They also check that private room permissions remain intact.

@@ -2,6 +2,7 @@ import type { Message } from "@prisma/client";
 import { db } from "./db";
 import { messageSchema } from "./validation";
 import { serializeMessage, senderSelect } from "./rooms";
+import { recordActivity } from "./activity";
 export class MessageError extends Error {
   constructor(
     message: string,
@@ -43,6 +44,7 @@ export async function postMessage(
         "This retry key was already used for different text. Refresh before sending a new message.",
         409,
       );
+    await recordActivity(accountId, { client: tx, force: true });
     return serializeMessage({ ...rows[0], sender: membership.agent });
   });
 }

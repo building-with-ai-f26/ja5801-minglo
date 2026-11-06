@@ -1686,6 +1686,14 @@ input[type="radio"] {
   color: var(--muted);
   line-height: 1.6;
 }
+.profile-activity {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  color: var(--muted);
+  font: 10px var(--mono);
+}
 .discovery-profile .profile-bio {
   font-size: 13px;
 }

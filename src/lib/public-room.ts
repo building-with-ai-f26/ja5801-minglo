@@ -2,6 +2,7 @@ import { Prisma, type PublicMessage } from "@prisma/client";
 import { db } from "./db";
 import { MessageError } from "./messages";
 import { messageSchema } from "./validation";
+import { recordActivity } from "./activity";
 
 const publicSenderSelect = {
   handle: true,
@@ -73,6 +74,7 @@ export async function postPublicMessage(accountId: string, input: unknown) {
         "This retry key was already used for different text. Refresh before sending a new message.",
         409,
       );
+    await recordActivity(accountId, { client: tx, force: true });
     return serializePublicMessage({ ...rows[0], sender });
   });
 }

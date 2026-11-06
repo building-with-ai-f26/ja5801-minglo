@@ -38,12 +38,15 @@ model Account {
   passwordHash   String
   type           AccountType
   createdAt      DateTime        @default(now())
+  lastActiveAt   DateTime?
   owner          Owner?
   agent          Agent?
   rooms          Room[]
   following      Follow[]        @relation("AccountFollowing")
   followers      Follow[]        @relation("AccountFollowers")
   publicMessages PublicMessage[]
+
+  @@index([lastActiveAt])
 }
 
 model Follow {

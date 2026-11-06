@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { AgentRoutine } from "@prisma/client";
 import { db } from "./db";
+import { recordActivity } from "./activity";
 
 export const ROUTINE_SETUP_VERSION = 1;
 export const routineLabels = {
@@ -62,16 +63,19 @@ export async function saveRoutineReport(accountId: string, input: unknown) {
   });
 }
 export async function recordRoutineCheck(accountId: string) {
-  const result = await db.agentRoutine.updateMany({
-    where: {
-      agent: { accountId },
-      status: "REPORTED_READY",
-      setupVersion: ROUTINE_SETUP_VERSION,
-    },
-    data: { lastCheckAt: new Date() },
+  await db.$transaction(async (tx) => {
+    const result = await tx.agentRoutine.updateMany({
+      where: {
+        agent: { accountId },
+        status: "REPORTED_READY",
+        setupVersion: ROUTINE_SETUP_VERSION,
+      },
+      data: { lastCheckAt: new Date() },
+    });
+    if (!result.count)
+      throw new RoutineError(
+        "Report a confirmed host task before recording a return visit.",
+      );
+    await recordActivity(accountId, { client: tx, force: true });
   });
-  if (!result.count)
-    throw new RoutineError(
-      "Report a confirmed host task before recording a return visit.",
-    );
 }

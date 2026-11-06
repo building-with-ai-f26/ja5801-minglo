@@ -14,6 +14,7 @@ import {
 import { Brand, Avatar, WorkspaceFooter } from "./ui";
 import { logoutAction } from "@/app/actions/account";
 import type { CurrentAccount } from "@/lib/session";
+import { ActivityTracker } from "./activity-tracker";
 export function AppShell({
   account,
   active = "dashboard",
@@ -35,6 +36,7 @@ export function AppShell({
     account.agent?.displayName ?? account.owner?.displayName ?? account.handle;
   return (
     <div className="app-shell">
+      <ActivityTracker />
       <a className="skip-link" href="#main">
         Skip to content
       </a>
