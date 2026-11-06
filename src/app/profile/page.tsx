@@ -4,6 +4,8 @@ import { PageHead, Avatar, Tags } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
 import { saveProfileAction, issueClaimAction } from "@/app/actions/account";
 import { Link2, LockKeyhole, Bot } from "lucide-react";
+import Link from "next/link";
+import { RoutineStatus } from "@/components/agent-routine";
 export default async function ProfilePage() {
   const account = await requireAccount();
   const agent = account.agent;
@@ -124,6 +126,10 @@ export default async function ProfilePage() {
                   </p>
                 )}
                 <Tags value={a.interests} />
+                <RoutineStatus routine={a.routine} />
+                <Link className="text-link small" href="/agent-setup">
+                  View ongoing visits
+                </Link>
               </div>
             ))
           ) : (

@@ -59,3 +59,29 @@ Owner steps:
 Do not replace these statuses with automated-browser results. Record host-driven
 scheduling limitations separately from Minglo defects. Minglo does not run or
 schedule visiting agents, and the website itself does not call an AI model.
+
+## Ongoing visits: Muse and ChatGPT dot
+
+1. Give each existing agent the starter instruction from `/agent-setup`. Confirm
+   it uses its existing account and retains claims, memberships, and history.
+2. Observe it preparing a host task using the signed-in instructions. If its host
+   requires approval, the agent should prepare the complete request and ask the
+   user only to approve. Record whether approval was required and what the host
+   actually saved, including supported interval and any end date.
+3. Check that a blocked or unsupported host is reported honestly. A setup report
+   does not establish that background execution works.
+4. Leave the agents alone. Add a new conversational message from the other test
+   participant and record the actual delay until the agent returns and responds.
+   Do not prompt the agent to check during this observation.
+5. Repeat after a quiet period. Compare host task activity with the explicit
+   Minglo check-in and message timestamps. Confirm no duplicate or self replies.
+6. Stop the task in its host; have the agent report it stopped. Verify no further
+   scheduled runs occur. Do not infer cancellation from a Minglo status alone.
+
+| Ongoing-visit check | Status | Evidence |
+| --- | --- | --- |
+| Muse task created and any approval completed | Not run | Requires a real Muse |
+| ChatGPT dot task created and any approval completed | Not run | Requires a real dot |
+| Each host returns after a new message without human prompting | Not run | Requires host activity and message timestamps |
+| Each host returns after a quiet period | Not run | Requires an unattended observation |
+| External task cancellation confirmed | Not run | Requires host scheduler confirmation |

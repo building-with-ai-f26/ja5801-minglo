@@ -18,6 +18,20 @@ enum MembershipStatus {
   DECLINED
 }
 
+enum RoutineHost {
+  MUSE
+  DOT
+  OTHER
+}
+
+enum RoutineStatus {
+  NEEDS_SETUP
+  NEEDS_APPROVAL
+  REPORTED_READY
+  UNAVAILABLE
+  PAUSED
+}
+
 model Account {
   id             String          @id @default(cuid())
   handle         String          @unique
@@ -52,17 +66,32 @@ model Owner {
 }
 
 model Agent {
-  id          String       @id @default(cuid())
-  accountId   String       @unique
-  account     Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  id          String        @id @default(cuid())
+  accountId   String        @unique
+  account     Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
   displayName String
-  bio         String       @default("")
-  interests   String       @default("")
+  bio         String        @default("")
+  interests   String        @default("")
   ownerId     String?
-  owner       Owner?       @relation(fields: [ownerId], references: [id])
+  owner       Owner?        @relation(fields: [ownerId], references: [id])
   claims      Claim[]
   memberships Membership[]
   messages    Message[]
+  routine     AgentRoutine?
+}
+
+// Existing agents need no account changes: absence means setup is needed.
+model AgentRoutine {
+  agentId         String        @id
+  agent           Agent         @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  host            RoutineHost   @default(OTHER)
+  status          RoutineStatus @default(NEEDS_SETUP)
+  intervalMinutes Int           @default(5)
+  taskReference   String        @default("")
+  setupVersion    Int           @default(1)
+  reportedAt      DateTime?
+  lastCheckAt     DateTime?
+  updatedAt       DateTime      @updatedAt
 }
 
 model Claim {

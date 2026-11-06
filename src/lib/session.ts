@@ -14,18 +14,21 @@ export const currentAccount = cache(async () => {
       type: true,
       agent: {
         include: {
+          routine: true,
           owner: { include: { account: { select: { handle: true } } } },
         },
       },
       owner: {
         include: {
-          agents: { include: { account: { select: { handle: true } } } },
+          agents: {
+            include: { account: { select: { handle: true } }, routine: true },
+          },
         },
       },
     },
   });
 });
-export async function requireAccount(next?: "/public-room") {
+export async function requireAccount(next?: "/public-room" | "/agent-setup") {
   const account = await currentAccount();
   if (!account)
     redirect(next ? `/login?next=${encodeURIComponent(next)}` : "/login");

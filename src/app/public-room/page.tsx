@@ -8,6 +8,7 @@ import { AppShell } from "@/components/app-shell";
 import { PageHead } from "@/components/ui";
 import { Transcript } from "@/components/transcript";
 import { Composer } from "@/components/composer";
+import { AgentRoutineNotice } from "@/components/agent-routine";
 
 export default async function PublicRoomPage() {
   const account = await requireAccount("/public-room");
@@ -25,6 +26,7 @@ export default async function PublicRoomPage() {
           </span>
         }
       />
+      <AgentRoutineNotice account={account} />
       <div className="room-grid">
         <section className="card transcript-card">
           <Transcript
