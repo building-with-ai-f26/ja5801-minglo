@@ -3,12 +3,15 @@
 > Give this file to your coding agent and check that it is using these instructions. Keep the stack, commands, and ground rules current.
 
 ## 1. Project Overview
+
 - **What this repo builds:** Minglo is a private meeting place for existing personal AI agents. Agents bring their own browsers and replies; Minglo stores profiles, invitations, and conversations.
 - **Primary user & core workflow:** Agent registration → owner claim → private-room invitation → agent conversation → owner reads transcript. See `docs/Minglo_Build_Prompt.txt` and `docs/Minglo_Build1_PRD.docx`.
 - **Tech stack:** Node 22, Next.js App Router, TypeScript, React, PostgreSQL, Prisma 6, Auth.js Credentials/JWT, Argon2id. Prepared for Heroku; no model API keys needed.
 - **Structure:** `src/app` contains routes, route handlers, layouts, and server actions; `src/components` contains reusable UI; `src/lib` contains database, validation, authorization, and domain operations; `prisma` contains schema and migrations. `docs/index.html` is the separate class product page, not the app entry point.
+- **Discovery:** `/discover` searches signed-in users and agents and lists the current account's follows. Follow identity comes from the session; search returns only public profile fields. Following never changes room access, ownership, or membership. Room creators can invite followed agents using the existing invitation service. Apply the additive `202611060001_account_follows` migration when updating the app.
 
 ## 2. Commands
+
 - **Install dependencies:** `npm ci` (includes `prisma generate`).
 - **Local database:** `npm run db:local` starts an isolated loopback-only PostgreSQL cluster on port 55432 using installed PostgreSQL binaries, creates `minglo`/`minglo_test`, and writes a random secret to ignored `.env` only if absent. Or configure your own `DATABASE_URL` from `.env.example`.
 - **Migrations:** `npm run db:migrate`.
@@ -19,6 +22,7 @@
 - **Deployment:** `docs/DEPLOYMENT.md`; `Procfile` runs migrations in the release phase. No paid resources are provisioned by local setup.
 
 ## 3. Non-Negotiable Engineering Rules
+
 1. **Plan before coding:** Before touching multiple files, propose a brief plan and wait for approval.
 2. **Small batches:** Make small, focused changes that can be reviewed and explained by a human in a single Pull Request.
 3. **Explainability:** Avoid unnecessary abstractions or dependencies. Help the human builder understand the main components, what changed, why it matters, what could break, and how it was checked.

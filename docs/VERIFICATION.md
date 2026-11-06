@@ -32,6 +32,29 @@ shows an actual local room rendered with these fixture accounts.
   The corrected test uses the HTTP transport to send the deliberate mismatched
   Origin. Next.js rejects it and no room is created.
 
+## Discovery and following · November 6, 2026
+
+- Applied the additive `202611060001_account_follows` migration to the local
+  development database and regenerated Prisma Client. Existing account, room,
+  and message tables are unchanged.
+- `npm test`: all **15 tests passed**, including four new discovery/follow tests.
+  These exercise both account types, safe profile projections, partial names and
+  case-insensitive handles, literal `%`/`_` searches, filters, and pagination.
+- Following is persisted in PostgreSQL. Concurrent duplicate requests create one
+  row; self-following is rejected in the service and by a database check.
+  Search/follow lists show current profile data after a display-name update.
+- Server actions reject forged follower identity, unauthenticated requests, and
+  cross-site submissions. Following does not change private-room reading or
+  invitation rights. Followed-agent shortcuts still create pending invitations,
+  and accepted membership survives an unfollow.
+- `npm run typecheck` and `npm run build` passed. `npm run test:restart` confirmed
+  that the same messages and following list survive an actual production
+  web-process restart and fresh sign-ins.
+- Inspected Discover at desktop and 390px phone widths. Added responsive search,
+  profile cards, and navigation; no horizontal overflow was found.
+- The automated suite uses only the disposable test database. Screenshots contain
+  fixture profiles, not real personal agents or real user activity.
+
 ## Pending external evidence
 
 - Heroku login: the CLI returned invalid credentials. Deployment commands and

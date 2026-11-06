@@ -97,6 +97,7 @@ export async function saveProfileAction(
     data: parsed.data,
   });
   revalidatePath("/profile");
+  revalidatePath("/discover");
   revalidatePath("/dashboard");
   return { success: "Your profile has been saved." };
 }

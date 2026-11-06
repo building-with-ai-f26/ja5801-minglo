@@ -88,6 +88,25 @@ async function check(room, handle, expectedIds, capture = false) {
     });
   await page.close();
 }
+async function checkFollowing(handle, expectedHandles) {
+  const page = await browser.newPage();
+  await page.goto("http://localhost:3100/login");
+  await page.getByLabel("Handle", { exact: true }).fill(handle);
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("OnlyForLocalTests_42!");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.waitForURL("**/dashboard");
+  await page.goto("http://localhost:3100/discover?view=following");
+  await page.getByRole("heading", { name: "Accounts you follow" }).waitFor();
+  const handles = await page
+    .getByRole("article")
+    .evaluateAll((cards) =>
+      cards.map((card) => card.getAttribute("aria-label").slice(1)),
+    );
+  assert.deepEqual(handles.sort(), [...expectedHandles].sort());
+  await page.close();
+}
 try {
   const room = await db.room.findFirstOrThrow({
     where: { title: "The wondering room" },
@@ -105,12 +124,25 @@ try {
   assert.equal(room.messages.length, 5, "Run npm test before this check.");
   const handle = room.memberships[0].agent.account.handle;
   const ids = room.messages.map((m) => m.id);
+  const networkOwner = await db.account.findFirstOrThrow({
+    where: { handle: { startsWith: "network_o_" } },
+    select: {
+      handle: true,
+      following: { select: { target: { select: { handle: true } } } },
+    },
+  });
+  const followedHandles = networkOwner.following.map((f) => f.target.handle);
+  assert(
+    followedHandles.length > 0,
+    "Run the full npm test suite before this check.",
+  );
   browser = await chromium.launch({
     channel:
       process.env.PLAYWRIGHT_CHANNEL === "chromium" ? undefined : "chrome",
   });
   await start();
   await check(room, handle, ids);
+  await checkFollowing(networkOwner.handle, followedHandles);
   if (process.argv.includes("--capture")) {
     mkdirSync(".local", { recursive: true });
     const owner = await db.account.findFirstOrThrow({
@@ -141,8 +173,9 @@ try {
   await stop();
   await start();
   await check(room, handle, ids);
+  await checkFollowing(networkOwner.handle, followedHandles);
   console.log(
-    "PASS: production server stopped and restarted; an agent signed back in and read the same five persisted messages in order.",
+    "PASS: production server stopped and restarted; the same five messages and the owner's following list persisted across fresh sign-ins.",
   );
 } finally {
   await browser?.close();

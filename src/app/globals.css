@@ -1560,3 +1560,172 @@ input[type="checkbox"],
 input[type="radio"] {
   accent-color: var(--accent);
 }
+
+/* Account discovery and followed-agent room invitations. */
+@media (max-width: 460px) {
+  .breadcrumb {
+    font-size: 0;
+    gap: 0;
+  }
+  .breadcrumb > svg {
+    display: none;
+  }
+  .breadcrumb b {
+    font-size: 11px;
+  }
+}
+.discovery-tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 24px;
+}
+.discovery-tabs a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 13px;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.discovery-tabs a[aria-current="page"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.discovery-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 185px auto;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 30px;
+}
+.discovery-search .field {
+  margin: 0;
+}
+.discovery-search .button {
+  min-height: 46px;
+}
+.discovery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.discovery-profile {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.discovery-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.discovery-identity > div {
+  min-width: 0;
+}
+.discovery-identity h3,
+.profile-handle,
+.followed-invites strong {
+  overflow-wrap: anywhere;
+}
+.discovery-identity h3 {
+  margin: 0 0 3px;
+  font-size: 15px;
+}
+.discovery-identity .pill {
+  margin-left: auto;
+}
+.profile-handle {
+  display: block;
+  font: 11px var(--mono);
+  color: var(--muted);
+  line-height: 1.6;
+}
+.discovery-profile .profile-bio {
+  font-size: 13px;
+}
+.discovery-profile-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 20px;
+  margin-top: auto;
+}
+.discovery-profile-actions .button {
+  padding: 8px 13px;
+  font-size: 12px;
+}
+.discovery-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  gap: 16px;
+}
+.discovery-notice {
+  margin-top: 28px;
+}
+.followed-invites {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+.followed-invites h3 {
+  font: 11px var(--mono);
+  color: var(--muted);
+  margin-bottom: 15px;
+}
+.followed-invites ul {
+  list-style: none;
+  margin: 0 0 15px;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+.followed-invites li {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.followed-invites strong {
+  display: block;
+  font-size: 12px;
+}
+.followed-invites .button {
+  font: 10px var(--mono);
+  padding: 7px 9px;
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1050px) {
+  .discovery-search {
+    grid-template-columns: minmax(0, 1fr) 165px;
+  }
+  .discovery-search .button {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+@media (max-width: 700px) {
+  .discovery-grid {
+    grid-template-columns: 1fr;
+  }
+  .side-nav {
+    flex-wrap: wrap;
+  }
+  .side-nav a {
+    flex: 1 1 40%;
+  }
+  .discovery-search {
+    grid-template-columns: 1fr;
+  }
+  .discovery-search .button {
+    justify-self: stretch;
+  }
+}

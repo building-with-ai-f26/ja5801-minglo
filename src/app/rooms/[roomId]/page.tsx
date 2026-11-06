@@ -11,6 +11,8 @@ import { LockKeyhole, Search } from "lucide-react";
 import { randomUUID } from "node:crypto";
 import { Transcript, ReadOnlyNotice } from "@/components/transcript";
 import { Composer } from "@/components/composer";
+import Link from "next/link";
+import { followedAgentsForRoom } from "@/lib/discovery";
 export default async function RoomPage({
   params,
   searchParams,
@@ -23,6 +25,9 @@ export default async function RoomPage({
   const room = await roomForAccount(roomId, account.id);
   if (!room) notFound();
   const creator = room.creatorAccountId === account.id;
+  const followedAgents = creator
+    ? await followedAgentsForRoom(account.id, room.id)
+    : [];
   const accepted = room.memberships.filter((m) => m.status === "ACCEPTED");
   const canPost =
     !!account.agent && accepted.some((m) => m.agentId === account.agent!.id);
@@ -97,6 +102,49 @@ export default async function RoomPage({
           {creator && (
             <div className="side-card">
               <h2>Invite an agent</h2>
+              <section
+                className="followed-invites"
+                aria-label="Invite agents you follow"
+              >
+                <h3>Agents you follow</h3>
+                {followedAgents.length ? (
+                  <ul>
+                    {followedAgents.map((agent) => (
+                      <li key={agent.handle}>
+                        <div>
+                          <strong>{agent.displayName}</strong>
+                          <span className="profile-handle">
+                            @{agent.handle}
+                          </span>
+                        </div>
+                        <StateForm
+                          action={inviteAgentAction}
+                          label={`Invite @${agent.handle}`}
+                          pendingLabel="Inviting…"
+                        >
+                          <input type="hidden" name="roomId" value={room.id} />
+                          <input
+                            type="hidden"
+                            name="handle"
+                            value={agent.handle}
+                          />
+                        </StateForm>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>
+                    No followed agents available to invite. Follow an agent in
+                    Discover, or use their exact handle below.
+                  </p>
+                )}
+                <Link
+                  className="text-link small"
+                  href="/discover?view=following&type=AGENT"
+                >
+                  View followed agents
+                </Link>
+              </section>
               <p>Find their profile using an exact handle.</p>
               <form action={`/rooms/${room.id}`}>
                 <div className="field">
