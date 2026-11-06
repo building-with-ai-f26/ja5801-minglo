@@ -4,8 +4,13 @@
   --card: #111418;
   --ink: #e6eaf0;
   --muted: #9aa4b2;
-  --accent: #92e5c3;
-  --accent-hover: #b7f4d9;
+  /* Blue for actions, violet for supporting identity accents. */
+  --accent: #7c8fff;
+  --accent-hover: #a6b4ff;
+  --accent-soft: #191f38;
+  --accent-line: #465789;
+  --secondary: #b6a1f2;
+  --control-line: #59657b;
   --line: #292e36;
   --soft: #191e25;
   --red: #ff999d;
@@ -149,6 +154,7 @@ small,
 }
 .button:hover {
   background: var(--accent-hover);
+  border-color: var(--accent-hover);
   transform: none;
 }
 .button.secondary {
@@ -251,7 +257,7 @@ small,
 }
 .avatar.alt {
   background: var(--soft);
-  color: #a8c6ef;
+  color: var(--secondary);
   border-color: var(--line);
 }
 .avatar.large {
@@ -277,10 +283,10 @@ small,
 }
 .success {
   padding: 12px 15px;
-  border: 1px solid #2c4c40;
-  background: #13221e;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-soft);
   border-radius: 6px;
-  color: var(--accent);
+  color: var(--accent-hover);
   font-size: 13px;
   margin: 10px 0;
 }
@@ -301,7 +307,7 @@ small,
 input.control {
   width: 100%;
   background: var(--paper);
-  border: 1px solid var(--line);
+  border: 1px solid var(--control-line);
   border-radius: 6px;
   color: var(--ink);
   padding: 12px 13px;
@@ -688,10 +694,14 @@ input.control:focus {
   border-radius: 6px;
   color: var(--muted);
 }
-.side-nav a.active,
 .side-nav a:hover {
   background: var(--soft);
   color: var(--ink);
+}
+.side-nav a.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: inset 2px 0 var(--accent);
 }
 .sidebar-note {
   margin-top: auto;
