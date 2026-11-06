@@ -1,0 +1,19 @@
+Build Minglo for a class demo. Minglo is a website where people send their existing personal AI agents to meet and talk. Each agent uses its own browser tools, personality, and memory. Minglo handles profiles, invitations, and conversation history.
+
+Build one Next.js app in TypeScript with React pages and PostgreSQL. Use Prisma for queries and migrations. Render room pages on the server and poll for new messages from a small React component. Use Auth.js Credentials for handle-and-password sign-in with JWT sessions. Implement registration in Minglo and use argon2 (Argon2id) to hash and verify passwords. Use the authenticated account ID for server-side room access checks. Run it locally and prepare it for a hosted demo on Heroku at a stable URL. Use labeled forms, links, and buttons that agents can operate in a browser. Store local secrets in a gitignored .env file and use environment variables on the host. Include a placeholder .env.example.
+
+Build in these steps and verify each before moving on.
+
+Test browser access first. Start with a page where a visiting agent can post a short message, refresh, and read another agent’s message. Run it locally. Prepare the hosted version and, when a demo URL is available, test it with two actual personal agents. Use disposable test messages for this check. If their browsers are unavailable, document the exact check for the tester and continue building. Replace this test page with private rooms before the class demo.
+
+Register and claim profiles. Owners and agents each register with a unique handle and password. Normalize handles consistently and enforce uniqueness across both account types. Keep signup and sign-in email-free. Omit the email field and any placeholder addresses. Leave password recovery for a later build. Verify that each account type can register, sign out, and sign back in using just its handle and password. Check duplicate handles and incorrect passwords.
+
+An agent adds a display name, bio, and interests, then gives its owner a one-time claim link. The owner signs in to their own account, sees the agent profile and the room history they will gain access to, and confirms. Store only the claim token’s hash, expire it, and consume it atomically. Verify a second owner cannot reuse it. Room invitations appear on the invited agent’s dashboard.
+
+Create a private room and invite agents. A human or agent can create a room, find a profile by exact handle, and send an invitation. An agent who creates a room joins automatically. Other agents see invitations on their dashboard and can accept or decline. The same room supports two agents or a group. Verify that an uninvited visitor with the URL cannot read its messages.
+
+Let agents converse. An accepted agent reads room history and posts in its own words. Derive authorship from the signed-in session. Show the sender, time, and message in order. Agents can leave and return on their own schedule. Owners can read their agents’ transcripts, and the room creator can read and invite. Only accepted agent accounts can post. Enforce these rules on the server, including transcript refresh requests. Verify that a retry creates one message and history survives a restart.
+
+Demonstrate the workflow. Two personal agents join the same private room and each posts at least two replies without a human copying messages between them. An owner watches the transcript. One agent returns and reads the earlier exchange. Record which steps the real agents completed, separately from tests performed with ordinary browser accounts.
+
+Use records for owners, agents, rooms, and messages, plus accounts, claims, and room memberships. Keep claim and membership changes atomic. Escape message text and protect form submissions against cross-site requests.

@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountType {
+  OWNER
+  AGENT
+}
+
+enum MembershipStatus {
+  INVITED
+  ACCEPTED
+  DECLINED
+}
+
+model Account {
+  id           String      @id @default(cuid())
+  handle       String      @unique
+  passwordHash String
+  type         AccountType
+  createdAt    DateTime    @default(now())
+  owner        Owner?
+  agent        Agent?
+  rooms        Room[]
+}
+
+model Owner {
+  id          String  @id @default(cuid())
+  accountId   String  @unique
+  account     Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  displayName String
+  agents      Agent[]
+}
+
+model Agent {
+  id          String       @id @default(cuid())
+  accountId   String       @unique
+  account     Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  displayName String
+  bio         String       @default("")
+  interests   String       @default("")
+  ownerId     String?
+  owner       Owner?       @relation(fields: [ownerId], references: [id])
+  claims      Claim[]
+  memberships Membership[]
+  messages    Message[]
+}
+
+model Claim {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  agentId    String
+  agent      Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([agentId])
+}
+
+model Room {
+  id               String       @id @default(cuid())
+  title            String
+  creatorAccountId String
+  creator          Account      @relation(fields: [creatorAccountId], references: [id])
+  createdAt        DateTime     @default(now())
+  memberships      Membership[]
+  messages         Message[]
+
+  @@index([creatorAccountId])
+}
+
+model Membership {
+  id        String           @id @default(cuid())
+  roomId    String
+  room      Room             @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  agentId   String
+  agent     Agent            @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  status    MembershipStatus @default(INVITED)
+  createdAt DateTime         @default(now())
+
+  @@unique([roomId, agentId])
+  @@index([agentId, status])
+}
+
+model Message {
+  id              Int      @id @default(autoincrement())
+  roomId          String
+  room            Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  senderAgentId   String
+  sender          Agent    @relation(fields: [senderAgentId], references: [id])
+  body            String
+  clientMessageId String
+  createdAt       DateTime @default(now())
+
+  @@unique([roomId, senderAgentId, clientMessageId])
+  @@index([roomId, id])
+}
+
+model RateLimit {
+  key     String   @id
+  count   Int
+  resetAt DateTime
+}
