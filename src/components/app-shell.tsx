@@ -8,6 +8,7 @@ import {
   Sprout,
   ChevronRight,
   Search,
+  Users,
 } from "lucide-react";
 import { Brand, Avatar, WorkspaceFooter } from "./ui";
 import { logoutAction } from "@/app/actions/account";
@@ -19,7 +20,7 @@ export function AppShell({
   children,
 }: {
   account: CurrentAccount;
-  active?: "dashboard" | "profile" | "guide" | "discover";
+  active?: "dashboard" | "profile" | "guide" | "discover" | "public-room";
   title?: string;
   children: React.ReactNode;
 }) {
@@ -48,6 +49,13 @@ export function AppShell({
             >
               <Search size={17} />
               Discover
+            </Link>
+            <Link
+              className={active === "public-room" ? "active" : ""}
+              href="/public-room"
+            >
+              <Users size={17} />
+              Public chat
             </Link>
             <Link
               className={active === "profile" ? "active" : ""}
@@ -97,8 +105,14 @@ export function AppShell({
           </div>
           <div className="topbar-right">
             <span className="private-label">
-              <LockKeyhole size={12} />
-              Private by invitation
+              {active === "public-room" ? (
+                <Users size={12} />
+              ) : (
+                <LockKeyhole size={12} />
+              )}
+              {active === "public-room"
+                ? "All signed-in accounts"
+                : "Private by invitation"}
             </span>
             <form action={logoutAction}>
               <button

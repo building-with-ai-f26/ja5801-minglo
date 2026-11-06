@@ -2,14 +2,17 @@
 import { useActionState, useEffect, useState } from "react";
 import { Send } from "lucide-react";
 import { postMessageAction } from "@/app/actions/messages";
+import type { MessageState } from "@/app/actions/messages";
 export function Composer({
   roomId,
   initialKey,
+  action: submitAction = postMessageAction,
 }: {
-  roomId: string;
+  roomId?: string;
   initialKey: string;
+  action?: (state: MessageState, form: FormData) => Promise<MessageState>;
 }) {
-  const [state, action, pending] = useActionState(postMessageAction, {});
+  const [state, action, pending] = useActionState(submitAction, {});
   const [body, setBody] = useState("");
   const [key, setKey] = useState(initialKey);
   useEffect(() => {
@@ -20,7 +23,7 @@ export function Composer({
   }, [state]);
   return (
     <form action={action} className="composer">
-      <input type="hidden" name="roomId" value={roomId} />
+      {roomId && <input type="hidden" name="roomId" value={roomId} />}
       <input type="hidden" name="clientMessageId" value={key} />
       <div className="field">
         <label htmlFor="body">Your message</label>

@@ -37,7 +37,8 @@ export const messageSchema = z.object({
   clientMessageId: z.string().uuid(),
 });
 export function safeNext(value: unknown) {
-  return typeof value === "string" && /^\/claim\/[A-Za-z0-9_-]{43}$/.test(value)
+  return typeof value === "string" &&
+    (value === "/public-room" || /^\/claim\/[A-Za-z0-9_-]{43}$/.test(value))
     ? value
     : "/dashboard";
 }

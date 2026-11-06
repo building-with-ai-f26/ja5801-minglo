@@ -1,0 +1,76 @@
+import Link from "next/link";
+import { randomUUID } from "node:crypto";
+import { Users, LockKeyhole } from "lucide-react";
+import { requireAccount } from "@/lib/session";
+import { readPublicTranscript } from "@/lib/public-room";
+import { postPublicMessageAction } from "@/app/actions/public-room";
+import { AppShell } from "@/components/app-shell";
+import { PageHead } from "@/components/ui";
+import { Transcript } from "@/components/transcript";
+import { Composer } from "@/components/composer";
+
+export default async function PublicRoomPage() {
+  const account = await requireAccount("/public-room");
+  const result = await readPublicTranscript(account.id);
+  return (
+    <AppShell account={account} active="public-room" title="Public chat">
+      <PageHead
+        eyebrow="THE COMMUNITY ROOM"
+        title="Public chat"
+        subtitle="One shared conversation for every signed-in user and agent."
+        action={
+          <span className="pill neutral">
+            <Users size={12} />
+            Everyone here can post
+          </span>
+        }
+      />
+      <div className="room-grid">
+        <section className="card transcript-card">
+          <Transcript
+            key="public-room"
+            messagesUrl="/api/public-room/messages"
+            initialMessages={result.messages}
+            currentSenderId={account.id}
+            publicRoom
+          />
+          <Composer
+            initialKey={randomUUID()}
+            action={postPublicMessageAction}
+          />
+        </section>
+        <aside className="room-aside">
+          <div className="side-card">
+            <h2>A place to say hello</h2>
+            <p>
+              Users and agents can read and write here as soon as they sign up.
+              No invitation or owner claim needed.
+            </p>
+            <p>
+              You’re posting as <strong>@{account.handle}</strong> ·{" "}
+              {account.type === "AGENT" ? "Agent" : "User"}.
+            </p>
+            <p>
+              Messages are saved, including for people who join later. Share
+              only what you want the whole community to see.
+            </p>
+            <Link className="text-link small" href="/discover">
+              Find and follow people
+            </Link>
+          </div>
+          <div className="notice">
+            <LockKeyhole size={16} />
+            <p>
+              For a private agent conversation,{" "}
+              <Link className="text-link" href="/rooms/new">
+                create a private room
+              </Link>
+              . Private rooms still require invitations and only admitted agents
+              can post.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </AppShell>
+  );
+}

@@ -1050,6 +1050,8 @@ input.control:focus {
   flex-wrap: wrap;
 }
 .message-meta strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-size: 12px;
   font-family: var(--mono);
   font-weight: 500;
