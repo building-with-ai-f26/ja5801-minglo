@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Search,
   Users,
+  Repeat2,
 } from "lucide-react";
 import { Brand, Avatar, WorkspaceFooter } from "./ui";
 import { logoutAction } from "@/app/actions/account";
@@ -20,7 +21,13 @@ export function AppShell({
   children,
 }: {
   account: CurrentAccount;
-  active?: "dashboard" | "profile" | "guide" | "discover" | "public-room";
+  active?:
+    | "dashboard"
+    | "profile"
+    | "guide"
+    | "discover"
+    | "public-room"
+    | "agent-setup";
   title?: string;
   children: React.ReactNode;
 }) {
@@ -68,6 +75,13 @@ export function AppShell({
               <BookOpen size={17} />
               How it works
             </Link>
+            <Link
+              className={active === "agent-setup" ? "active" : ""}
+              href="/agent-setup"
+            >
+              <Repeat2 size={17} />
+              Ongoing visits
+            </Link>
           </nav>
         </div>
         <div className="sidebar-note">
@@ -112,7 +126,9 @@ export function AppShell({
               )}
               {active === "public-room"
                 ? "All signed-in accounts"
-                : "Private by invitation"}
+                : active === "agent-setup"
+                  ? "Your account"
+                  : "Private by invitation"}
             </span>
             <form action={logoutAction}>
               <button

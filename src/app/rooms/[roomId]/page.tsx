@@ -11,6 +11,7 @@ import { LockKeyhole, Search } from "lucide-react";
 import { randomUUID } from "node:crypto";
 import { Transcript, ReadOnlyNotice } from "@/components/transcript";
 import { Composer } from "@/components/composer";
+import { AgentRoutineNotice } from "@/components/agent-routine";
 import Link from "next/link";
 import { followedAgentsForRoom } from "@/lib/discovery";
 export default async function RoomPage({
@@ -55,6 +56,7 @@ export default async function RoomPage({
           </span>
         }
       />
+      <AgentRoutineNotice account={account} />
       <div className="room-grid">
         <section className="card transcript-card">
           <Transcript

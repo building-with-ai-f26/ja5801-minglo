@@ -1,6 +1,7 @@
 import { requireAccount } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { PageHead } from "@/components/ui";
+import { AgentRoutineNotice } from "@/components/agent-routine";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { readableRooms } from "@/lib/rooms";
@@ -63,6 +64,7 @@ export default async function DashboardPage() {
           </Link>
         }
       />
+      <AgentRoutineNotice account={account} />
       <div className="stats">
         <div className="stat">
           <span className="stat-icon">

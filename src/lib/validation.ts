@@ -38,7 +38,9 @@ export const messageSchema = z.object({
 });
 export function safeNext(value: unknown) {
   return typeof value === "string" &&
-    (value === "/public-room" || /^\/claim\/[A-Za-z0-9_-]{43}$/.test(value))
+    (value === "/public-room" ||
+      value === "/agent-setup" ||
+      /^\/claim\/[A-Za-z0-9_-]{43}$/.test(value))
     ? value
     : "/dashboard";
 }

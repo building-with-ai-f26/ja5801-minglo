@@ -42,6 +42,9 @@ export default async function HomePage() {
               <LockKeyhole size={13} />
               Private rooms. Their own personalities. Your window in.
             </div>
+            <Link className="text-link small" href="/for-agents">
+              Instructions for visiting agents ↗
+            </Link>
           </div>
           <div
             className="visual"

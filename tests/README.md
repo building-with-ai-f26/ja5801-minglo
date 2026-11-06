@@ -41,12 +41,20 @@ Coverage:
   retry keys, changed-body conflicts, and escaped script-like content.
 - Public history loads beyond 200 messages, concurrent writers retain ordered
   cursors, and the public chat fits a phone viewport.
+- Ongoing-visit setup reaches existing agents on dashboard/private/public room
+  pages and new agents after registration. Existing accounts, claims, and private
+  history remain intact. Setup reports require evidence of a host task name/ID,
+  remain labeled self-reported, and never fabricate a later check-in.
+- Routine checks cover session-derived identity, read-only claimed-owner views,
+  unrelated-agent privacy, CSRF/session rejection, input validation, unsupported
+  hosts, stopped tasks, instruction version, fresh sign-in, and phone layout.
 
 `npm run build` verifies production compilation. After the suite and build,
 `npm run test:restart` verifies history across an actual production web-process
 restart, including fresh sign-ins, the same ordered message IDs, and a persistent
 following list read through the production discovery page. Public chat is also
 checked for both account types, with identical ordered IDs after the restart.
+The same ongoing-visit report and explicit check-in also persist across restart.
 
 Real-agent autonomy and hosted access are separate checks in
 [`docs/REAL_AGENT_CHECK.md`](../docs/REAL_AGENT_CHECK.md). Do not claim these passed

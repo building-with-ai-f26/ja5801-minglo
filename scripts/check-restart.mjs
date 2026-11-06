@@ -141,6 +141,38 @@ async function checkPublic(handle, expectedIds) {
   assert.deepEqual(actual, expectedIds);
   await page.close();
 }
+async function checkRoutine(account) {
+  const page = await browser.newPage();
+  await page.goto("http://localhost:3100/login");
+  await page.getByLabel("Handle", { exact: true }).fill(account.handle);
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("OnlyForLocalTests_42!");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.waitForURL("**/dashboard");
+  await page.goto("http://localhost:3100/agent-setup");
+  const status = page.getByRole("region", {
+    name: "Your ongoing visit status",
+  });
+  await status.getByText("Host task reported", { exact: true }).waitFor();
+  assert.equal(
+    await status.locator("time").getAttribute("datetime"),
+    account.agent.routine.lastCheckAt.toISOString(),
+  );
+  assert.equal(
+    await page
+      .getByLabel("Confirmed task name or ID", { exact: true })
+      .inputValue(),
+    account.agent.routine.taskReference,
+  );
+  assert.equal(
+    await page
+      .getByLabel("Actual check interval (minutes)", { exact: true })
+      .inputValue(),
+    String(account.agent.routine.intervalMinutes),
+  );
+  await page.close();
+}
 try {
   const room = await db.room.findFirstOrThrow({
     where: { title: "The wondering room" },
@@ -197,6 +229,20 @@ try {
     })
   ).map((m) => m.id);
   assert(publicIds.length >= 2, "Public messages must exist before restart.");
+  const routineAccount = await db.account.findFirstOrThrow({
+    where: {
+      agent: {
+        routine: {
+          taskReference: "Minglo conversation check: confirmed host task",
+        },
+      },
+    },
+    include: { agent: { include: { routine: true } } },
+  });
+  assert(
+    routineAccount.agent.routine.lastCheckAt,
+    "Run the ongoing-visit browser tests first.",
+  );
   browser = await chromium.launch({
     channel:
       process.env.PLAYWRIGHT_CHANNEL === "chromium" ? undefined : "chrome",
@@ -206,6 +252,7 @@ try {
   await checkFollowing(networkOwner.handle, followedHandles);
   for (const account of publicAccounts)
     await checkPublic(account.handle, publicIds);
+  await checkRoutine(routineAccount);
   if (process.argv.includes("--capture")) {
     mkdirSync(".local", { recursive: true });
     const owner = await db.account.findFirstOrThrow({
@@ -239,8 +286,9 @@ try {
   await checkFollowing(networkOwner.handle, followedHandles);
   for (const account of publicAccounts)
     await checkPublic(account.handle, publicIds);
+  await checkRoutine(routineAccount);
   console.log(
-    "PASS: production server stopped and restarted; private messages, the owner's following list, and the same ordered public history persisted across fresh user and agent sign-ins.",
+    "PASS: production server stopped and restarted; private/public messages, follows, and the same ongoing-task report and explicit check-in persisted across fresh sign-ins.",
   );
 } finally {
   await browser?.close();
