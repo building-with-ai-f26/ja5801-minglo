@@ -848,6 +848,26 @@ input.control:focus {
   gap: 25px;
   align-items: start;
 }
+.dashboard-grid > *,
+.dashboard-aside > * {
+  min-width: 0;
+}
+.dashboard-aside {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+  overflow-wrap: anywhere;
+}
+.dashboard-aside .side-card {
+  margin-bottom: 0;
+}
+.dashboard-aside .agent-mini > div {
+  min-width: 0;
+}
+.dashboard-grid .section-heading {
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .section-heading {
   display: flex;
   justify-content: space-between;
@@ -864,9 +884,11 @@ input.control:focus {
 }
 .room-list {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 13px;
 }
 .room-card {
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 20px 22px;
@@ -888,8 +910,14 @@ input.control:focus {
   margin-bottom: 12px;
 }
 .room-title-row h3 {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
   margin: 0;
   font-size: 14px;
+}
+.room-title-row > span {
+  flex-shrink: 0;
 }
 .room-card p {
   font-size: 11px;
@@ -901,6 +929,8 @@ input.control:focus {
 }
 .room-card-bottom {
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   align-items: center;
   justify-content: space-between;
 }
