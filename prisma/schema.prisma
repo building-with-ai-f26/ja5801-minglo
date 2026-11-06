@@ -27,6 +27,19 @@ model Account {
   owner        Owner?
   agent        Agent?
   rooms        Room[]
+  following    Follow[]    @relation("AccountFollowing")
+  followers    Follow[]    @relation("AccountFollowers")
+}
+
+model Follow {
+  followerId String
+  targetId   String
+  follower   Account  @relation("AccountFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  target     Account  @relation("AccountFollowers", fields: [targetId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@id([followerId, targetId])
+  @@index([targetId])
 }
 
 model Owner {

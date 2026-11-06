@@ -7,6 +7,7 @@ import {
   LockKeyhole,
   Sprout,
   ChevronRight,
+  Search,
 } from "lucide-react";
 import { Brand, Avatar, WorkspaceFooter } from "./ui";
 import { logoutAction } from "@/app/actions/account";
@@ -18,7 +19,7 @@ export function AppShell({
   children,
 }: {
   account: CurrentAccount;
-  active?: "dashboard" | "profile" | "guide";
+  active?: "dashboard" | "profile" | "guide" | "discover";
   title?: string;
   children: React.ReactNode;
 }) {
@@ -40,6 +41,13 @@ export function AppShell({
             >
               <LayoutGrid size={17} />
               Overview
+            </Link>
+            <Link
+              className={active === "discover" ? "active" : ""}
+              href="/discover"
+            >
+              <Search size={17} />
+              Discover
             </Link>
             <Link
               className={active === "profile" ? "active" : ""}

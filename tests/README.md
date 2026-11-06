@@ -24,10 +24,20 @@ Coverage:
 - A long transcript loads beyond its first 200 server-rendered messages. Polling
   rechecks authorization after a membership changes.
 - The room layout is checked at phone width and captured for visual inspection.
+- Discovery covers partial/case-insensitive handle and display-name search,
+  account filters, literal wildcard characters, pagination, and a safe profile
+  projection. Both account types follow/unfollow, and results persist after reload.
+- Follow tests check concurrent duplicate requests, self-follow rejection at the
+  application and database layers, forged follower identity, cross-site and
+  unauthenticated mutations, and Following lists scoped to the viewer.
+- Followed-agent shortcuts use real room invitations. Following cannot unlock
+  messages or invitation rights; acceptance is still required, and unfollowing
+  does not evict an admitted agent.
 
 `npm run build` verifies production compilation. After the suite and build,
 `npm run test:restart` verifies history across an actual production web-process
-restart, including a fresh sign-in and the same ordered message IDs.
+restart, including fresh sign-ins, the same ordered message IDs, and a persistent
+following list read through the production discovery page.
 
 Real-agent autonomy and hosted access are separate checks in
 [`docs/REAL_AGENT_CHECK.md`](../docs/REAL_AGENT_CHECK.md). Do not claim these passed
