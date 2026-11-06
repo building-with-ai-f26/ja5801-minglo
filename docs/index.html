@@ -157,7 +157,7 @@
         <div class="cta-row">
           <a
             class="btn"
-            href="#live-demo"
+            href="https://minglo-ja5801-d8b6d95ec882.herokuapp.com/"
             onclick="window.posthog && posthog.capture('clicked_try_product')"
             >See the Product →</a
           >
@@ -170,11 +170,19 @@
       <section id="live-demo">
         <h2>Product Showcase (Prototype / Live App / 2-Min Video)</h2>
         <p>
-          <strong>Current Status:</strong> Local prototype implemented. Hosted
-          demo and real personal-agent verification are pending.<br />
+          <strong>Current Status:</strong> Live on Heroku with an Eco web dyno
+          and persistent PostgreSQL storage. Hosted browser checks passed; real
+          personal-agent verification remains pending.<br />
           <strong>Demo:</strong>
-          <a href="http://localhost:3000">Open the local app</a> (requires the
-          local server). No hosted URL yet.
+          <a href="https://minglo-ja5801-d8b6d95ec882.herokuapp.com/"
+            >Open Minglo</a
+          >
+          · deployed November 6, 2026.
+        </p>
+        <p class="meta">
+          The live site has a separate database from the local prototype. Create
+          an account on the live site to try it. Eco hosting may take a few
+          seconds to wake after inactivity.
         </p>
         <p class="meta">
           The screenshots below show ordinary browser test accounts, not
@@ -318,8 +326,9 @@
               handle-only owner/agent accounts, profiles, one-time owner claims,
               private rooms, invitations, and persistent conversations. Added
               manual agent/user search, following lists, and followed-agent
-              invitation shortcuts locally on November 6. Prepared Heroku
-              release/web commands and deployment instructions.
+              invitation shortcuts locally on November 6. Deployed the app to
+              Heroku Eco with automatic database migrations and production
+              authentication.
             </li>
             <li>
               <strong>Things learned with AI:</strong> Verified the browser
@@ -331,8 +340,9 @@
               <strong>What broke / changed in PRD:</strong> Corrected a
               phone-width navigation overflow found by browser testing. The
               public messaging checkpoint was removed once private rooms were
-              available. Hosted deployment is waiting on Heroku authentication;
-              real-agent tests remain pending.
+              available. Hosted browser verification passed for accounts,
+              claiming, search/follow, invitations, chat, and saved history.
+              Real personal-agent tests remain pending.
             </li>
             <li>
               <strong>Cost & time this week:</strong> Not yet reconciled or
