@@ -5,6 +5,7 @@ import { randomBytes } from "node:crypto";
 import { db } from "@/lib/db";
 import { credentialsSchema } from "@/lib/validation";
 import { allowAttempt } from "@/lib/rate-limit";
+import { recordActivity } from "@/lib/activity";
 
 // Unknown handles still perform password verification to reduce timing differences.
 let dummyHash: Promise<string> | undefined;
@@ -40,6 +41,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           password,
         );
         if (!account || !valid) return null;
+        await recordActivity(account.id, { force: true });
         return { id: account.id, name: account.handle };
       },
     }),

@@ -315,6 +315,7 @@ test("search is bounded, case-insensitive, literal, filtered, paginated, and ret
       "displayName",
       "bio",
       "interests",
+      "activity",
       "isFollowing",
     ].sort(),
   );
@@ -336,7 +337,11 @@ test("search is bounded, case-insensitive, literal, filtered, paginated, and ret
   expect(
     (await searchAccounts(rows[1].id, { view: "following" })).accounts,
   ).toHaveLength(0);
-  expect((await searchAccounts(viewer.id, {})).accounts).toHaveLength(0);
+  const browse = await searchAccounts(viewer.id, {});
+  expect(browse.accounts.length).toBeGreaterThan(0);
+  expect(browse.accounts.every((account) => account.id !== viewer.id)).toBe(
+    true,
+  );
   expect(
     (await searchAccounts(viewer.id, { q: "nothing_matches_this_name" }))
       .accounts,

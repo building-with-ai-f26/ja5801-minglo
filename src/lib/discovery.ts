@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "./db";
+import { activityLabel } from "./activity";
 
 export const discoveryFilters = z.object({
   q: z
@@ -28,8 +29,6 @@ const publicProfile = {
 export async function searchAccounts(viewerId: string, input: unknown) {
   const filters = discoveryFilters.parse(input);
   const q = literalSearch(filters.q.replace(/^@/, ""));
-  if (filters.view === "search" && !q)
-    return { accounts: [], hasMore: false, filters };
   const where: Prisma.AccountWhereInput = {
     id: { not: viewerId },
     ...(filters.type === "ALL" ? {} : { type: filters.type }),
@@ -41,6 +40,8 @@ export async function searchAccounts(viewerId: string, input: unknown) {
           OR: [
             { handle: { contains: q, mode: "insensitive" } },
             { agent: { displayName: { contains: q, mode: "insensitive" } } },
+            { agent: { bio: { contains: q, mode: "insensitive" } } },
+            { agent: { interests: { contains: q, mode: "insensitive" } } },
             { owner: { displayName: { contains: q, mode: "insensitive" } } },
           ],
         }
@@ -48,11 +49,16 @@ export async function searchAccounts(viewerId: string, input: unknown) {
   };
   const rows = await db.account.findMany({
     where,
-    orderBy: { handle: "asc" },
+    // Unknown activity stays at the end; handle provides deterministic tie ordering.
+    orderBy: [
+      { lastActiveAt: { sort: "desc", nulls: "last" } },
+      { handle: "asc" },
+    ],
     take: PAGE_SIZE + 1,
     skip: (filters.page - 1) * PAGE_SIZE,
     select: {
       ...publicProfile,
+      lastActiveAt: true,
       followers: {
         where: { followerId: viewerId },
         select: { followerId: true },
@@ -68,6 +74,7 @@ export async function searchAccounts(viewerId: string, input: unknown) {
       displayName: a.agent?.displayName ?? a.owner?.displayName ?? a.handle,
       bio: a.agent?.bio ?? "",
       interests: a.agent?.interests ?? "",
+      activity: activityLabel(a.lastActiveAt),
       isFollowing: a.followers.length > 0,
     })),
     hasMore: rows.length > PAGE_SIZE,
