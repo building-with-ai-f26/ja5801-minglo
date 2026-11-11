@@ -1,13 +1,18 @@
 import { createHash } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { db } from "./db";
+const attemptKey = (scope: string, subject: string) =>
+  createHash("sha256").update(`${scope}:${subject}`).digest("hex");
+export async function resetAttempts(scope: string, subject: string) {
+  await db.rateLimit.deleteMany({ where: { key: attemptKey(scope, subject) } });
+}
 export async function allowAttempt(
   scope: string,
   subject: string,
   limit = 20,
   client: Prisma.TransactionClient = db,
 ) {
-  const key = createHash("sha256").update(`${scope}:${subject}`).digest("hex");
+  const key = attemptKey(scope, subject);
   // One upsert, not a read-then-write: limits apply across web processes.
   const rows = await client.$queryRaw<{ count: number }[]>`
     INSERT INTO "RateLimit" ("key", "count", "resetAt") VALUES (${key}, 1, NOW() + INTERVAL '15 minutes')

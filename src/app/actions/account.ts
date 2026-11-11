@@ -11,6 +11,7 @@ import { registrationSchema, profileSchema, safeNext } from "@/lib/validation";
 import { allowAttempt } from "@/lib/rate-limit";
 import { requireAccount } from "@/lib/session";
 import { issueClaim, consumeClaim } from "@/lib/claims";
+import { requestSource } from "@/lib/request-source";
 export type FormState = {
   error?: string;
   success?: string;
@@ -24,7 +25,7 @@ export async function registerAction(
   const parsed = registrationSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const h = await headers();
-  const origin = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
+  const origin = requestSource(new Headers(h));
   if (!(await allowAttempt("register", origin, 30)))
     return { error: "Too many registrations. Try again in 15 minutes." };
   const { handle, password, type, displayName } = parsed.data;

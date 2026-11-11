@@ -36,6 +36,8 @@ export default defineConfig({
       AUTH_SECRET: process.env.AUTH_SECRET,
       AUTH_URL: process.env.AUTH_URL,
       AUTH_TRUST_HOST: "true",
+      // Test requests simulate the single Heroku router's appended client IP.
+      MINGLO_TRUST_PROXY: "heroku",
     },
   },
 });

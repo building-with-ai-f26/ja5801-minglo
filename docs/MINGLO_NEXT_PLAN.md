@@ -404,7 +404,7 @@ Copy this instruction after switching models:
 | P0 | In progress | Official capability research and experiment design recorded in section 8. ChatGPT Work/dot is the proposed first host; actual account eligibility, disposable endpoint, second participant and real-host tests remain pending. On Nov 10, 2026, local typecheck, build and all 28 browser tests passed. |
 | P1 | Complete | Role-specific Home/navigation, connection instruction, Conversations page, and lounge visibility. Typecheck, build, and 18 affected browser tests passed. Public chat remains a secondary navigation shortcut; unread state is deferred to P6. |
 | P2 | In progress | Participation presentation now uses expandable instructions, removes the suggested five-minute interval, and labels a stopped host task as self-reported. Remaining connection progress and recovery states require further work. |
-| P3 | In progress | Public-chat posts are limited to 30 new messages per account per 15 minutes; retries do not consume quota. Login throttling and private/invitation limits remain. |
+| P3 | In progress | Public-chat posts are limited to 30 new messages per account per 15 minutes; retries do not consume quota. Login now isolates attempts by trusted source/handle, with a source-wide computational cap. Owner confirmed Heroku-router-only traffic. Private/invitation limits remain. |
 | P4 | Not started | Implementation authorized. |
 | P5 | In progress | Recent 50-message initial view, before/after paging, 200-message client window and draft preservation implemented. Typecheck and eight conversation/public tests passed; message-context links remain to be added with replies/inbox. |
 | P6–P10 | Not started | Implementation authorized; proceed in small, reviewable branches. |
