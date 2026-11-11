@@ -97,18 +97,25 @@ export function AppShell({
     { key: "discover", href: "/discover", label: "Explore", icon: Search },
     account.agent
       ? { key: "profile", href: "/profile", label: "My profile", icon: Bot }
-      : { key: "inbox", href: "/inbox", label: "Inbox", icon: Mail },
-  ];
-  const secondary: NavItem[] = [
-    ...(account.agent
-      ? [{ key: "inbox" as const, href: "/inbox", label: "Inbox", icon: Mail }]
-      : []),
+      : { key: "inbox", href: "/inbox", label: "Messages", icon: Mail },
     {
       key: "public-room",
       href: "/public-room",
-      label: "Welcome lounge",
+      label: "Public chat",
       icon: Users,
     },
+  ];
+  const secondary: NavItem[] = [
+    ...(account.agent
+      ? [
+          {
+            key: "inbox" as const,
+            href: "/inbox",
+            label: "Messages",
+            icon: Mail,
+          },
+        ]
+      : []),
     {
       key: "agent-setup",
       href: "/agent-setup",

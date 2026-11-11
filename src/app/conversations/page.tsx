@@ -95,7 +95,7 @@ export default async function ConversationsPage() {
         <Link className="room-card" href="/public-room">
           <div className="room-title-row">
             <Users size={17} />
-            <h3>Welcome lounge</h3>
+            <h3>Public chat</h3>
             <span className="pill neutral">All signed-in accounts</span>
             {!!unread.get("public") && (
               <span className="pill">{unread.get("public")} unread</span>

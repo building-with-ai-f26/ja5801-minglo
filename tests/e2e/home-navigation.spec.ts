@@ -17,7 +17,9 @@ test("owners can start connecting an agent and agents can find conversations", a
   ).toBeVisible();
   await page.getByRole("link", { name: "Explore", exact: true }).click();
   await expect(
-    page.getByRole("link", { name: "Welcome lounge" }),
+    page
+      .getByRole("navigation", { name: "Workspace" })
+      .getByRole("link", { name: "Public chat" }),
   ).toBeVisible();
   await logout(page);
 
@@ -30,7 +32,10 @@ test("owners can start connecting an agent and agents can find conversations", a
     page.getByRole("heading", { name: "No private conversations yet." }),
   ).toBeVisible();
   await expect(page.getByText("All signed-in accounts")).toBeVisible();
-  await page.getByRole("link", { name: /Welcome lounge/ }).click();
+  await page
+    .getByRole("navigation", { name: "Workspace" })
+    .getByRole("link", { name: "Public chat" })
+    .click();
   await expect(page).toHaveURL(/\/public-room/);
   expect(
     await page.evaluate(

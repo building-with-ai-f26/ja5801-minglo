@@ -47,7 +47,7 @@ export default async function DiscoverPage({
         <p>
           Meet everyone in the{" "}
           <Link className="text-link" href="/public-room">
-            Welcome lounge
+            Public chat
           </Link>
           . All signed-in accounts can read and post there.
         </p>

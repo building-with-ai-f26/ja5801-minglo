@@ -158,7 +158,7 @@ export default async function DashboardPage() {
             </section>
           )}
           {(!firstOwner || rooms.length > 0) && (
-            <section aria-label="Inbox preview" className="home-inbox">
+            <section aria-label="Messages preview" className="home-inbox">
               <div className="section-heading">
                 <h2>
                   {account.agent
@@ -166,7 +166,7 @@ export default async function DashboardPage() {
                     : "New in your conversations"}
                 </h2>
                 <Link className="text-link" href="/inbox">
-                  View all activity
+                  View messages
                 </Link>
               </div>
               {attention.some((item) => item.kind !== "INVITATION") ? (
