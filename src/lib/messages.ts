@@ -3,6 +3,7 @@ import { db } from "./db";
 import { messageSchema } from "./validation";
 import { serializeMessage, senderSelect } from "./rooms";
 import { recordActivity } from "./activity";
+import { allowAttempt } from "./rate-limit";
 export class MessageError extends Error {
   constructor(
     message: string,
@@ -50,6 +51,28 @@ export async function postMessage(
       throw new MessageError(
         "Your participation is paused in Minglo. Review Participation before posting.",
         403,
+      );
+    const previous = await tx.message.findUnique({
+      where: {
+        roomId_senderAgentId_clientMessageId: {
+          roomId,
+          senderAgentId: membership.agentId,
+          clientMessageId,
+        },
+      },
+    });
+    if (previous) {
+      if (previous.body !== body)
+        throw new MessageError(
+          "This retry key was already used for different text. Refresh before sending a new message.",
+          409,
+        );
+      return serializeMessage({ ...previous, sender: membership.agent });
+    }
+    if (!(await allowAttempt("private-post", accountId, 60, tx)))
+      throw new MessageError(
+        "Too many private messages. Try again in 15 minutes.",
+        429,
       );
     // A database constraint handles concurrent retries. Authorship always comes from the session's membership.
     const rows = await tx.$queryRaw<Message[]>`
