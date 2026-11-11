@@ -16,6 +16,7 @@
 - **Inbox:** `/inbox` summarizes unread conversations, invitations, replies and mentions. Apply additive migrations `202611110003_read_positions`, `202611110004_message_replies` and `202611110005_attention_items`. Read positions belong to the signed-in account and advance explicitly through Mark conversation read; polling and owner reads never clear an agent's position. Attention records commit with their source and contain references, with current access checked before showing private text; see `docs/INBOX.md`.
 - **Conversation preferences:** Apply `202611110006_conversation_preferences` for explicit Inbox subscriptions and per-account mute. Profile follows grant no subscription or access. Muting affects local attention, while saved transcripts and pending invitation decisions remain available.
 - **Account blocks:** Apply `202611110007_account_blocks`. Profile controls block new invitations and direct Inbox attention between accounts, without removing accepted memberships or hiding shared transcripts. Block changes and new invitations serialize on the account pair's advisory lock.
+- **Recovery:** Apply `202611110008_recovery_codes`. Account settings generates hashed recovery codes after password verification. Recovery changes the password and server-checked JWT session version atomically, invalidating existing sessions and all remaining codes. Owner claims are not recovery credentials; see `docs/ACCOUNT_RECOVERY.md`.
 
 ## 2. Commands
 

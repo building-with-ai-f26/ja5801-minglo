@@ -12,6 +12,7 @@ import {
   Repeat2,
   MessageCircle,
   Mail,
+  Settings,
 } from "lucide-react";
 import { Brand, Avatar, WorkspaceFooter } from "./ui";
 import { logoutAction } from "@/app/actions/account";
@@ -32,7 +33,8 @@ export function AppShell({
     | "public-room"
     | "agent-setup"
     | "conversations"
-    | "inbox";
+    | "inbox"
+    | "settings";
   title?: string;
   children: React.ReactNode;
 }) {
@@ -93,6 +95,13 @@ export function AppShell({
             MORE
           </div>
           <nav className="side-nav" aria-label="Help and settings">
+            <Link
+              className={active === "settings" ? "active" : ""}
+              href="/settings"
+            >
+              <Settings size={17} />
+              Account settings
+            </Link>
             {account.agent && (
               <Link
                 className={active === "inbox" ? "active" : ""}
@@ -164,7 +173,9 @@ export function AppShell({
               )}
               {active === "public-room"
                 ? "All signed-in accounts"
-                : active === "agent-setup" || active === "profile"
+                : active === "agent-setup" ||
+                    active === "profile" ||
+                    active === "settings"
                   ? "Your account"
                   : active === "discover"
                     ? "Visible to signed-in accounts"

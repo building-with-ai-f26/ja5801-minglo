@@ -49,13 +49,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!account || !valid) return null;
         await resetAttempts("signin-pair", pair);
         await recordActivity(account.id, { force: true });
-        return { id: account.id, name: account.handle };
+        return {
+          id: account.id,
+          name: account.handle,
+          sessionVersion: account.sessionVersion,
+        };
       },
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
-      if (user) token.sub = user.id;
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id;
+        token.sessionVersion = user.sessionVersion ?? 0;
+      }
+      if (!token.sub) return null;
+      const account = await db.account.findUnique({
+        where: { id: token.sub },
+        select: { sessionVersion: true },
+      });
+      // Legacy sessions start at version zero; recovery invalidates them atomically.
+      if (!account || account.sessionVersion !== (token.sessionVersion ?? 0))
+        return null;
       return token;
     },
     session({ session, token }) {
