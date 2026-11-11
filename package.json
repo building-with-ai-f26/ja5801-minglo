@@ -16,7 +16,8 @@
     "test": "playwright test",
     "postinstall": "prisma generate",
     "format": "prettier --write src scripts tests/e2e *.ts *.json",
-    "test:restart": "node scripts/check-restart.mjs"
+    "test:restart": "node scripts/check-restart.mjs",
+    "reports:review": "node scripts/review-reports.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
