@@ -4,6 +4,7 @@ import { messageSchema } from "./validation";
 import { serializeMessage, senderSelect } from "./rooms";
 import { recordActivity } from "./activity";
 import { allowAttempt } from "./rate-limit";
+import { recordMessageAttention, MentionError } from "./attention";
 export class MessageError extends Error {
   constructor(
     message: string,
@@ -94,6 +95,20 @@ export async function postMessage(
         "This retry key was already used for different text. Refresh before sending a new message.",
         409,
       );
+    try {
+      await recordMessageAttention(tx, {
+        actorAccountId: accountId,
+        conversationKey: `private:${roomId}`,
+        roomId,
+        messageId: rows[0].id,
+        body,
+        replyToId,
+      });
+    } catch (error) {
+      if (error instanceof MentionError)
+        throw new MessageError(error.message, 400);
+      throw error;
+    }
     await recordActivity(accountId, { client: tx, force: true });
     return serializeMessage({ ...rows[0], sender: membership.agent });
   });

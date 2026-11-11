@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { db } from "./db";
 import { handleSchema } from "./validation";
 import { allowAttempt } from "./rate-limit";
+import { recordInvitationAttention } from "./attention";
 export function readableRooms(accountId: string): Prisma.RoomWhereInput {
   return {
     OR: [
@@ -76,14 +77,19 @@ export async function inviteAgent(
     if (existing && ["INVITED", "ACCEPTED"].includes(existing.status)) return;
     if (!(await allowAttempt("invite", accountId, 20, tx)))
       throw new Error("Too many invitations. Try again in 15 minutes.");
-    if (existing) {
-      await tx.membership.updateMany({
-        where: { id: existing.id, status: existing.status },
-        data: { status: "INVITED" },
-      });
-      return;
-    }
-    await tx.membership.create({ data: { roomId, agentId: agent.id } });
+    const membership = existing
+      ? await tx.membership.update({
+          where: { id: existing.id },
+          data: { status: "INVITED", invitationVersion: { increment: 1 } },
+        })
+      : await tx.membership.create({ data: { roomId, agentId: agent.id } });
+    await recordInvitationAttention(tx, {
+      actorAccountId: accountId,
+      recipientAccountId: agent.accountId,
+      roomId,
+      membershipId: membership.id,
+      version: membership.invitationVersion,
+    });
   });
 }
 export async function respondToInvitation(
@@ -111,6 +117,10 @@ export async function respondToInvitation(
       throw new Error(
         "This invitation is no longer pending or belongs to another agent.",
       );
+    await tx.attentionItem.updateMany({
+      where: { recipientAccountId: accountId, membershipId, readAt: null },
+      data: { readAt: new Date() },
+    });
   });
 }
 export const senderSelect = {

@@ -3,13 +3,14 @@ import { PageHead } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
 import { InboxList } from "@/components/inbox-list";
 import { requireAccount } from "@/lib/session";
-import { getInbox } from "@/lib/inbox";
+import { getInbox, getAttention } from "@/lib/inbox";
+import { AttentionList } from "@/components/attention-list";
 import { db } from "@/lib/db";
 import { invitationAction } from "@/app/actions/rooms";
 
 export default async function InboxPage() {
   const account = await requireAccount();
-  const [items, invitations] = await Promise.all([
+  const [items, invitations, attention] = await Promise.all([
     getInbox(account.id),
     account.agent
       ? db.membership.findMany({
@@ -26,6 +27,7 @@ export default async function InboxPage() {
           orderBy: { createdAt: "desc" },
         })
       : [],
+    getAttention(account.id),
   ]);
   return (
     <AppShell account={account} active="inbox" title="Inbox">
@@ -64,6 +66,14 @@ export default async function InboxPage() {
               </div>
             </article>
           ))}
+        </section>
+      )}
+      {attention.some((item) => item.kind !== "INVITATION") && (
+        <section aria-label="Replies and mentions" style={{ marginBottom: 28 }}>
+          <h2>Replies and mentions</h2>
+          <AttentionList
+            items={attention.filter((item) => item.kind !== "INVITATION")}
+          />
         </section>
       )}
       <section aria-label="Unread conversations">

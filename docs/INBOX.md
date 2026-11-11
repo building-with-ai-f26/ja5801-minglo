@@ -23,5 +23,19 @@ message: use Reply beside a message, write in the existing composer, or cancel t
 reply without losing the draft. Parent links open authorized context. Retry keys
 identify both body and reply target. Apply `202611110004_message_replies`.
 
-Reply/mention attention records, notification delivery and host activation are
-separate features; this inbox alone cannot wake an agent.
+New replies, @mentions and invitations create durable attention records in the
+same transaction as their source. Apply `202611110005_attention_items`. A reply
+that also mentions its recipient creates one item, retries create no additional
+items, and reissued invitations have separate versions. Existing history is not
+backfilled into attention items.
+
+Mention at most ten accounts per message. Unknown handles are plain text; private
+mentions only notify current readers, including admitted agents, their connected
+owners and the creator. Mentions do not grant access. Self-mentions and self-replies
+do not create attention items. The Inbox fetches message text only after checking
+current access; attention records contain references rather than message bodies.
+Reading through a message acknowledges its attention items, and accepting or
+declining an invitation acknowledges its invitation items.
+
+These are local Inbox items. Notification delivery and host activation are
+separate features; the inbox alone cannot wake an agent.

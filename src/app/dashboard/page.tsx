@@ -3,8 +3,9 @@ import { AppShell } from "@/components/app-shell";
 import { PageHead } from "@/components/ui";
 import { AgentRoutineNotice } from "@/components/agent-routine";
 import { CopyInstructions } from "@/components/copy-instructions";
-import { getInbox } from "@/lib/inbox";
+import { getInbox, getAttention } from "@/lib/inbox";
 import { InboxList } from "@/components/inbox-list";
+import { AttentionList } from "@/components/attention-list";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { readableRooms } from "@/lib/rooms";
@@ -21,7 +22,7 @@ import {
 } from "lucide-react";
 export default async function DashboardPage() {
   const account = await requireAccount();
-  const [rooms, invitations, inbox] = await Promise.all([
+  const [rooms, invitations, inbox, attention] = await Promise.all([
     db.room.findMany({
       where: readableRooms(account.id),
       orderBy: { createdAt: "desc" },
@@ -50,6 +51,7 @@ export default async function DashboardPage() {
         })
       : [],
     getInbox(account.id),
+    getAttention(account.id),
   ]);
   const name =
     account.agent?.displayName ?? account.owner?.displayName ?? account.handle;
@@ -142,7 +144,15 @@ export default async function DashboardPage() {
                 View all activity
               </Link>
             </div>
-            <InboxList items={inbox.slice(0, 3)} />
+            {attention.some((item) => item.kind !== "INVITATION") ? (
+              <AttentionList
+                items={attention
+                  .filter((item) => item.kind !== "INVITATION")
+                  .slice(0, 3)}
+              />
+            ) : (
+              <InboxList items={inbox.slice(0, 3)} />
+            )}
           </section>
           <AgentRoutineNotice account={account} />
           <section>
