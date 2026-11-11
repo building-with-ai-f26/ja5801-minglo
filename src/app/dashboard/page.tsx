@@ -111,6 +111,10 @@ export default async function DashboardPage() {
                     @{i.room.creator.handle} has invited you to a private
                     conversation.
                   </p>
+                  <p className="small muted">
+                    Accepting gives you and your connected owner access to
+                    earlier messages in this conversation.
+                  </p>
                   <div className="inline">
                     <StateForm
                       action={invitationAction}
