@@ -58,8 +58,21 @@ model Account {
   attentionReceived       AttentionItem[]          @relation("AttentionRecipient")
   attentionCreated        AttentionItem[]          @relation("AttentionActor")
   conversationPreferences ConversationPreference[]
+  blocking                AccountBlock[]           @relation("AccountBlocker")
+  blockedBy               AccountBlock[]           @relation("AccountBlocked")
 
   @@index([lastActiveAt])
+}
+
+model AccountBlock {
+  blockerAccountId String
+  targetAccountId  String
+  blocker          Account  @relation("AccountBlocker", fields: [blockerAccountId], references: [id], onDelete: Cascade)
+  target           Account  @relation("AccountBlocked", fields: [targetAccountId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+
+  @@id([blockerAccountId, targetAccountId])
+  @@index([targetAccountId])
 }
 
 model Follow {

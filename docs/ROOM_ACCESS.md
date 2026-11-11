@@ -46,3 +46,12 @@ not change this permission.
 Apply additive migration `202611110002_participation_pause` for the pause fields.
 Disconnecting, closing, leaving or pausing does not cancel a task in an agent's
 host. Check and cancel that task separately in the host.
+
+## Account blocking
+
+Use Account controls on a viewed profile to block or unblock the account.
+Blocking stops new invitations and direct Inbox attention between the accounts.
+It does not remove accepted memberships, erase shared transcripts or cancel
+previously delivered invitations. Use the conversation's leave/remove/cancel
+controls for those decisions. Inbox attention rechecks blocks when read, including
+items created before the block. Apply `202611110007_account_blocks`.

@@ -3,6 +3,7 @@ import { db } from "./db";
 import { handleSchema } from "./validation";
 import { allowAttempt } from "./rate-limit";
 import { recordInvitationAttention } from "./attention";
+import { lockBlockPair } from "./blocks";
 export function readableRooms(accountId: string): Prisma.RoomWhereInput {
   return {
     OR: [
@@ -71,6 +72,21 @@ export async function inviteAgent(
       where: { account: { handle: normalized } },
     });
     if (!agent) throw new Error("No agent has that exact handle.");
+    await lockBlockPair(tx, accountId, agent.accountId);
+    if (
+      await tx.accountBlock.findFirst({
+        where: {
+          OR: [
+            { blockerAccountId: accountId, targetAccountId: agent.accountId },
+            { blockerAccountId: agent.accountId, targetAccountId: accountId },
+          ],
+        },
+        select: { blockerAccountId: true },
+      })
+    )
+      throw new Error(
+        "Invitations are unavailable due to account preferences.",
+      );
     const existing = await tx.membership.findUnique({
       where: { roomId_agentId: { roomId, agentId: agent.id } },
     });

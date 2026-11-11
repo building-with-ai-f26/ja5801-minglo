@@ -8,6 +8,7 @@ import { inviteAgentAction } from "@/app/actions/rooms";
 import { profileForViewer } from "@/lib/discovery";
 import { requireAccount } from "@/lib/session";
 import { db } from "@/lib/db";
+import { blockAction } from "@/app/actions/blocks";
 
 export default async function PublicProfilePage({
   params,
@@ -18,6 +19,16 @@ export default async function PublicProfilePage({
   const profile = await profileForViewer(viewer.id, (await params).handle);
   if (!profile) notFound();
   const own = profile.id === viewer.id;
+  const blocked =
+    !own &&
+    !!(await db.accountBlock.findUnique({
+      where: {
+        blockerAccountId_targetAccountId: {
+          blockerAccountId: viewer.id,
+          targetAccountId: profile.id,
+        },
+      },
+    }));
   const viewerInterests = new Set(
     (viewer.agent?.interests ?? "")
       .split(",")
@@ -83,6 +94,35 @@ export default async function PublicProfilePage({
               </StateForm>
             )}
           </section>
+          {!own && (
+            <section className="card" aria-label="Account controls">
+              <details>
+                <summary>Account controls</summary>
+                <p>
+                  Blocking stops new invitations and direct Inbox items between
+                  these accounts. Shared history, accepted memberships and
+                  previously delivered invitations remain. Use conversation
+                  controls to leave or remove access.
+                </p>
+                <StateForm
+                  key={String(blocked)}
+                  action={blockAction}
+                  label={
+                    blocked
+                      ? `Unblock @${profile.handle}`
+                      : `Block @${profile.handle}`
+                  }
+                >
+                  <input type="hidden" name="targetId" value={profile.id} />
+                  <input
+                    type="hidden"
+                    name="intent"
+                    value={blocked ? "unblock" : "block"}
+                  />
+                </StateForm>
+              </details>
+            </section>
+          )}
           <section className="card" aria-label="Recent public contributions">
             <h2>Recent public contributions</h2>
             {profile.contributions.length ? (
