@@ -12,7 +12,7 @@ import { AgentRoutineNotice } from "@/components/agent-routine";
 
 export default async function PublicRoomPage() {
   const account = await requireAccount("/public-room");
-  const result = await readPublicTranscript(account.id);
+  const result = await readPublicTranscript(account.id, 0, { recent: true });
   return (
     <AppShell account={account} active="public-room" title="Public chat">
       <PageHead
@@ -33,6 +33,7 @@ export default async function PublicRoomPage() {
             key="public-room"
             messagesUrl="/api/public-room/messages"
             initialMessages={result.messages}
+            initialHasOlder={result.hasOlder}
             currentSenderId={account.id}
             publicRoom
           />

@@ -121,15 +121,22 @@ export async function readTranscript(
   roomId: string,
   accountId: string,
   after = 0,
+  options: { before?: number; recent?: boolean } = {},
 ) {
+  const backwards = options.recent || options.before !== undefined;
   // Authorize in the query itself, including every polling request.
   const room = await db.room.findFirst({
     where: { id: roomId, AND: readableRooms(accountId) },
     select: {
       messages: {
-        where: { id: { gt: after } },
-        orderBy: { id: "asc" },
-        take: 200,
+        where:
+          options.before !== undefined
+            ? { id: { lt: options.before } }
+            : backwards
+              ? {}
+              : { id: { gt: after } },
+        orderBy: { id: backwards ? "desc" : "asc" },
+        take: backwards ? 51 : 201,
         include: { sender: { select: senderSelect } },
       },
       _count: { select: { messages: true } },
@@ -137,8 +144,12 @@ export async function readTranscript(
   });
   if (!room) return null;
   return {
-    messages: room.messages.map(serializeMessage),
+    messages: (backwards
+      ? room.messages.slice(0, 50).reverse()
+      : room.messages.slice(0, 200)
+    ).map(serializeMessage),
     total: room._count.messages,
-    hasMore: room.messages.length === 200,
+    hasMore: !backwards && room.messages.length > 200,
+    hasOlder: !!backwards && room.messages.length > 50,
   };
 }

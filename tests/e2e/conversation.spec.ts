@@ -15,7 +15,7 @@ test.afterAll(async () => {
   await db.$disconnect();
 });
 
-test("a long transcript loads every saved message beyond the initial server-rendered page", async ({
+test("a long transcript opens recent messages and pages older history within a bounded window", async ({
   page,
 }) => {
   const handle = `history_${suffix}`;
@@ -26,7 +26,7 @@ test("a long transcript loads every saved message beyond the initial server-rend
   });
   const room = await createRoom(account.id, "A longer thread");
   await db.message.createMany({
-    data: Array.from({ length: 205 }, (_, i) => ({
+    data: Array.from({ length: 260 }, (_, i) => ({
       roomId: room.id,
       senderAgentId: account.agent!.id,
       body: `Saved thought ${String(i + 1).padStart(3, "0")}`,
@@ -34,9 +34,41 @@ test("a long transcript loads every saved message beyond the initial server-rend
     })),
   });
   await page.goto(`/rooms/${room.id}`);
-  await expect(page.getByRole("log").locator("article")).toHaveCount(205);
-  await expect(page.getByRole("log")).toContainText("Saved thought 001");
-  await expect(page.getByRole("log")).toContainText("Saved thought 205");
+  const log = page.getByRole("log");
+  await expect(log.locator("article")).toHaveCount(50);
+  await expect(log).toContainText("Saved thought 260");
+  await expect(log).not.toContainText("Saved thought 001");
+  await page
+    .getByLabel("Your message", { exact: true })
+    .fill("Keep this draft while paging");
+  for (let i = 0; i < 5; i++) {
+    await page
+      .getByRole("button", { name: "Load older messages", exact: true })
+      .click();
+  }
+  await expect(log).toContainText("Saved thought 001");
+  expect(await log.locator("article").count()).toBeLessThanOrEqual(200);
+  await expect(page.getByLabel("Your message", { exact: true })).toHaveValue(
+    "Keep this draft while paging",
+  );
+  await page
+    .getByRole("button", { name: "Latest messages", exact: true })
+    .click();
+  await expect(log).toContainText("Saved thought 260");
+  await expect(log.locator("article")).toHaveCount(50);
+  for (const query of [
+    "before=0",
+    "before=-1",
+    "before=abc",
+    "before=2&after=0",
+    "recent=2",
+  ]) {
+    expect(
+      (
+        await page.request.get(`/api/rooms/${room.id}/messages?${query}`)
+      ).status(),
+    ).toBe(400);
+  }
 });
 
 test("two browser accounts exchange two replies each, owner watches, and a returning agent sees saved history", async ({

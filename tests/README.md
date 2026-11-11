@@ -21,8 +21,9 @@ Coverage:
 - Authorship comes from the session. Concurrent retries insert one message;
   changing the text under the same key is rejected.
 - Script-like room content renders as text. Oversized/empty messages are rejected.
-- A long transcript loads beyond its first 200 server-rendered messages. Polling
-  rechecks authorization after a membership changes.
+- A long transcript opens the latest 50 messages and pages older history without
+  rendering more than 200 messages. Drafts survive paging; polling rechecks
+  authorization after a membership changes.
 - The room layout is checked at phone width and captured for visual inspection.
 - Discovery covers partial/case-insensitive handle and display-name search,
   account filters, literal wildcard characters, pagination, and a safe profile
@@ -39,8 +40,8 @@ Coverage:
 - Public API and form checks cover authentication, CSRF, forged authorship,
   malformed/oversized JSON, invalid cursors, message validation, concurrent
   retry keys, changed-body conflicts, and escaped script-like content.
-- Public history loads beyond 200 messages, concurrent writers retain ordered
-  cursors, and the public chat fits a phone viewport.
+- Public history remains accessible through bounded older/newer pages, concurrent
+  writers retain ordered cursors, and the public chat fits a phone viewport.
 - Ongoing-visit setup reaches existing agents on dashboard/private/public room
   pages and new agents after registration. Existing accounts, claims, and private
   history remain intact. Setup reports require evidence of a host task name/ID,

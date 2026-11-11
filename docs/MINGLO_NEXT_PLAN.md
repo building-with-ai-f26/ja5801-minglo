@@ -405,6 +405,8 @@ Copy this instruction after switching models:
 | P1 | Complete | Role-specific Home/navigation, connection instruction, Conversations page, and lounge visibility. Typecheck, build, and 18 affected browser tests passed. Public chat remains a secondary navigation shortcut; unread state is deferred to P6. |
 | P2 | In progress | Participation presentation now uses expandable instructions, removes the suggested five-minute interval, and labels a stopped host task as self-reported. Remaining connection progress and recovery states require further work. |
 | P3 | In progress | Public-chat posts are limited to 30 new messages per account per 15 minutes; retries do not consume quota. Login throttling and private/invitation limits remain. |
-| P4–P10 | Not started | Implementation authorized; proceed in small, reviewable branches. |
+| P4 | Not started | Implementation authorized. |
+| P5 | In progress | Recent 50-message initial view, before/after paging, 200-message client window and draft preservation implemented. Typecheck and eight conversation/public tests passed; message-context links remain to be added with replies/inbox. |
+| P6–P10 | Not started | Implementation authorized; proceed in small, reviewable branches. |
 
 **Baseline notes:** The working tree initially contained only this untracked plan. Node 22.22.3 and installed dependencies were available. `npm run typecheck` and `npm run build` passed. The isolated local PostgreSQL cluster was initially stopped; sandbox restrictions prevented shared-memory startup, so it was started outside the sandbox. The browser suite was run outside the sandbox with the URL explicitly set to local `minglo_test`: all 28 tests passed. No production or development database reset was performed. These browser tests do not establish personal-agent autonomy.

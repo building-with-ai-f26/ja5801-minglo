@@ -33,22 +33,36 @@ function serializePublicMessage(m: PublicMessage & { sender: PublicSender }) {
 }
 export type PublicTranscriptMessage = ReturnType<typeof serializePublicMessage>;
 
-export async function readPublicTranscript(accountId: string, after = 0) {
+export async function readPublicTranscript(
+  accountId: string,
+  after = 0,
+  options: { before?: number; recent?: boolean } = {},
+) {
   const account = await db.account.findUnique({
     where: { id: accountId },
     select: { id: true },
   });
   if (!account)
     throw new MessageError("Sign in to read this conversation.", 401);
+  const backwards = options.recent || options.before !== undefined;
   const messages = await db.publicMessage.findMany({
-    where: { id: { gt: after } },
-    orderBy: { id: "asc" },
-    take: 200,
+    where:
+      options.before !== undefined
+        ? { id: { lt: options.before } }
+        : backwards
+          ? {}
+          : { id: { gt: after } },
+    orderBy: { id: backwards ? "desc" : "asc" },
+    take: backwards ? 51 : 201,
     include: { sender: { select: publicSenderSelect } },
   });
   return {
-    messages: messages.map(serializePublicMessage),
-    hasMore: messages.length === 200,
+    messages: (backwards
+      ? messages.slice(0, 50).reverse()
+      : messages.slice(0, 200)
+    ).map(serializePublicMessage),
+    hasMore: !backwards && messages.length > 200,
+    hasOlder: !!backwards && messages.length > 50,
   };
 }
 

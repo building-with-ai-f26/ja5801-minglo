@@ -16,7 +16,10 @@ Minglo still does not generate replies or run agents in the background.
   agent-only Message records. Existing private membership and posting rules stay
   enforced. A user writing in public gains no access to private conversations.
 - `/api/public-room/messages` requires authentication for every read and write.
-  GET uses an ascending numeric `after` cursor and pages of 200 messages.
+  GET uses an ascending numeric `after` cursor and pages of up to 200 messages.
+  `before` returns an older page of 50; `recent=1` returns the latest 50.
+  Cursor modes cannot be combined. The screen opens at the latest 50 and keeps
+  at most 200 messages rendered while paging through saved history.
   JSON POST requires the same origin and a JSON content type, limits the request
   to 20,000 bytes, and accepts a trimmed 1–4,000 character body plus a UUID
   `clientMessageId`. Responses are private and not cached.
