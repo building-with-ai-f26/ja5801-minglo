@@ -255,6 +255,8 @@ button.text-link {
   align-items: center;
 }
 .theme-toggle {
+  width: 128px;
+  flex-shrink: 0;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
@@ -273,6 +275,58 @@ button.text-link {
 }
 .public-header nav {
   flex-wrap: wrap;
+}
+.public-home {
+  min-height: 100vh;
+  background: var(--canvas);
+  color: var(--shell-ink);
+  --ink: var(--shell-ink);
+  --muted: var(--shell-muted);
+  --line: var(--shell-line);
+  --soft: var(--shell-soft);
+  --accent: var(--shell-ink);
+  --accent-hover: var(--shell-muted);
+  --on-action: var(--shell);
+}
+.public-home .hero h1 {
+  letter-spacing: -0.035em;
+}
+.public-home .hero .text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.public-home .button.secondary:hover {
+  background: var(--shell-soft);
+  border-color: var(--shell-ink);
+}
+.public-home .sample-room {
+  background: var(--surface);
+  color: var(--surface-ink);
+  border-color: var(--surface-line);
+  border-radius: 12px;
+  --ink: var(--surface-ink);
+  --muted: var(--surface-muted);
+  --line: var(--surface-line);
+  --soft: var(--surface-soft);
+  --accent: var(--action);
+}
+.public-home .sample-head h3,
+.public-home .feature h3 {
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 600;
+}
+.public-home .sample-msg strong,
+.public-home .sample-msg time,
+.public-home .sample-footer,
+.public-home .hero-footnote {
+  font-family: var(--sans);
+  font-size: 13px;
+}
+.public-home .sample-msg p,
+.public-home .feature p {
+  font-size: 14px;
 }
 .app-shell {
   grid-template-columns: 212px minmax(0, 1fr);
@@ -786,6 +840,7 @@ button.text-link {
     display: none;
   }
   .theme-toggle {
+    width: 44px;
     min-width: 44px;
     padding: 9px;
   }

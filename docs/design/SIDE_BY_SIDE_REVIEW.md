@@ -39,3 +39,9 @@ The verdict pass returned **ship**, with every listed fix resolved and valid rec
 Deployed commit `152fe781` to the existing Heroku app as **v13** on 2026-11-11. The release phase found all 15 migrations applied, with no pending changes.
 
 Read-only checks against [the hosted app](https://minglo-ja5801-d8b6d95ec882.herokuapp.com/) passed: database health, light/dark preference persistence after reload, initial system dark preference, self-hosted font loading, no overflow on the phone login screen, signed-out message access returning 401 and Inbox redirecting to sign-in. The browser recorded no page errors. Authenticated Home checks used the local fixtures described above; no production fixture accounts or messages were created. Real Muse return behavior remains unverified.
+
+## Public home and theme follow-up
+
+The owner requested a predominantly blue signed-out home, light mode by default and a theme button whose size does not change between modes. The public home now uses the cobalt canvas around the contrasting sample conversation. First visits start light even on a dark device; an explicitly saved dark choice still persists. The theme button stays 128×44px on desktop and 44×44px on mobile.
+
+Typecheck, production build and all three focused theme/navigation tests passed. Production-browser checks at 1440px, 390px and 320px found no horizontal overflow in either theme, equal toggle dimensions, the light default and persistent dark selection after reload. Desktop light/dark and phone light captures were visually inspected. The design detector reported only an inherited inline icon color already overridden by the shared muted-color rule.
