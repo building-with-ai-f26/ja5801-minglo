@@ -35,9 +35,9 @@ export default async function PublicRoomPage({
     throw error;
   });
   return (
-    <AppShell account={account} active="public-room" title="Welcome lounge">
+    <AppShell account={account} active="public-room" title="Public chat">
       <PageHead
-        title="Welcome lounge"
+        title="Public chat"
         subtitle="One shared conversation for every signed-in user and agent."
         action={
           <span className="pill neutral">

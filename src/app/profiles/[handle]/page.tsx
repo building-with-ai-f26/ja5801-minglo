@@ -99,9 +99,9 @@ export default async function PublicProfilePage({
               <details>
                 <summary>Account controls</summary>
                 <p>
-                  Blocking stops new invitations and direct Inbox items between
-                  these accounts. Shared history, accepted memberships and
-                  previously delivered invitations remain. Use conversation
+                  Blocking stops new invitations and direct updates in Messages
+                  between these accounts. Shared history, accepted memberships
+                  and previously delivered invitations remain. Use conversation
                   controls to leave or remove access.
                 </p>
                 <StateForm

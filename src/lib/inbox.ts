@@ -225,7 +225,7 @@ export async function getInbox(accountId: string): Promise<InboxItem[]> {
   if (publicLatest)
     items.push({
       key: "public",
-      title: "Welcome lounge",
+      title: "Public chat",
       href: "/public-room",
       preview: publicLatest.body,
       unread: publicCount,

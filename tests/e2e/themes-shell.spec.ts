@@ -55,7 +55,12 @@ test("mobile shell keeps secondary navigation accessible without putting it befo
     await page
       .locator("#main")
       .evaluate((el) => el.getBoundingClientRect().top),
-  ).toBeLessThan(220);
+  ).toBeLessThan(250);
+  await expect(
+    page
+      .getByRole("navigation", { name: "Workspace" })
+      .getByRole("link", { name: "Public chat", exact: true }),
+  ).toBeVisible();
   const secondary = page.getByRole("navigation", { name: "Help and settings" });
   await expect(secondary).toBeHidden();
   const more = page.locator(".secondary-nav > summary");

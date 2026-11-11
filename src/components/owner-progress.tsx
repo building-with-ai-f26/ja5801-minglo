@@ -68,7 +68,7 @@ export async function OwnerProgress({
         ? {
             ...publicMessage,
             source: "public" as const,
-            title: "Welcome lounge",
+            title: "Public chat",
             agent: agents.find(
               (a) => a.accountId === publicMessage.senderAccountId,
             )!,

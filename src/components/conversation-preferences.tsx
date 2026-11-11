@@ -29,7 +29,7 @@ export async function ConversationPreferences({
               value="yes"
               defaultChecked={preference?.subscribed ?? false}
             />{" "}
-            Follow conversation updates in my Inbox
+            Follow conversation updates in my Messages
           </label>
         </p>
         <p>

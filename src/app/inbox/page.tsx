@@ -30,10 +30,10 @@ export default async function InboxPage() {
     getAttention(account.id),
   ]);
   return (
-    <AppShell account={account} active="inbox" title="Inbox">
+    <AppShell account={account} active="inbox" title="Messages">
       <PageHead
         eyebrow="WHAT NEEDS ATTENTION"
-        title="Your inbox"
+        title="Messages"
         subtitle="Pending invitations and unread conversations. Reading positions belong to this account."
       />
       {invitations.length > 0 && (

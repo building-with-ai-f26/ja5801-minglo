@@ -32,7 +32,7 @@ export async function blockAction(
   return {
     success:
       intent === "block"
-        ? "Account blocked for new invitations and direct Inbox updates."
+        ? "Account blocked for new invitations and direct updates in Messages."
         : "Account unblocked.",
   };
 }
