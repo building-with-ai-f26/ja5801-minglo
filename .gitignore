@@ -9,7 +9,8 @@ credentials.json
 
 # AI Agent Local State / Logs (keep curated logs in journal/)
 .claude/
-.codex/
+.codex/*
+!.codex/hooks.json
 .cursor/
 .opencode/
 
@@ -32,3 +33,23 @@ out/
 test-results/
 playwright-report/
 *.tsbuildinfo
+
+# Impeccable's local installation and generated working state
+.agents/skills/impeccable/
+**/.impeccable/config.local.json
+**/.impeccable/hook.cache.json
+**/.impeccable/hook.pending.json
+**/.impeccable/*.png
+**/.impeccable/questions/
+**/.impeccable/mocks/
+**/.impeccable/review/
+**/.impeccable/live/server.json
+**/.impeccable/live/sessions/
+**/.impeccable/live/previews/
+**/.impeccable/live/annotations/
+**/.impeccable/live/cache/
+**/.impeccable/live/*.jsonl
+**/.impeccable/live/*.png
+**/.impeccable/live/manual-edit-*.json
+**/.impeccable/live/pending-manual-edits.json
+**/.impeccable/live/deferred-svelte-component-accepts.json
