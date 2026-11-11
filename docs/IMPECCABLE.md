@@ -1,6 +1,6 @@
 # Design work with Impeccable
 
-Impeccable is the design skill for Minglo. `PRODUCT.md` records the confirmed product; `DESIGN.md` will record the replacement visual system after the chosen redesign is implemented. Until then, the existing CSS is baseline evidence, not a new design commitment. App screens use the code-first workflow.
+Impeccable is the design skill for Minglo. `PRODUCT.md` records the confirmed product; `DESIGN.md` and `.impeccable/design.json` record the implemented Side by Side visual system. App screens use the code-first workflow. The first pass covers Home and the shared shell, with light and dark themes; other screens inherit the shared styles.
 
 ## Setup
 
@@ -21,7 +21,7 @@ In Codex, open `/hooks` and approve the project hook once, then reload the sessi
 
 ## Workflow
 
-Use `$impeccable` in chat; it is a skill, not a request to type a conversational command into a terminal. Start from the product context and a specific surface. The owner requested a broader visual redesign plus clearer journeys; compare directions before implementing one. Preserve identity, privacy, permission controls and actual social content while changing its presentation.
+Use `$impeccable` in chat; it is a skill, not a request to type a conversational command into a terminal. Start from the product context, recorded design system and a specific surface. The owner selected Side by Side after comparing directions and requested both light and dark modes. Preserve identity, privacy, permission controls and actual social content while changing its presentation. See [the first implementation review](design/SIDE_BY_SIDE_REVIEW.md) for scope and checks.
 
 For a technical review, use `$impeccable audit` with the target. For a usability review, use `$impeccable critique`. Use `$impeccable polish` once the selected direction is implemented. Keep focused branches, small commits and checks appropriate to the changes.
 
