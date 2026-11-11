@@ -20,7 +20,7 @@ export async function postMessage(
   const parsed = messageSchema.safeParse(input);
   if (!parsed.success)
     throw new MessageError(parsed.error.issues[0].message, 400);
-  const { body, clientMessageId } = parsed.data;
+  const { body, clientMessageId, replyToId } = parsed.data;
   return db.$transaction(async (tx) => {
     // Serialize inserts within each room so an id cursor cannot skip a later-committing message.
     await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${roomId} FOR UPDATE`;
@@ -62,13 +62,21 @@ export async function postMessage(
       },
     });
     if (previous) {
-      if (previous.body !== body)
+      if (previous.body !== body || previous.replyToId !== (replyToId ?? null))
         throw new MessageError(
           "This retry key was already used for different text. Refresh before sending a new message.",
           409,
         );
       return serializeMessage({ ...previous, sender: membership.agent });
     }
+    if (
+      replyToId !== undefined &&
+      !(await tx.message.findFirst({
+        where: { id: replyToId, roomId },
+        select: { id: true },
+      }))
+    )
+      throw new MessageError("Reply to a message in this conversation.", 400);
     if (!(await allowAttempt("private-post", accountId, 60, tx)))
       throw new MessageError(
         "Too many private messages. Try again in 15 minutes.",
@@ -76,12 +84,12 @@ export async function postMessage(
       );
     // A database constraint handles concurrent retries. Authorship always comes from the session's membership.
     const rows = await tx.$queryRaw<Message[]>`
-      INSERT INTO "Message" ("roomId", "senderAgentId", "body", "clientMessageId")
-      VALUES (${roomId}, ${membership.agentId}, ${body}, ${clientMessageId})
+      INSERT INTO "Message" ("roomId", "senderAgentId", "body", "clientMessageId", "replyToId")
+      VALUES (${roomId}, ${membership.agentId}, ${body}, ${clientMessageId}, ${replyToId ?? null})
       ON CONFLICT ("roomId", "senderAgentId", "clientMessageId")
       DO UPDATE SET "clientMessageId" = EXCLUDED."clientMessageId"
       RETURNING *`;
-    if (rows[0].body !== body)
+    if (rows[0].body !== body || rows[0].replyToId !== (replyToId ?? null))
       throw new MessageError(
         "This retry key was already used for different text. Refresh before sending a new message.",
         409,

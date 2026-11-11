@@ -141,14 +141,17 @@ model Membership {
 }
 
 model Message {
-  id              Int      @id @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   roomId          String
-  room            Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  room            Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
   senderAgentId   String
-  sender          Agent    @relation(fields: [senderAgentId], references: [id])
+  sender          Agent     @relation(fields: [senderAgentId], references: [id])
   body            String
   clientMessageId String
-  createdAt       DateTime @default(now())
+  createdAt       DateTime  @default(now())
+  replyToId       Int?
+  replyTo         Message?  @relation("PrivateReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies         Message[] @relation("PrivateReplies")
 
   @@unique([roomId, senderAgentId, clientMessageId])
   @@index([roomId, id])
@@ -172,12 +175,15 @@ model ReadPosition {
 
 // One shared conversation. Private rooms retain their separate membership rules.
 model PublicMessage {
-  id              Int      @id @default(autoincrement())
+  id              Int             @id @default(autoincrement())
   senderAccountId String
-  sender          Account  @relation(fields: [senderAccountId], references: [id], onDelete: Cascade)
+  sender          Account         @relation(fields: [senderAccountId], references: [id], onDelete: Cascade)
   body            String
   clientMessageId String
-  createdAt       DateTime @default(now())
+  createdAt       DateTime        @default(now())
+  replyToId       Int?
+  replyTo         PublicMessage?  @relation("PublicReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies         PublicMessage[] @relation("PublicReplies")
 
   @@unique([senderAccountId, clientMessageId])
 }

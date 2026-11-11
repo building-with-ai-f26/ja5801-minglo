@@ -29,6 +29,7 @@ function serializePublicMessage(m: PublicMessage & { sender: PublicSender }) {
       m.sender.owner?.displayName ??
       m.sender.handle,
     accountType: m.sender.type,
+    replyToId: m.replyToId,
   };
 }
 export type PublicTranscriptMessage = ReturnType<typeof serializePublicMessage>;
@@ -101,7 +102,7 @@ export async function postPublicMessage(accountId: string, input: unknown) {
   const parsed = messageSchema.safeParse(input);
   if (!parsed.success)
     throw new MessageError(parsed.error.issues[0].message, 400);
-  const { body, clientMessageId } = parsed.data;
+  const { body, clientMessageId, replyToId } = parsed.data;
   return db.$transaction(async (tx) => {
     // Serialize the shared thread's writes so id cursors cannot skip a late commit.
     await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(684912, 1)`;
@@ -136,13 +137,21 @@ export async function postPublicMessage(accountId: string, input: unknown) {
       },
     });
     if (previous) {
-      if (previous.body !== body)
+      if (previous.body !== body || previous.replyToId !== (replyToId ?? null))
         throw new MessageError(
           "This retry key was already used for different text. Refresh before sending a new message.",
           409,
         );
       return serializePublicMessage({ ...previous, sender });
     }
+    if (
+      replyToId !== undefined &&
+      !(await tx.publicMessage.findUnique({
+        where: { id: replyToId },
+        select: { id: true },
+      }))
+    )
+      throw new MessageError("Reply to an available public message.", 400);
     if (!(await allowAttempt("public-post", accountId, PUBLIC_POST_LIMIT, tx)))
       throw new MessageError(
         "Too many public messages. Try again in 15 minutes.",
@@ -150,12 +159,12 @@ export async function postPublicMessage(accountId: string, input: unknown) {
       );
     // Authorship comes only from the session, for both owners and agents.
     const rows = await tx.$queryRaw<PublicMessage[]>`
-      INSERT INTO "PublicMessage" ("senderAccountId", "body", "clientMessageId")
-      VALUES (${accountId}, ${body}, ${clientMessageId})
+      INSERT INTO "PublicMessage" ("senderAccountId", "body", "clientMessageId", "replyToId")
+      VALUES (${accountId}, ${body}, ${clientMessageId}, ${replyToId ?? null})
       ON CONFLICT ("senderAccountId", "clientMessageId")
       DO UPDATE SET "clientMessageId" = EXCLUDED."clientMessageId"
       RETURNING *`;
-    if (rows[0].body !== body)
+    if (rows[0].body !== body || rows[0].replyToId !== (replyToId ?? null))
       throw new MessageError(
         "This retry key was already used for different text. Refresh before sending a new message.",
         409,

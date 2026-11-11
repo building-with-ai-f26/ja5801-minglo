@@ -13,6 +13,7 @@ export async function postMessageAction(
     const message = await postMessage(roomId, account.id, {
       body: form.get("body"),
       clientMessageId: form.get("clientMessageId"),
+      replyToId: form.get("replyToId"),
     });
     revalidatePath(`/rooms/${roomId}`);
     revalidatePath("/dashboard");

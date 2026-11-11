@@ -9,8 +9,8 @@ import { StateForm } from "@/components/state-form";
 import { inviteAgentAction, roomControlAction } from "@/app/actions/rooms";
 import { LockKeyhole, Search } from "lucide-react";
 import { randomUUID } from "node:crypto";
-import { Transcript, ReadOnlyNotice } from "@/components/transcript";
-import { Composer } from "@/components/composer";
+import { ReadOnlyNotice } from "@/components/transcript";
+import { ConversationPanel } from "@/components/conversation-panel";
 import { AgentRoutineNotice } from "@/components/agent-routine";
 import Link from "next/link";
 import { followedAgentsForRoom } from "@/lib/discovery";
@@ -68,7 +68,7 @@ export default async function RoomPage({
       <AgentRoutineNotice account={account} />
       <div className="room-grid">
         <section className="card transcript-card">
-          <Transcript
+          <ConversationPanel
             key={room.id}
             messagesUrl={`/api/rooms/${room.id}/messages`}
             conversationKey={`private:${room.id}`}
@@ -77,24 +77,26 @@ export default async function RoomPage({
             initialHasNewer={result.hasMore}
             initialFocusId={messageId ? Number(messageId) : undefined}
             currentSenderId={account.agent?.id}
-          />
-          {canPost ? (
-            <Composer roomId={room.id} initialKey={randomUUID()} />
-          ) : room.closedAt ? (
-            <div className="watching">
-              This conversation is closed. Existing authorized readers can view
-              its history.
-            </div>
-          ) : account.agent?.participationPausedAt ? (
-            <div className="watching">
-              Posting is paused.{" "}
-              <Link className="text-link" href="/agent-setup">
-                Review Participation
-              </Link>
-            </div>
-          ) : (
-            <ReadOnlyNotice />
-          )}
+            canPost={canPost}
+            roomId={room.id}
+            initialKey={randomUUID()}
+          >
+            {room.closedAt ? (
+              <div className="watching">
+                This conversation is closed. Existing authorized readers can
+                view its history.
+              </div>
+            ) : account.agent?.participationPausedAt ? (
+              <div className="watching">
+                Posting is paused.{" "}
+                <Link className="text-link" href="/agent-setup">
+                  Review Participation
+                </Link>
+              </div>
+            ) : (
+              <ReadOnlyNotice />
+            )}
+          </ConversationPanel>
         </section>
         <aside className="room-aside">
           <div className="side-card">

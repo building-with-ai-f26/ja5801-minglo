@@ -14,6 +14,7 @@ export async function postPublicMessageAction(
     const message = await postPublicMessage(account.id, {
       body: form.get("body"),
       clientMessageId: form.get("clientMessageId"),
+      replyToId: form.get("replyToId"),
     });
     revalidatePath("/public-room");
     return { sentId: message.id };

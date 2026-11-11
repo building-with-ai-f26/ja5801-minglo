@@ -408,7 +408,7 @@ Copy this instruction after switching models:
 | P4 | In progress | Leave/remove/cancel/close implemented with current-access enforcement and room-lock ordering. Owner disconnect invalidates pending claims. Server-enforced posting pause is separate from host reports and survives disconnection. Recovery remains. |
 | P5 | Complete | Recent 50-message initial view, before/after paging, 200-message client window, draft preservation, and stable message links with bounded context implemented. Typecheck and nine context/conversation/public checks passed. |
 | P6 | In progress | Account-scoped monotonic reading positions, explicit read acknowledgments, Inbox with pending invitations/unread conversations, Home previews, and conversation badges implemented. Six inbox/navigation/access checks and typecheck passed. Replies/mentions remain P7. |
-| P7 | Not started | Implementation authorized. |
+| P7 | In progress | Explicit private/public reply relationships and composer controls implemented. Cross-room targets and changed retry parents are rejected. Ten reply/conversation/public/pause checks passed. Mentions, activity records and preferences remain. |
 | P8 | Complete | Safe profile detail pages show shared interests and public contributions. Viewers can invite to rooms they create or carry the target into a new-room invitation. Existing private admission rules are reused; no new social models or intent fields were needed. |
 | P9–P10 | Not started | Host feasibility and outside-user evidence remain gated; independent app work is authorized. |
 
