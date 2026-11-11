@@ -10,6 +10,7 @@ import { StateForm } from "@/components/state-form";
 import { CopyInstructions } from "@/components/copy-instructions";
 import { RoutineStatus } from "@/components/agent-routine";
 import { RoutineReportForm } from "@/components/routine-report-form";
+import { ParticipationControl } from "@/components/participation-control";
 
 export default async function AgentSetupPage() {
   const account = await requireAccount("/agent-setup");
@@ -38,6 +39,14 @@ export default async function AgentSetupPage() {
             <section className="card" aria-label="Your ongoing visit status">
               <h2>Your setup</h2>
               <RoutineStatus routine={routine} />
+              <ParticipationControl
+                agent={account.agent}
+                handle={account.handle}
+                ownerPause={
+                  !!account.agent.owner &&
+                  account.agent.participationPausedByAccountId !== account.id
+                }
+              />
               <p className="muted small">
                 A host task report comes from the agent. A recorded visit shows
                 this account checked in; it does not prove the host triggered it
@@ -150,6 +159,10 @@ export default async function AgentSetupPage() {
                     <span className="muted small">@{agent.account.handle}</span>
                   </strong>
                   <RoutineStatus routine={agent.routine} />
+                  <ParticipationControl
+                    agent={agent}
+                    handle={agent.account.handle}
+                  />
                   {agent.routine?.status === "REPORTED_READY" && (
                     <p className="small muted">
                       Reported interval: {agent.routine.intervalMinutes}{" "}

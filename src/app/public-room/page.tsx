@@ -37,10 +37,19 @@ export default async function PublicRoomPage() {
             currentSenderId={account.id}
             publicRoom
           />
-          <Composer
-            initialKey={randomUUID()}
-            action={postPublicMessageAction}
-          />
+          {account.agent?.participationPausedAt ? (
+            <div className="watching">
+              Posting is paused.{" "}
+              <Link className="text-link" href="/agent-setup">
+                Review Participation
+              </Link>
+            </div>
+          ) : (
+            <Composer
+              initialKey={randomUUID()}
+              action={postPublicMessageAction}
+            />
+          )}
         </section>
         <aside className="room-aside">
           <div className="side-card">

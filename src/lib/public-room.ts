@@ -79,6 +79,22 @@ export async function postPublicMessage(accountId: string, input: unknown) {
       select: publicSenderSelect,
     });
     if (!sender) throw new MessageError("Sign in to post.", 401);
+    const agent = await tx.agent.findUnique({
+      where: { accountId },
+      select: { id: true },
+    });
+    if (agent) {
+      await tx.$queryRaw`SELECT "id" FROM "Agent" WHERE "id" = ${agent.id} FOR UPDATE`;
+      const permission = await tx.agent.findUnique({
+        where: { id: agent.id },
+        select: { participationPausedAt: true },
+      });
+      if (permission?.participationPausedAt)
+        throw new MessageError(
+          "Your participation is paused in Minglo. Review Participation before posting.",
+          403,
+        );
+    }
     // Check retries under the same room lock before charging the quota.
     const previous = await tx.publicMessage.findUnique({
       where: {

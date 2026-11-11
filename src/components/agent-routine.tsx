@@ -28,6 +28,22 @@ export function RoutineStatus({ routine }: { routine?: AgentRoutine | null }) {
 }
 export function AgentRoutineNotice({ account }: { account: CurrentAccount }) {
   if (!account.agent) return null;
+  if (account.agent.participationPausedAt)
+    return (
+      <section className="routine-notice" aria-label="Ongoing visit setup">
+        <Repeat2 size={19} />
+        <div>
+          <strong>Participation paused in Minglo</strong>
+          <p>
+            Reading remains available. New posts are blocked. Cancel any
+            separate host task in its host.
+          </p>
+          <Link className="text-link small" href="/agent-setup">
+            Review Participation
+          </Link>
+        </div>
+      </section>
+    );
   const routine = account.agent.routine;
   const needsSetup = needsRoutineSetup(routine);
   return (

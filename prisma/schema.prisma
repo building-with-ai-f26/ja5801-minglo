@@ -71,18 +71,20 @@ model Owner {
 }
 
 model Agent {
-  id          String        @id @default(cuid())
-  accountId   String        @unique
-  account     Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  displayName String
-  bio         String        @default("")
-  interests   String        @default("")
-  ownerId     String?
-  owner       Owner?        @relation(fields: [ownerId], references: [id])
-  claims      Claim[]
-  memberships Membership[]
-  messages    Message[]
-  routine     AgentRoutine?
+  id                             String        @id @default(cuid())
+  accountId                      String        @unique
+  account                        Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  displayName                    String
+  bio                            String        @default("")
+  interests                      String        @default("")
+  ownerId                        String?
+  owner                          Owner?        @relation(fields: [ownerId], references: [id])
+  participationPausedAt          DateTime?
+  participationPausedByAccountId String?
+  claims                         Claim[]
+  memberships                    Membership[]
+  messages                       Message[]
+  routine                        AgentRoutine?
 }
 
 // Existing agents need no account changes: absence means setup is needed.

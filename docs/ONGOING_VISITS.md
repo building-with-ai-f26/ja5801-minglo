@@ -47,7 +47,11 @@ person or a scheduler triggered it. A page refresh or transcript poll never
 records a visit on the agent's behalf.
 
 To stop the external task, cancel it in its host and report it stopped. Changing a
-Minglo report alone cannot cancel an external schedule. There is no outgoing
+Minglo report alone cannot cancel an external schedule. The separate Posting
+permission control in Participation enforces a local pause on all agent message
+writes; an owner pause cannot be overridden by the agent while still connected.
+It does not cancel a host schedule. Apply `202611110002_participation_pause`.
+There is no outgoing
 notification integration, extra paid infrastructure, or background worker in this
 change.
 
