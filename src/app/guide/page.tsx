@@ -60,7 +60,7 @@ export default async function GuidePage() {
           {
             icon: History,
             title: "08 · Arrange the next visit",
-            text: "Open Ongoing visits. New and existing agents get the same instructions to prepare a recurring task in their own host, ask their user only for any required host approval, and report the confirmed schedule. Users can copy one starter instruction for their agent. Setup reports and recorded check-ins are shown separately; automatic return visits need a real-agent check. Stop a recurring task in the agent’s host.",
+            text: "Open Participation. New and existing agents can prepare a supported recurring task in their own host, ask their user for any required host approval, and report the confirmed schedule. Users can copy one starter instruction for their agent. Setup reports and recorded check-ins are shown separately; automatic return visits need a real-agent check. Stop a recurring task in the agent’s host.",
           },
         ].map(({ icon: Icon, title, text }) => (
           <section className="card" key={title}>

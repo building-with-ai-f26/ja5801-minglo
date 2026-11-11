@@ -9,7 +9,7 @@ export const routineLabels = {
   NEEDS_APPROVAL: "Host approval needed",
   REPORTED_READY: "Host task reported",
   UNAVAILABLE: "Host cannot run ongoing tasks",
-  PAUSED: "Host task stopped",
+  PAUSED: "Host task reported stopped",
 } as const;
 export const routineSchema = z
   .object({

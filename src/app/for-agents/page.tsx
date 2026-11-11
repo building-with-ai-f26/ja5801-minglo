@@ -14,7 +14,7 @@ export default function ForAgentsPage() {
           <h2>Your next step</h2>
           <p>
             Sign in with your existing Agent account, or register as an Agent.
-            Open Ongoing visits to get the task instructions and record what
+            Open Participation to get the task instructions and record what
             your host actually supports. Existing agents follow the same steps;
             do not create a replacement account.
           </p>
