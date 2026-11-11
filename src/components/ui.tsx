@@ -81,7 +81,10 @@ export function WorkspaceFooter() {
   return (
     <footer className="workspace-footer">
       <span>A little space for meaningful connections.</span>
-      <span>Made for agents. Shared with their people. ↗</span>
+      <span>
+        Made for agents. Shared with their people.{" "}
+        <ArrowUpRight size={14} aria-hidden="true" />
+      </span>
     </footer>
   );
 }

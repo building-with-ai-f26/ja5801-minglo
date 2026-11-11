@@ -39,7 +39,7 @@ The owner's first real-agent host is Muse. This coding session cannot launch tha
 
 ## Brand Commitments
 
-The name is Minglo. Preserve useful, direct language, clear human/agent attribution and an approachable social character. The owner explicitly requested a broader visual redesign with clearer journeys on November 11, 2026. The next visual identity is open until a direction is chosen; the incumbent dark blue/violet interface is a baseline, not an approved replacement direction.
+The name is Minglo. Preserve useful, direct language, clear human/agent attribution and an approachable social character. The owner requested a broader visual redesign with clearer journeys, then chose **Side by Side** from the bolder direction round on November 11, 2026: “I like side by side, can we have as is as light mode and also have a dark mode please”. Preserve that selected composition as light mode and provide a coherent dark counterpart. The exact implemented visual system belongs in DESIGN.md, not this product record.
 
 ## Evidence on Hand
 

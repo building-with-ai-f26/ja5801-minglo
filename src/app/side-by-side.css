@@ -1,7 +1,22 @@
 /* Shared visual system: cobalt shell, clear reading surfaces and paired voices. */
+@font-face {
+  font-family: "Public Sans";
+  src: url("/fonts/public-sans-semibold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Public Sans";
+  src: url("/fonts/public-sans-bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
 :root {
   color-scheme: light;
   --surface: #fafbf5;
+  --display: "Public Sans", var(--sans);
   --surface-input: #ffffff;
   --surface-ink: #172443;
   --surface-muted: #52617b;
@@ -70,7 +85,6 @@ h1,
 h2,
 h3,
 h4,
-.brand,
 .breadcrumb,
 .private-label,
 .eyebrow,
@@ -79,6 +93,13 @@ h4,
 .public-footer {
   font-family: var(--sans);
 }
+h1,
+h2,
+h3,
+h4,
+.brand {
+  font-family: var(--display);
+}
 h1 {
   letter-spacing: -0.035em;
   text-wrap: balance;
@@ -86,7 +107,7 @@ h1 {
 .brand {
   font-size: 32px;
   letter-spacing: -0.035em;
-  font-weight: 750;
+  font-weight: 700;
 }
 .brand-mark {
   display: none;
@@ -172,6 +193,12 @@ input.control {
 .text-link {
   text-underline-offset: 4px;
 }
+button.text-link {
+  border: 0;
+  background: transparent;
+  padding: 6px 0;
+  line-height: 1.5;
+}
 .error {
   background: var(--danger-bg);
   border-color: var(--danger-line);
@@ -221,6 +248,11 @@ input.control {
 .workspace-footer,
 .public-footer {
   font-size: 12px;
+}
+.workspace-footer > span:last-child {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
 }
 .theme-toggle {
   min-height: 44px;
@@ -352,6 +384,10 @@ input.control {
   font-size: clamp(30px, 3.5vw, 46px);
   line-height: 1.14;
   margin-bottom: 12px;
+  overflow-wrap: anywhere;
+}
+.page-head > div {
+  min-width: 0;
 }
 .page-head p {
   font-size: 16px;
@@ -372,6 +408,272 @@ input.control {
 .dashboard-aside .side-card p {
   font-size: 14px;
 }
+.owner-home-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 264px;
+  gap: 30px;
+  align-items: start;
+}
+.owner-home-grid > *,
+.exchange-person > div,
+.home-agent-name > div {
+  min-width: 0;
+}
+.exchange {
+  --ink: var(--surface-ink);
+  --muted: var(--surface-muted);
+  --line: var(--surface-line);
+  --soft: var(--surface-soft);
+  --accent: var(--action);
+  --accent-hover: var(--action-hover);
+  --on-action: var(--surface-on-action);
+  color: var(--surface-ink);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.exchange-voices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+.exchange-voices.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+.exchange-voice {
+  background: var(--surface);
+  padding: 26px;
+  min-width: 0;
+}
+.exchange-person {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+}
+.exchange-person h2 {
+  font-size: 18px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.exchange-person span:not(.avatar) {
+  font-size: 13px;
+  color: var(--surface-muted);
+  overflow-wrap: anywhere;
+}
+.exchange-voice blockquote {
+  font-size: clamp(21px, 1.9vw, 27px);
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  margin: 26px 0 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 8;
+  overflow: hidden;
+}
+.exchange-voice.reply blockquote {
+  color: var(--action);
+}
+.exchange-source {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 4px;
+  background: var(--surface);
+  padding: 23px 26px;
+}
+.exchange-source h3 {
+  font-size: 17px;
+  margin-bottom: 5px;
+  overflow-wrap: anywhere;
+}
+.exchange-source p {
+  font-size: 13px;
+  color: var(--surface-muted);
+  margin: 0;
+}
+.exchange-source .button {
+  flex-shrink: 0;
+}
+.home-context {
+  color: var(--shell-muted);
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 20px 0 0;
+  max-width: 68ch;
+}
+.home-agent-panel {
+  border: 1px solid var(--shell-line);
+  border-radius: 12px;
+  padding: 23px;
+}
+.home-agent-panel > h2 {
+  font-size: 18px;
+  margin: 0 0 24px;
+}
+.home-agent-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.home-agent-name .avatar {
+  background: var(--shell-ink);
+  color: var(--shell);
+  width: 48px;
+  height: 48px;
+}
+.home-agent-name h3 {
+  font-size: 26px;
+  line-height: 1.2;
+  margin-bottom: 5px;
+  overflow-wrap: anywhere;
+}
+.home-agent-name p {
+  font-size: 13px;
+  color: var(--shell-muted);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.home-host-status {
+  border-block: 1px solid var(--shell-line);
+  padding: 20px 0;
+  margin: 24px 0 18px;
+}
+.home-host-status strong {
+  font-size: 15px;
+}
+.home-host-status p,
+.home-agent-panel > p {
+  color: var(--shell-muted);
+  font-size: 14px;
+  margin: 8px 0 0;
+}
+.home-agent-panel .text-link {
+  display: inline-block;
+  padding-block: 7px;
+  font-size: 14px;
+}
+.participation-control.compact {
+  margin-top: 12px !important;
+}
+.participation-control.compact p {
+  font-size: 13px;
+  color: var(--muted);
+}
+.participation-control.compact details {
+  font-size: 13px;
+  margin: 12px 0;
+}
+.participation-control.compact summary {
+  cursor: pointer;
+  padding-block: 7px;
+}
+.participation-control.compact .button {
+  width: 100%;
+  background: var(--surface);
+  color: var(--red);
+  border-color: var(--surface-line);
+  white-space: normal;
+}
+.participation-control.compact.is-paused .button {
+  color: var(--action);
+}
+.participation-control.compact + .small {
+  font-size: 12px;
+}
+.home-followup {
+  margin-top: 32px;
+}
+.home-inbox,
+.home-invitations {
+  margin-bottom: 30px;
+}
+.home-conversations .empty {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 30px;
+}
+.home-conversations .empty h3,
+.home-conversations .empty p {
+  margin: 0;
+}
+.home-conversations .empty .text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+.home-conversations .room-card p {
+  margin-bottom: 18px;
+}
+.older-conversations {
+  margin-top: 20px;
+}
+.older-conversations summary {
+  cursor: pointer;
+  padding: 12px 0;
+  font-size: 14px;
+}
+.connect-agent {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 45px;
+  padding: 35px;
+}
+.connection-intro h2 {
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+.connection-intro > p {
+  max-width: 48ch;
+}
+.connect-agent .instruction-copy {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  margin-top: 25px;
+}
+.connect-agent .instruction-copy .button {
+  color: var(--on-action);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.connection-waiting {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 24px;
+}
+.connection-intro details {
+  margin-top: 22px;
+  font-size: 14px;
+}
+.connection-intro summary {
+  cursor: pointer;
+  padding-block: 9px;
+}
+.connection-intro details p {
+  margin-top: 14px;
+  overflow-wrap: anywhere;
+}
+.connection-explainer {
+  border-left: 1px solid var(--line);
+  padding-left: 35px;
+  align-self: center;
+}
+.connection-explainer h3 {
+  font-size: 23px;
+  margin-bottom: 14px;
+}
+.connection-explainer p {
+  color: var(--muted);
+  font-size: 15px;
+}
+.first-exchange h2 {
+  font-size: 27px;
+  margin-bottom: 14px;
+}
 @media (max-width: 1100px) {
   .app-shell {
     grid-template-columns: 190px minmax(0, 1fr);
@@ -388,6 +690,19 @@ input.control {
   }
   .dashboard-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .owner-home-grid {
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 22px;
+  }
+  .exchange-source {
+    display: block;
+  }
+  .exchange-source .button {
+    margin-top: 18px;
+  }
+  .exchange-voice {
+    padding: 22px;
   }
   .dashboard-aside {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -503,6 +818,56 @@ input.control {
   }
   .dashboard-aside {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .owner-home-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .exchange-voices {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .exchange-voice {
+    padding: 22px;
+  }
+  .exchange-voice blockquote {
+    font-size: 22px;
+    margin-top: 20px;
+    -webkit-line-clamp: 6;
+  }
+  .exchange-voice:first-child:not(:last-child) blockquote {
+    -webkit-line-clamp: 4;
+  }
+  .exchange-source {
+    padding: 22px;
+  }
+  .exchange-source .button {
+    width: 100%;
+  }
+  .home-agent-panel {
+    padding: 22px;
+  }
+  .connect-agent {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding: 24px;
+  }
+  .connection-explainer {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding: 24px 0 0;
+  }
+  .connection-intro h2 {
+    font-size: 26px;
+  }
+  .connect-agent .instruction-copy .button {
+    white-space: normal;
+  }
+  .home-conversations .section-heading {
+    align-items: flex-start;
+    gap: 18px;
+  }
+  .home-conversations .section-heading > a {
+    font-size: 13px;
+    text-align: right;
   }
   .public-header {
     padding: 20px 18px;

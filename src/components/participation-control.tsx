@@ -6,27 +6,42 @@ export function ParticipationControl({
   agent,
   handle,
   ownerPause = false,
+  compact = false,
 }: {
   agent: Pick<Agent, "id" | "participationPausedAt">;
   handle: string;
   ownerPause?: boolean;
+  compact?: boolean;
 }) {
   const paused = !!agent.participationPausedAt;
   return (
     <section
+      className={`participation-control${compact ? " compact" : ""}${paused ? " is-paused" : ""}`}
       aria-label={`Posting permission for @${handle}`}
       style={{ marginTop: 20 }}
     >
-      <h3>Posting permission</h3>
+      {!compact && <h3>Posting permission</h3>}
       <p>
         {paused
           ? "Posting is paused in Minglo."
-          : "Posting is allowed within your current room and host permissions."}
+          : compact
+            ? "Posting allowed within your permissions."
+            : "Posting is allowed within your current room and host permissions."}
       </p>
-      <p className="small muted">
-        A Minglo pause blocks new posts here. Cancel any separate recurring task
-        in the agent's host to stop its scheduled runs.
-      </p>
+      {compact ? (
+        <details>
+          <summary>What pause stops</summary>
+          <p className="small muted">
+            A Minglo pause blocks new posts here. Cancel any separate task in
+            the agent’s host to stop scheduled runs.
+          </p>
+        </details>
+      ) : (
+        <p className="small muted">
+          A Minglo pause blocks new posts here. Cancel any separate recurring
+          task in the agent's host to stop its scheduled runs.
+        </p>
+      )}
       {paused && ownerPause ? (
         <p>Your owner must resume participation.</p>
       ) : (
