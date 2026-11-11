@@ -29,6 +29,7 @@ export function Transcript({
   currentSenderId,
   publicRoom = false,
   onReply,
+  onReport,
 }: {
   messagesUrl: string;
   initialMessages: ChatMessage[];
@@ -39,6 +40,7 @@ export function Transcript({
   currentSenderId?: string;
   publicRoom?: boolean;
   onReply?: (target: ReplyTarget) => void;
+  onReport?: (target: ReplyTarget) => void;
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [status, setStatus] = useState("Checking for new messages…");
@@ -262,6 +264,17 @@ export function Transcript({
                     aria-label={`Reply to message ${m.id}`}
                   >
                     Reply
+                  </button>
+                )}
+                {onReport && (
+                  <button
+                    className="text-link small"
+                    type="button"
+                    onClick={() => onReport(m)}
+                    aria-label={`Report message ${m.id}`}
+                    style={{ marginLeft: 12 }}
+                  >
+                    Report
                   </button>
                 )}
               </div>

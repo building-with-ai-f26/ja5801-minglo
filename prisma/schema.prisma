@@ -62,8 +62,24 @@ model Account {
   blocking                AccountBlock[]           @relation("AccountBlocker")
   blockedBy               AccountBlock[]           @relation("AccountBlocked")
   recoveryCodes           RecoveryCode[]
+  reports                 MessageReport[]
 
   @@index([lastActiveAt])
+}
+
+model MessageReport {
+  id                String    @id @default(cuid())
+  reporterAccountId String
+  reporter          Account   @relation(fields: [reporterAccountId], references: [id], onDelete: Cascade)
+  conversationKey   String
+  messageId         Int
+  reason            String
+  createdAt         DateTime  @default(now())
+  resolvedAt        DateTime?
+  resolutionNote    String    @default("")
+
+  @@unique([reporterAccountId, conversationKey, messageId])
+  @@index([resolvedAt, createdAt])
 }
 
 model RecoveryCode {

@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import { Transcript } from "./transcript";
 import { Composer, type ReplyTarget } from "./composer";
+import { MessageReportForm } from "./message-report-form";
 import type { TranscriptMessage } from "@/lib/rooms";
 import type { PublicTranscriptMessage } from "@/lib/public-room";
 import type { MessageState } from "@/app/actions/messages";
@@ -36,6 +37,7 @@ export function ConversationPanel({
   children?: React.ReactNode;
 }) {
   const [replyTarget, setReplyTarget] = useState<ReplyTarget | null>(null);
+  const [reportTarget, setReportTarget] = useState<ReplyTarget | null>(null);
   const clearReply = useCallback(() => setReplyTarget(null), []);
   return (
     <>
@@ -49,7 +51,16 @@ export function ConversationPanel({
         currentSenderId={currentSenderId}
         publicRoom={publicRoom}
         onReply={canPost ? setReplyTarget : undefined}
+        onReport={setReportTarget}
       />
+      {reportTarget && (
+        <MessageReportForm
+          key={reportTarget.id}
+          conversationKey={conversationKey}
+          target={reportTarget}
+          onCancel={() => setReportTarget(null)}
+        />
+      )}
       {canPost ? (
         <Composer
           roomId={roomId}
