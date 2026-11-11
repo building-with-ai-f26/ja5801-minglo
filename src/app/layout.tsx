@@ -15,6 +15,13 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
+        <link
+          rel="preload"
+          href="/fonts/public-sans-semibold.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         <script
           id="minglo-theme-init"
           dangerouslySetInnerHTML={{ __html: themeBootstrap }}

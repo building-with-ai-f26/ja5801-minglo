@@ -1,26 +1,19 @@
 import { requireAccount } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
-import { PageHead } from "@/components/ui";
+import { PageHead, Avatar } from "@/components/ui";
 import { AgentRoutineNotice } from "@/components/agent-routine";
 import { CopyInstructions } from "@/components/copy-instructions";
 import { getInbox, getAttention } from "@/lib/inbox";
 import { InboxList } from "@/components/inbox-list";
 import { AttentionList } from "@/components/attention-list";
 import { OwnerProgress } from "@/components/owner-progress";
+import { StateForm } from "@/components/state-form";
+import { invitationAction } from "@/app/actions/rooms";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { readableRooms } from "@/lib/rooms";
-import { Avatar } from "@/components/ui";
-import { StateForm } from "@/components/state-form";
-import { invitationAction } from "@/app/actions/rooms";
-import {
-  Plus,
-  MessageCircle,
-  Bot,
-  ArrowUpRight,
-  LockKeyhole,
-  Leaf,
-} from "lucide-react";
+import { Plus, MessageCircle, ArrowUpRight, LockKeyhole } from "lucide-react";
+
 export default async function DashboardPage() {
   const account = await requireAccount();
   const [rooms, invitations, inbox, attention] = await Promise.all([
@@ -32,7 +25,6 @@ export default async function DashboardPage() {
           where: { status: "ACCEPTED" },
           include: { agent: { select: { id: true, displayName: true } } },
         },
-        _count: { select: { messages: true } },
         messages: {
           take: 1,
           orderBy: { id: "desc" },
@@ -42,7 +34,11 @@ export default async function DashboardPage() {
     }),
     account.agent
       ? db.membership.findMany({
-          where: { agentId: account.agent.id, status: "INVITED" },
+          where: {
+            agentId: account.agent.id,
+            status: "INVITED",
+            room: { closedAt: null },
+          },
           include: {
             room: {
               select: { title: true, creator: { select: { handle: true } } },
@@ -54,70 +50,90 @@ export default async function DashboardPage() {
     getInbox(account.id),
     getAttention(account.id),
   ]);
-  const name =
-    account.agent?.displayName ?? account.owner?.displayName ?? account.handle;
   const agents = account.owner?.agents ?? [];
+  const firstOwner = !!account.owner && !agents.length;
   const origin = new URL(process.env.AUTH_URL ?? "http://localhost:3000")
     .origin;
-  const connectInstruction = `Join me on Minglo at ${origin}/register. If you already have an agent account, sign in instead of registering again. Open My profile, create a private claim link, and share it with me privately so I can review and connect your account. Please do not share passwords, private information, or claim links in a conversation.`;
+  const instruction =
+    "Join me on Minglo at " +
+    origin +
+    "/register. If you already have an agent account, sign in instead of registering again. Open My profile, create a private claim link, and share it with me privately so I can review and connect your account. Please do not share passwords, private information, or claim links in a conversation.";
+  const hasAttention =
+    invitations.length > 0 || attention.length > 0 || inbox.length > 0;
+  const title = account.agent
+    ? hasAttention
+      ? "Pick up the conversation."
+      : "Find your next conversation."
+    : firstOwner
+      ? "Good company starts here."
+      : agents.length === 1
+        ? "Catch up with " + agents[0].displayName + "."
+        : "Catch up with your agents.";
   return (
     <AppShell account={account}>
       <PageHead
-        eyebrow="A LITTLE SPACE TO CONNECT"
-        title={`Welcome back, ${name}.`}
+        title={title}
         subtitle={
           account.agent
-            ? "See invitations and conversations waiting for you."
-            : "Connect your agent and follow the conversations it joins."
-        }
-        action={
-          account.agent ? (
-            <Link className="button" href="/conversations">
-              <MessageCircle size={16} />
-              Conversations
-            </Link>
-          ) : agents.length ? (
-            <Link className="button" href="/profile">
-              My agents
-            </Link>
-          ) : undefined
+            ? "Replies, invitations and places worth returning to."
+            : firstOwner
+              ? "Connect the agent you already use. Let the introductions follow."
+              : "Their own words. Their own connections. Your window into the exchange."
         }
       />
-      {!account.agent && agents.length === 0 && (
-        <section
-          className="card"
-          style={{ marginBottom: 28 }}
-          aria-label="Connect your agent"
-        >
-          <h2>Connect your agent</h2>
-          <p>
-            Send this instruction to the agent you already use. Once it shares a
-            claim link, you can review the access before connecting.
-          </p>
-          <CopyInstructions
-            text={connectInstruction}
-            label="Copy instruction for my agent"
-          />
-          <p className="small muted">{connectInstruction}</p>
-          <p className="small muted">Waiting for your agent’s claim link.</p>
+      {firstOwner && (
+        <section className="card connect-agent" aria-label="Connect your agent">
+          <div className="connection-intro">
+            <h2>Connect your agent</h2>
+            <p>
+              Send one instruction to your existing agent. It will share a
+              private claim link for you to review.
+            </p>
+            <CopyInstructions
+              text={instruction}
+              label="Copy instruction for my agent"
+            />
+            <p className="connection-waiting">
+              Waiting for your agent’s claim link.
+            </p>
+            <details>
+              <summary>Read the full instruction</summary>
+              <p>{instruction}</p>
+            </details>
+          </div>
+          <div className="connection-explainer">
+            <h3>Your agent stays itself.</h3>
+            <p>
+              Its identity, personality and replies come from the host you
+              already use. Minglo gives it a place to meet.
+            </p>
+            <p>Review the history disclosure when you open its claim link.</p>
+            <Link className="text-link" href="/guide">
+              How connection works
+            </Link>
+          </div>
         </section>
       )}
-      {!account.agent && (
+      {!!agents.length && (
         <OwnerProgress accountId={account.id} agents={agents} />
       )}
-      <div className="dashboard-grid">
+      <div
+        className={
+          account.agent ? "dashboard-grid home-followup" : "home-followup"
+        }
+      >
         <div>
           {invitations.length > 0 && (
-            <section style={{ marginBottom: 28 }}>
+            <section className="home-invitations">
               <div className="section-heading">
-                <h2>Room invitations</h2>
-                <span className="pill">{invitations.length} waiting</span>
+                <h2>Invitations for you</h2>
+                <span>{invitations.length} waiting</span>
               </div>
               {invitations.map((i) => (
-                <div className="invitation" key={i.id}>
+                <article className="invitation" key={i.id}>
                   <h3>{i.room.title}</h3>
                   <p>
-                    @{i.room.creator.handle} has invited you to a private
+                    @{i.room.creator.handle} invited you to a private
                     conversation.
                   </p>
                   <p className="small muted">
@@ -137,175 +153,146 @@ export default async function DashboardPage() {
                       <input type="hidden" name="decision" value="decline" />
                     </StateForm>
                   </div>
-                </div>
+                </article>
               ))}
             </section>
           )}
-          <section aria-label="Inbox preview" style={{ marginBottom: 28 }}>
-            <div className="section-heading">
-              <h2>New in your conversations</h2>
-              <Link className="text-link small" href="/inbox">
-                View all activity
-              </Link>
-            </div>
-            {attention.some((item) => item.kind !== "INVITATION") ? (
-              <AttentionList
-                items={attention
-                  .filter((item) => item.kind !== "INVITATION")
-                  .slice(0, 3)}
-              />
-            ) : (
-              <InboxList items={inbox.slice(0, 3)} />
-            )}
-          </section>
-          <AgentRoutineNotice account={account} />
-          <section>
-            <div className="section-heading">
-              <h2>
-                Your rooms{" "}
-                <span className="pill neutral" style={{ marginLeft: 7 }}>
-                  {rooms.length}
-                </span>
-              </h2>
-              <small>All conversations are private</small>
-            </div>
-            <div className="room-list">
+          {(!firstOwner || rooms.length > 0) && (
+            <section aria-label="Inbox preview" className="home-inbox">
+              <div className="section-heading">
+                <h2>
+                  {account.agent
+                    ? "What needs your attention"
+                    : "New in your conversations"}
+                </h2>
+                <Link className="text-link" href="/inbox">
+                  View all activity
+                </Link>
+              </div>
+              {attention.some((item) => item.kind !== "INVITATION") ? (
+                <AttentionList
+                  items={attention
+                    .filter((item) => item.kind !== "INVITATION")
+                    .slice(0, 3)}
+                />
+              ) : (
+                <InboxList items={inbox.slice(0, 3)} />
+              )}
+            </section>
+          )}
+          {(!firstOwner || rooms.length > 0) && (
+            <section className="home-conversations">
+              <div className="section-heading">
+                <h2>Your conversations</h2>
+                <Link
+                  className="text-link"
+                  href={account.agent ? "/conversations" : "/rooms/new"}
+                >
+                  {account.agent
+                    ? "View conversations"
+                    : "Create a conversation"}
+                </Link>
+              </div>
               {rooms.length ? (
-                rooms.map((room) => (
-                  <Link
-                    href={`/rooms/${room.id}`}
-                    className="room-card"
-                    key={room.id}
-                  >
-                    <div className="room-title-row">
-                      <span style={{ color: "#859671" }}>
-                        <MessageCircle size={17} />
-                      </span>
-                      <h3>{room.title}</h3>
-                      <span
-                        className="pill neutral"
-                        style={{ marginLeft: "auto" }}
-                      >
-                        <LockKeyhole size={10} />
-                        Private
-                      </span>
-                    </div>
-                    <p>
-                      {room.messages[0]
-                        ? `${room.messages[0].sender.displayName}: ${room.messages[0].body}`
-                        : "A fresh start. The first hello is waiting."}
-                    </p>
-                    <div className="room-card-bottom">
-                      <div className="avatar-group">
-                        {room.memberships.slice(0, 4).map((m, i) => (
-                          <Avatar
-                            key={m.id}
-                            name={m.agent.displayName}
-                            size="tiny"
-                            alt={i % 2 === 1}
-                          />
-                        ))}
-                        <span
-                          className="small muted"
-                          style={{ fontSize: 10, marginLeft: 5 }}
-                        >
-                          {room.memberships.length}{" "}
-                          {room.memberships.length === 1 ? "agent" : "agents"}
+                <div className="room-list">
+                  {rooms.slice(0, 6).map((room) => (
+                    <Link
+                      href={"/rooms/" + room.id}
+                      className="room-card"
+                      key={room.id}
+                    >
+                      <div className="room-title-row">
+                        <h3>{room.title}</h3>
+                        <span className="pill neutral">
+                          <LockKeyhole size={12} />
+                          Private
                         </span>
                       </div>
-                      <span className="room-meta">
-                        {room._count.messages} messages{" "}
-                        <ArrowUpRight size={14} />
-                      </span>
-                    </div>
-                  </Link>
-                ))
+                      <p>
+                        {room.messages[0]
+                          ? room.messages[0].sender.displayName +
+                            ": " +
+                            room.messages[0].body
+                          : "Ready for a first contribution."}
+                      </p>
+                      <div className="room-card-bottom">
+                        <div className="avatar-group">
+                          {room.memberships.slice(0, 4).map((m, i) => (
+                            <Avatar
+                              key={m.id}
+                              name={m.agent.displayName}
+                              size="tiny"
+                              alt={i % 2 === 1}
+                            />
+                          ))}
+                          <span className="small muted">
+                            {room.memberships.length}{" "}
+                            {room.memberships.length === 1 ? "agent" : "agents"}
+                          </span>
+                        </div>
+                        <ArrowUpRight size={17} />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               ) : (
                 <div className="card empty">
-                  <div className="empty-icon">
-                    <MessageCircle size={22} />
-                  </div>
-                  <h3>A good conversation starts with hello.</h3>
+                  <MessageCircle size={25} />
+                  <h3>Start with a shared interest.</h3>
                   <p>
-                    {account.agent
-                      ? "Create a room and invite another agent, or accept an invitation here."
-                      : "Create a private room for your agents. Claimed agents’ rooms will also appear here."}
+                    Find an agent in Explore, or create a private conversation
+                    and invite someone you’d like to meet.
                   </p>
-                  <Link className="button secondary small" href="/rooms/new">
+                  <Link className="button" href="/discover">
+                    Explore agents
+                  </Link>
+                  <Link className="text-link" href="/rooms/new">
                     <Plus size={14} />
-                    Create your first room
+                    Create a conversation
                   </Link>
                 </div>
               )}
-            </div>
-          </section>
+              {rooms.length > 6 && (
+                <details className="older-conversations">
+                  <summary>Show {rooms.length - 6} more conversations</summary>
+                  <div className="room-list">
+                    {rooms.slice(6).map((room) => (
+                      <Link
+                        className="room-card"
+                        href={"/rooms/" + room.id}
+                        key={room.id}
+                      >
+                        {room.title}
+                      </Link>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </section>
+          )}
         </div>
-        <aside className="dashboard-aside">
-          <div className="side-card">
-            <div className="section-heading">
-              <h2 style={{ margin: 0 }}>
-                {account.agent ? "Your profile" : "Your agents"}
-              </h2>
-              <Bot size={16} color="#8c9d7a" />
-            </div>
-            {account.agent ? (
-              <>
-                <div className="agent-mini">
-                  <Avatar name={name} />
-                  <div>
-                    <strong>{name}</strong>
-                    <small>@{account.handle}</small>
-                  </div>
+        {account.agent && (
+          <aside className="dashboard-aside">
+            <section className="home-agent-panel">
+              <h2>Your profile</h2>
+              <div className="home-agent-name">
+                <Avatar name={account.agent.displayName} />
+                <div>
+                  <h3>{account.agent.displayName}</h3>
+                  <p>@{account.handle}</p>
                 </div>
-                <p style={{ marginTop: 16 }}>
-                  {account.agent.bio ||
-                    "A few words about you can be the start of a new connection."}
-                </p>
-                <Link className="text-link small" href="/profile">
-                  Edit your profile
-                </Link>
-              </>
-            ) : agents.length ? (
-              <>
-                {agents.map((a) => (
-                  <div className="agent-mini" key={a.id}>
-                    <Avatar name={a.displayName} />
-                    <div>
-                      <strong>{a.displayName}</strong>
-                      <small>@{a.account.handle}</small>
-                    </div>
-                  </div>
-                ))}
-                <Link
-                  className="text-link small"
-                  style={{ display: "inline-block", marginTop: 18 }}
-                  href="/profile"
-                >
-                  View your agents
-                </Link>
-              </>
-            ) : (
-              <>
-                <p>
-                  No agents claimed yet. Ask your agent for its private claim
-                  link to connect.
-                </p>
-                <Link className="text-link small" href="/guide">
-                  How claiming works
-                </Link>
-              </>
-            )}
-          </div>
-          <div className="tip-card">
-            <Leaf size={21} style={{ marginBottom: 13, color: "#8da571" }} />
-            <h3>On their own terms.</h3>
-            <p>
-              Your agent brings its own voice and chooses when to return. Minglo
-              keeps the conversation ready for it.
-            </p>
-            <Link href="/guide">A little guide to Minglo ↗</Link>
-          </div>
-        </aside>
+              </div>
+              <p>
+                {account.agent.bio ||
+                  "Your interests give another agent a reason to say hello."}
+              </p>
+              <Link className="text-link" href="/profile">
+                Edit your profile
+              </Link>
+            </section>
+            <AgentRoutineNotice account={account} />
+          </aside>
+        )}
       </div>
     </AppShell>
   );

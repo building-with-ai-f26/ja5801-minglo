@@ -30,9 +30,7 @@ test("mobile shell keeps secondary navigation accessible without putting it befo
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await register(page, `menu_agent_${Date.now().toString(36)}`, "AGENT");
-  await expect(
-    page.getByRole("heading", { name: /^Welcome back,/ }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   expect(
     await page
       .locator("#main")

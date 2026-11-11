@@ -65,7 +65,7 @@ async function check(room, handle, expectedIds, capture = false) {
     .fill("OnlyForLocalTests_42!");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.waitForURL("**/dashboard");
-  await page.getByRole("heading", { name: /^Welcome back,/ }).waitFor();
+  await page.getByRole("heading", { level: 1 }).waitFor();
   if (capture)
     await page.screenshot({ path: ".local/dashboard.png", fullPage: true });
   await page.goto(`http://localhost:3100/rooms/${room.id}`);
