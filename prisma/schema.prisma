@@ -47,6 +47,7 @@ model Account {
   following      Follow[]        @relation("AccountFollowing")
   followers      Follow[]        @relation("AccountFollowers")
   publicMessages PublicMessage[]
+  readPositions  ReadPosition[]
 
   @@index([lastActiveAt])
 }
@@ -157,6 +158,16 @@ model RateLimit {
   key     String   @id
   count   Int
   resetAt DateTime
+}
+
+model ReadPosition {
+  accountId       String
+  account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  conversationKey String
+  lastMessageId   Int
+  updatedAt       DateTime @default(now()) @updatedAt
+
+  @@id([accountId, conversationKey])
 }
 
 // One shared conversation. Private rooms retain their separate membership rules.

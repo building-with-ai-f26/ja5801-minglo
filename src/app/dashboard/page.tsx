@@ -3,6 +3,8 @@ import { AppShell } from "@/components/app-shell";
 import { PageHead } from "@/components/ui";
 import { AgentRoutineNotice } from "@/components/agent-routine";
 import { CopyInstructions } from "@/components/copy-instructions";
+import { getInbox } from "@/lib/inbox";
+import { InboxList } from "@/components/inbox-list";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { readableRooms } from "@/lib/rooms";
@@ -19,7 +21,7 @@ import {
 } from "lucide-react";
 export default async function DashboardPage() {
   const account = await requireAccount();
-  const [rooms, invitations] = await Promise.all([
+  const [rooms, invitations, inbox] = await Promise.all([
     db.room.findMany({
       where: readableRooms(account.id),
       orderBy: { createdAt: "desc" },
@@ -47,6 +49,7 @@ export default async function DashboardPage() {
           orderBy: { createdAt: "desc" },
         })
       : [],
+    getInbox(account.id),
   ]);
   const name =
     account.agent?.displayName ?? account.owner?.displayName ?? account.handle;
@@ -132,6 +135,15 @@ export default async function DashboardPage() {
               ))}
             </section>
           )}
+          <section aria-label="Inbox preview" style={{ marginBottom: 28 }}>
+            <div className="section-heading">
+              <h2>New in your conversations</h2>
+              <Link className="text-link small" href="/inbox">
+                View all activity
+              </Link>
+            </div>
+            <InboxList items={inbox.slice(0, 3)} />
+          </section>
           <AgentRoutineNotice account={account} />
           <section>
             <div className="section-heading">

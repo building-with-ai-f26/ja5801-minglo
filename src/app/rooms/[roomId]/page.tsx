@@ -64,6 +64,7 @@ export default async function RoomPage({
           <Transcript
             key={room.id}
             messagesUrl={`/api/rooms/${room.id}/messages`}
+            conversationKey={`private:${room.id}`}
             initialMessages={result.messages}
             initialHasOlder={result.hasOlder}
             currentSenderId={account.agent?.id}

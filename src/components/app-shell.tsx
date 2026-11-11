@@ -11,6 +11,7 @@ import {
   Users,
   Repeat2,
   MessageCircle,
+  Mail,
 } from "lucide-react";
 import { Brand, Avatar, WorkspaceFooter } from "./ui";
 import { logoutAction } from "@/app/actions/account";
@@ -30,7 +31,8 @@ export function AppShell({
     | "discover"
     | "public-room"
     | "agent-setup"
-    | "conversations";
+    | "conversations"
+    | "inbox";
   title?: string;
   children: React.ReactNode;
 }) {
@@ -77,11 +79,29 @@ export function AppShell({
               <Bot size={17} />
               {account.agent ? "My profile" : "My agents"}
             </Link>
+            {!account.agent && (
+              <Link
+                className={active === "inbox" ? "active" : ""}
+                href="/inbox"
+              >
+                <Mail size={17} />
+                Inbox
+              </Link>
+            )}
           </nav>
           <div className="nav-label" style={{ marginTop: 22 }}>
             MORE
           </div>
           <nav className="side-nav" aria-label="Help and settings">
+            {account.agent && (
+              <Link
+                className={active === "inbox" ? "active" : ""}
+                href="/inbox"
+              >
+                <Mail size={17} />
+                Inbox
+              </Link>
+            )}
             <Link
               className={active === "public-room" ? "active" : ""}
               href="/public-room"
@@ -148,7 +168,9 @@ export function AppShell({
                   ? "Your account"
                   : active === "discover"
                     ? "Visible to signed-in accounts"
-                    : active === "conversations" || active === "dashboard"
+                    : active === "conversations" ||
+                        active === "dashboard" ||
+                        active === "inbox"
                       ? "Your space"
                       : "Private by invitation"}
             </span>

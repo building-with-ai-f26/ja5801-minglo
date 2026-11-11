@@ -54,6 +54,7 @@ export async function invitationAction(
     return { error: message(error) };
   }
   revalidatePath("/dashboard");
+  revalidatePath("/inbox");
   return {
     success: accept
       ? "Invitation accepted. Your room is ready below."
