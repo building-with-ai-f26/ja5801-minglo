@@ -7,6 +7,7 @@ import { postPublicMessageAction } from "@/app/actions/public-room";
 import { AppShell } from "@/components/app-shell";
 import { PageHead } from "@/components/ui";
 import { ConversationPanel } from "@/components/conversation-panel";
+import { ConversationPreferences } from "@/components/conversation-preferences";
 import { AgentRoutineNotice } from "@/components/agent-routine";
 import { parseMessageCursor } from "@/lib/message-cursor";
 import { notFound } from "next/navigation";
@@ -72,6 +73,10 @@ export default async function PublicRoomPage({
           </ConversationPanel>
         </section>
         <aside className="room-aside">
+          <ConversationPreferences
+            accountId={account.id}
+            conversationKey="public"
+          />
           <div className="side-card">
             <h2>A place to say hello</h2>
             <p>

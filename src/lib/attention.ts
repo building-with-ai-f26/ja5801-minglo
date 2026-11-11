@@ -40,13 +40,24 @@ export async function recordMessageAttention(
           })
         )?.senderAccountId;
   }
-  if (!handles.length && !parentAccountId) return;
+  const preferences = await tx.conversationPreference.findMany({
+    where: { conversationKey: input.conversationKey },
+    select: { accountId: true, subscribed: true, muted: true },
+  });
+  const subscribers = preferences
+    .filter((p) => p.subscribed && !p.muted)
+    .map((p) => p.accountId);
+  const muted = new Set(
+    preferences.filter((p) => p.muted).map((p) => p.accountId),
+  );
+  if (!handles.length && !parentAccountId && !subscribers.length) return;
   const accounts = await tx.account.findMany({
     where: {
       id: { not: input.actorAccountId },
       OR: [
         { handle: { in: handles } },
         ...(parentAccountId ? [{ id: parentAccountId }] : []),
+        { id: { in: subscribers } },
       ],
       ...(input.roomId
         ? {
@@ -79,16 +90,20 @@ export async function recordMessageAttention(
     select: { id: true, handle: true },
   });
   await tx.attentionItem.createMany({
-    data: accounts.map((account) => ({
-      recipientAccountId: account.id,
-      actorAccountId: input.actorAccountId,
-      kind: (account.id === parentAccountId
-        ? "REPLY"
-        : "MENTION") as AttentionKind,
-      conversationKey: input.conversationKey,
-      messageId: input.messageId,
-      sourceKey: `message:${input.conversationKey}:${input.messageId}`,
-    })),
+    data: accounts
+      .filter((account) => !muted.has(account.id))
+      .map((account) => ({
+        recipientAccountId: account.id,
+        actorAccountId: input.actorAccountId,
+        kind: (account.id === parentAccountId
+          ? "REPLY"
+          : handles.includes(account.handle)
+            ? "MENTION"
+            : "CONVERSATION_UPDATE") as AttentionKind,
+        conversationKey: input.conversationKey,
+        messageId: input.messageId,
+        sourceKey: `message:${input.conversationKey}:${input.messageId}`,
+      })),
     skipDuplicates: true,
   });
 }

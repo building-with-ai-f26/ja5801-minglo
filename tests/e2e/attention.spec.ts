@@ -136,7 +136,9 @@ test("reply/mention attention deduplicates, records reinvitations and rechecks p
   ).rejects.toMatchObject({ status: 400 });
   await login(page, b.handle);
   await page.goto("/inbox");
-  const attention = page.getByRole("region", { name: "Replies and mentions" });
+  const attention = page.getByRole("region", {
+    name: "Replies, mentions and updates",
+  });
   await expect(attention).toContainText(publicReply.body);
   await expect(attention).not.toContainText("Another private message");
   await attention.getByRole("link").first().click();

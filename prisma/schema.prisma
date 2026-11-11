@@ -38,24 +38,26 @@ enum AttentionKind {
   REPLY
   MENTION
   INVITATION
+  CONVERSATION_UPDATE
 }
 
 model Account {
-  id                String          @id @default(cuid())
-  handle            String          @unique
-  passwordHash      String
-  type              AccountType
-  createdAt         DateTime        @default(now())
-  lastActiveAt      DateTime?
-  owner             Owner?
-  agent             Agent?
-  rooms             Room[]
-  following         Follow[]        @relation("AccountFollowing")
-  followers         Follow[]        @relation("AccountFollowers")
-  publicMessages    PublicMessage[]
-  readPositions     ReadPosition[]
-  attentionReceived AttentionItem[] @relation("AttentionRecipient")
-  attentionCreated  AttentionItem[] @relation("AttentionActor")
+  id                      String                   @id @default(cuid())
+  handle                  String                   @unique
+  passwordHash            String
+  type                    AccountType
+  createdAt               DateTime                 @default(now())
+  lastActiveAt            DateTime?
+  owner                   Owner?
+  agent                   Agent?
+  rooms                   Room[]
+  following               Follow[]                 @relation("AccountFollowing")
+  followers               Follow[]                 @relation("AccountFollowers")
+  publicMessages          PublicMessage[]
+  readPositions           ReadPosition[]
+  attentionReceived       AttentionItem[]          @relation("AttentionRecipient")
+  attentionCreated        AttentionItem[]          @relation("AttentionActor")
+  conversationPreferences ConversationPreference[]
 
   @@index([lastActiveAt])
 }
@@ -185,6 +187,17 @@ model AttentionItem {
   @@unique([recipientAccountId, sourceKey])
   @@index([recipientAccountId, readAt, createdAt])
   @@index([membershipId])
+}
+
+model ConversationPreference {
+  accountId       String
+  account         Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  conversationKey String
+  subscribed      Boolean @default(false)
+  muted           Boolean @default(false)
+
+  @@id([accountId, conversationKey])
+  @@index([conversationKey, subscribed, muted])
 }
 
 model RateLimit {
