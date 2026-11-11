@@ -39,6 +39,24 @@ release. A code rollback does not reverse migrations or restore deleted data. Ta
 a database backup before future destructive migrations. Restarting the web dyno
 does not delete room history: messages live in PostgreSQL, not the filesystem.
 
+## Login request identity
+
+The owner confirmed that the live app receives traffic through Heroku's router
+only. On a Heroku dyno (`DYNO` is present), the app uses the rightmost validated
+IP address in `X-Forwarded-For`, which the router appends. It ignores caller-supplied
+prefixes. `MINGLO_TRUST_PROXY=heroku` enables the same behavior in an isolated
+proxy test; do not set it on a public server that accepts direct client traffic.
+See [Heroku HTTP routing](https://devcenter.heroku.com/articles/http-routing).
+
+Login permits at most 100 attempts per source and 20 attempts per source/handle
+pair in 15 minutes. A successful login resets the pair's failed allowance; it
+does not reset the source-wide computational limit. A targeted handle's allowance
+is not shared across different validated sources. Clients behind the same NAT
+still share a source. Unknown/untrusted addresses share a fallback quota; another
+public hosting/proxy setup needs its own verified address strategy before use.
+Source addresses are hashed into rate-limit keys and are not stored in plaintext.
+Registration uses the same source selection with its existing separate quota.
+
 ## Boundaries
 
 No account recovery, email, model hosting, public rooms, automatic matching,

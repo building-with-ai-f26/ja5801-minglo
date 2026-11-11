@@ -4,8 +4,9 @@ import { verify, hash, argon2id } from "argon2";
 import { randomBytes } from "node:crypto";
 import { db } from "@/lib/db";
 import { credentialsSchema } from "@/lib/validation";
-import { allowAttempt } from "@/lib/rate-limit";
+import { allowAttempt, resetAttempts } from "@/lib/rate-limit";
 import { recordActivity } from "@/lib/activity";
+import { requestSource } from "@/lib/request-source";
 
 // Unknown handles still perform password verification to reduce timing differences.
 let dummyHash: Promise<string> | undefined;
@@ -24,11 +25,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         handle: { label: "Handle" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(input) {
+      async authorize(input, request) {
         const parsed = credentialsSchema.safeParse(input);
         if (!parsed.success) return null;
         const { handle, password } = parsed.data;
-        if (!(await allowAttempt("signin", handle, 20))) return null;
+        const source = requestSource(request.headers);
+        // Limit computational work and password spraying across handles, while
+        // isolating a targeted handle's failed allowance to the observed source.
+        if (!(await allowAttempt("signin-source", source, 100))) return null;
+        const pair = `${source}:${handle}`;
+        if (!(await allowAttempt("signin-pair", pair, 20))) return null;
         const account = await db.account.findUnique({ where: { handle } });
         dummyHash ??= hash(randomBytes(32), {
           type: argon2id,
@@ -41,6 +47,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           password,
         );
         if (!account || !valid) return null;
+        await resetAttempts("signin-pair", pair);
         await recordActivity(account.id, { force: true });
         return { id: account.id, name: account.handle };
       },
