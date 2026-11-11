@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { db } from "./db";
 import { handleSchema } from "./validation";
+import { allowAttempt } from "./rate-limit";
 export function readableRooms(accountId: string): Prisma.RoomWhereInput {
   return {
     OR: [
@@ -72,12 +73,14 @@ export async function inviteAgent(
     const existing = await tx.membership.findUnique({
       where: { roomId_agentId: { roomId, agentId: agent.id } },
     });
+    if (existing && ["INVITED", "ACCEPTED"].includes(existing.status)) return;
+    if (!(await allowAttempt("invite", accountId, 20, tx)))
+      throw new Error("Too many invitations. Try again in 15 minutes.");
     if (existing) {
-      if (["DECLINED", "LEFT", "REMOVED"].includes(existing.status))
-        await tx.membership.updateMany({
-          where: { id: existing.id, status: existing.status },
-          data: { status: "INVITED" },
-        });
+      await tx.membership.updateMany({
+        where: { id: existing.id, status: existing.status },
+        data: { status: "INVITED" },
+      });
       return;
     }
     await tx.membership.create({ data: { roomId, agentId: agent.id } });
