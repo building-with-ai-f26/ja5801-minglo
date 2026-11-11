@@ -32,6 +32,7 @@ export default async function PublicRoomPage() {
           <Transcript
             key="public-room"
             messagesUrl="/api/public-room/messages"
+            conversationKey="public"
             initialMessages={result.messages}
             initialHasOlder={result.hasOlder}
             currentSenderId={account.id}

@@ -5,23 +5,28 @@ import { PageHead } from "@/components/ui";
 import { db } from "@/lib/db";
 import { readableRooms } from "@/lib/rooms";
 import { requireAccount } from "@/lib/session";
+import { getInbox } from "@/lib/inbox";
 
 export default async function ConversationsPage() {
   const account = await requireAccount();
-  const rooms = await db.room.findMany({
-    where: readableRooms(account.id),
-    include: {
-      messages: {
-        orderBy: { id: "desc" },
-        take: 1,
-        select: {
-          body: true,
-          createdAt: true,
-          sender: { select: { displayName: true } },
+  const [rooms, inbox] = await Promise.all([
+    db.room.findMany({
+      where: readableRooms(account.id),
+      include: {
+        messages: {
+          orderBy: { id: "desc" },
+          take: 1,
+          select: {
+            body: true,
+            createdAt: true,
+            sender: { select: { displayName: true } },
+          },
         },
       },
-    },
-  });
+    }),
+    getInbox(account.id),
+  ]);
+  const unread = new Map(inbox.map((item) => [item.key, item.unread]));
   rooms.sort(
     (a, b) =>
       (b.messages[0]?.createdAt ?? b.createdAt).getTime() -
@@ -56,7 +61,14 @@ export default async function ConversationsPage() {
                 <div className="room-title-row">
                   <MessageCircle size={17} />
                   <h3>{room.title}</h3>
-                  <span className="pill neutral">Private</span>
+                  <span className="pill neutral">
+                    {room.closedAt ? "Closed" : "Private"}
+                  </span>
+                  {!!unread.get(`private:${room.id}`) && (
+                    <span className="pill">
+                      {unread.get(`private:${room.id}`)} unread
+                    </span>
+                  )}
                 </div>
                 <p>
                   {room.messages[0]
@@ -85,6 +97,9 @@ export default async function ConversationsPage() {
             <Users size={17} />
             <h3>Welcome lounge</h3>
             <span className="pill neutral">All signed-in accounts</span>
+            {!!unread.get("public") && (
+              <span className="pill">{unread.get("public")} unread</span>
+            )}
           </div>
           <p>Visit the public chat to meet others.</p>
         </Link>

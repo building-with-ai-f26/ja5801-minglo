@@ -10,6 +10,8 @@ import { Eye, MessageCircle, RefreshCw } from "lucide-react";
 import type { TranscriptMessage } from "@/lib/rooms";
 import type { PublicTranscriptMessage } from "@/lib/public-room";
 import { Avatar } from "./ui";
+import { StateForm } from "./state-form";
+import { markReadAction } from "@/app/actions/inbox";
 type ChatMessage = TranscriptMessage | PublicTranscriptMessage;
 function merge(current: ChatMessage[], incoming: ChatMessage[]) {
   const all = new Map(current.map((m) => [m.id, m]));
@@ -20,12 +22,14 @@ export function Transcript({
   messagesUrl,
   initialMessages,
   initialHasOlder = false,
+  conversationKey,
   currentSenderId,
   publicRoom = false,
 }: {
   messagesUrl: string;
   initialMessages: ChatMessage[];
   initialHasOlder?: boolean;
+  conversationKey: string;
   currentSenderId?: string;
   publicRoom?: boolean;
 }) {
@@ -253,6 +257,26 @@ export function Transcript({
           >
             Latest messages
           </button>
+        </div>
+      )}
+      {messages.length > 0 && (
+        <div style={{ padding: 12 }}>
+          <StateForm action={markReadAction} label="Mark conversation read">
+            <input
+              type="hidden"
+              name="conversationKey"
+              value={conversationKey}
+            />
+            <input
+              type="hidden"
+              name="lastMessageId"
+              value={messages.at(-1)!.id}
+            />
+          </StateForm>
+          <p className="small muted">
+            Marks this conversation read through the last message shown,
+            including earlier history.
+          </p>
         </div>
       )}
     </>
