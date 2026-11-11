@@ -89,9 +89,31 @@ export async function recordMessageAttention(
     },
     select: { id: true, handle: true },
   });
+  const blocks = await tx.accountBlock.findMany({
+    where: {
+      OR: [
+        {
+          blockerAccountId: input.actorAccountId,
+          targetAccountId: { in: accounts.map((a) => a.id) },
+        },
+        {
+          targetAccountId: input.actorAccountId,
+          blockerAccountId: { in: accounts.map((a) => a.id) },
+        },
+      ],
+    },
+    select: { blockerAccountId: true, targetAccountId: true },
+  });
+  const blocked = new Set(
+    blocks.map((b) =>
+      b.blockerAccountId === input.actorAccountId
+        ? b.targetAccountId
+        : b.blockerAccountId,
+    ),
+  );
   await tx.attentionItem.createMany({
     data: accounts
-      .filter((account) => !muted.has(account.id))
+      .filter((account) => !muted.has(account.id) && !blocked.has(account.id))
       .map((account) => ({
         recipientAccountId: account.id,
         actorAccountId: input.actorAccountId,

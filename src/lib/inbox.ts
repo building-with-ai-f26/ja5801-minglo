@@ -22,7 +22,7 @@ export type AttentionView = {
 export async function getAttention(
   accountId: string,
 ): Promise<AttentionView[]> {
-  const [rooms, muted] = await Promise.all([
+  const [rooms, muted, blocks] = await Promise.all([
     db.room.findMany({
       where: readableRooms(accountId),
       select: { id: true },
@@ -31,10 +31,23 @@ export async function getAttention(
       where: { accountId, muted: true },
       select: { conversationKey: true },
     }),
+    db.accountBlock.findMany({
+      where: {
+        OR: [{ blockerAccountId: accountId }, { targetAccountId: accountId }],
+      },
+      select: { blockerAccountId: true, targetAccountId: true },
+    }),
   ]);
   const rows = await db.attentionItem.findMany({
     where: {
       recipientAccountId: accountId,
+      actorAccountId: {
+        notIn: blocks.map((b) =>
+          b.blockerAccountId === accountId
+            ? b.targetAccountId
+            : b.blockerAccountId,
+        ),
+      },
       readAt: null,
       OR: [
         {
