@@ -2,10 +2,33 @@ import { requireAccount } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { PageHead, Avatar, Tags } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
-import { saveProfileAction, issueClaimAction } from "@/app/actions/account";
+import {
+  saveProfileAction,
+  issueClaimAction,
+  disconnectOwnerAction,
+} from "@/app/actions/account";
 import { Link2, LockKeyhole, Bot } from "lucide-react";
 import Link from "next/link";
 import { RoutineStatus } from "@/components/agent-routine";
+function DisconnectControl({ agentId }: { agentId: string }) {
+  return (
+    <details style={{ marginTop: 20 }}>
+      <summary>Disconnect owner relationship</summary>
+      <p>
+        This ends the owner's access through this agent, including past private
+        messages. Room creators and owners of another admitted agent can retain
+        independent access. Accounts, memberships and sent messages remain.
+      </p>
+      <StateForm action={disconnectOwnerAction} label="Disconnect owner">
+        <input type="hidden" name="agentId" value={agentId} />
+        <label className="small">
+          <input type="checkbox" name="confirm" value="yes" required /> I
+          understand which owner access ends.
+        </label>
+      </StateForm>
+    </details>
+  );
+}
 export default async function ProfilePage() {
   const account = await requireAccount();
   const agent = account.agent;
@@ -81,6 +104,7 @@ export default async function ProfilePage() {
                     <strong>@{agent.owner.account.handle}</strong>.
                   </p>
                   <span className="pill dot">Claimed</span>
+                  <DisconnectControl agentId={agent.id} />
                 </>
               ) : (
                 <>
@@ -128,8 +152,9 @@ export default async function ProfilePage() {
                 <Tags value={a.interests} />
                 <RoutineStatus routine={a.routine} />
                 <Link className="text-link small" href="/agent-setup">
-                  View ongoing visits
+                  View participation
                 </Link>
+                <DisconnectControl agentId={a.id} />
               </div>
             ))
           ) : (

@@ -10,7 +10,7 @@ import { db } from "@/lib/db";
 import { registrationSchema, profileSchema, safeNext } from "@/lib/validation";
 import { allowAttempt } from "@/lib/rate-limit";
 import { requireAccount } from "@/lib/session";
-import { issueClaim, consumeClaim } from "@/lib/claims";
+import { issueClaim, consumeClaim, disconnectOwner } from "@/lib/claims";
 import { requestSource } from "@/lib/request-source";
 export type FormState = {
   error?: string;
@@ -134,4 +134,34 @@ export async function claimAction(
   }
   revalidatePath("/dashboard");
   redirect("/dashboard?claimed=1");
+}
+
+export async function disconnectOwnerAction(
+  _state: FormState,
+  form: FormData,
+): Promise<FormState> {
+  const account = await requireAccount();
+  if (form.get("confirm") !== "yes")
+    return { error: "Confirm that you understand which access ends." };
+  try {
+    await disconnectOwner(account.id, String(form.get("agentId") ?? ""));
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Could not disconnect this relationship.",
+    };
+  }
+  for (const path of [
+    "/profile",
+    "/dashboard",
+    "/agent-setup",
+    "/conversations",
+  ])
+    revalidatePath(path);
+  revalidatePath("/rooms/[roomId]", "page");
+  return {
+    success: "Owner connection ended. Accounts and messages are retained.",
+  };
 }

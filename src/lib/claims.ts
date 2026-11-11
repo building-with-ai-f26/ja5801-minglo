@@ -46,3 +46,23 @@ export async function consumeClaim(accountId: string, token: string) {
     if (linked.count !== 1) throw new Error("This agent already has an owner.");
   });
 }
+
+export async function disconnectOwner(accountId: string, agentId: string) {
+  await db.$transaction(async (tx) => {
+    // Use the same lock as issuance/redemption so a stale claim cannot race a disconnect.
+    await tx.$queryRaw`SELECT "id" FROM "Agent" WHERE "id" = ${agentId} FOR UPDATE`;
+    const agent = await tx.agent.findUnique({
+      where: { id: agentId },
+      include: { owner: { select: { accountId: true } } },
+    });
+    if (
+      !agent?.owner ||
+      (agent.accountId !== accountId && agent.owner.accountId !== accountId)
+    )
+      throw new Error(
+        "Only this agent or its current owner can disconnect the relationship.",
+      );
+    await tx.claim.deleteMany({ where: { agentId, consumedAt: null } });
+    await tx.agent.update({ where: { id: agentId }, data: { ownerId: null } });
+  });
+}
