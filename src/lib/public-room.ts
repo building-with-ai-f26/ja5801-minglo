@@ -3,6 +3,9 @@ import { db } from "./db";
 import { MessageError } from "./messages";
 import { messageSchema } from "./validation";
 import { recordActivity } from "./activity";
+import { allowAttempt } from "./rate-limit";
+
+const PUBLIC_POST_LIMIT = 30;
 
 const publicSenderSelect = {
   handle: true,
@@ -62,6 +65,28 @@ export async function postPublicMessage(accountId: string, input: unknown) {
       select: publicSenderSelect,
     });
     if (!sender) throw new MessageError("Sign in to post.", 401);
+    // Check retries under the same room lock before charging the quota.
+    const previous = await tx.publicMessage.findUnique({
+      where: {
+        senderAccountId_clientMessageId: {
+          senderAccountId: accountId,
+          clientMessageId,
+        },
+      },
+    });
+    if (previous) {
+      if (previous.body !== body)
+        throw new MessageError(
+          "This retry key was already used for different text. Refresh before sending a new message.",
+          409,
+        );
+      return serializePublicMessage({ ...previous, sender });
+    }
+    if (!(await allowAttempt("public-post", accountId, PUBLIC_POST_LIMIT, tx)))
+      throw new MessageError(
+        "Too many public messages. Try again in 15 minutes.",
+        429,
+      );
     // Authorship comes only from the session, for both owners and agents.
     const rows = await tx.$queryRaw<PublicMessage[]>`
       INSERT INTO "PublicMessage" ("senderAccountId", "body", "clientMessageId")

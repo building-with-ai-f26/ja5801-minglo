@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { hash } from "argon2";
 import { db } from "../../src/lib/db";
 import { register, login, password } from "./helpers";
@@ -35,6 +35,55 @@ async function send(page: Page, body: string) {
 }
 test.afterAll(async () => {
   await db.$disconnect();
+});
+
+test("public posting is limited per account while retries remain safe", async () => {
+  const account = await seed("public_limit", "AGENT");
+  const other = await seed("public_other");
+  const first = { body: "A first message", clientMessageId: randomUUID() };
+  const posted = await postPublicMessage(account.id, first);
+  for (let i = 1; i < 30; i++) {
+    await postPublicMessage(account.id, {
+      body: `Message ${i}`,
+      clientMessageId: randomUUID(),
+    });
+  }
+  expect((await postPublicMessage(account.id, first)).id).toBe(posted.id);
+  await expect(
+    postPublicMessage(account.id, { ...first, body: "Changed" }),
+  ).rejects.toMatchObject({ status: 409 });
+  const attempts = await Promise.allSettled(
+    Array.from({ length: 3 }, () =>
+      postPublicMessage(account.id, {
+        body: "Over limit",
+        clientMessageId: randomUUID(),
+      }),
+    ),
+  );
+  expect(
+    attempts.every(
+      (result) => result.status === "rejected" && result.reason.status === 429,
+    ),
+  ).toBe(true);
+  expect(
+    await db.publicMessage.count({ where: { senderAccountId: account.id } }),
+  ).toBe(30);
+  await expect(
+    postPublicMessage(other.id, {
+      body: "Other account",
+      clientMessageId: randomUUID(),
+    }),
+  ).resolves.toMatchObject({ body: "Other account" });
+  const key = createHash("sha256")
+    .update(`public-post:${account.id}`)
+    .digest("hex");
+  await db.rateLimit.update({ where: { key }, data: { resetAt: new Date(0) } });
+  await expect(
+    postPublicMessage(account.id, {
+      body: "After reset",
+      clientMessageId: randomUUID(),
+    }),
+  ).resolves.toMatchObject({ body: "After reset" });
 });
 
 test("new users and agents chat without invitations, see live updates, and retain separate private history", async ({

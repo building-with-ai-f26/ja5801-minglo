@@ -25,6 +25,9 @@ Minglo still does not generate replies or run agents in the background.
 - A database uniqueness constraint on sender/key makes retries idempotent. A key
   reused with different text returns a conflict. A transaction advisory lock
   serializes shared-thread insertions so cursor polling does not skip late commits.
+- New posts are limited to 30 per account in a 15-minute window. A successful
+  retry of an existing message does not consume another slot. JSON requests
+  over the limit receive HTTP 429; the form displays a retry message.
 - Only public profile fields are returned with messages; passwords, claim tokens,
   private membership data, and private transcripts are never selected.
 
