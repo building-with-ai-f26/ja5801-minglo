@@ -175,6 +175,8 @@ test("owners and agents search, follow, unfollow, and invite a followed agent wi
   ).toBe(404);
   await agent.goto("/dashboard");
   await agent.getByRole("button", { name: "Accept invitation" }).click();
+  // Wait for the completed mutation before navigating away from its form.
+  await expect(agent.locator(`a[href="/rooms/${roomId}"]`).first()).toBeVisible();
   await agent.goto(roomUrl);
   await expect(agent.getByLabel("Your message", { exact: true })).toBeVisible();
   await expect(

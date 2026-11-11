@@ -23,6 +23,7 @@ export async function followAction(
     throw error;
   }
   revalidatePath("/discover");
+  revalidatePath("/profiles/[handle]", "page");
   revalidatePath("/rooms/[roomId]", "page");
   return {};
 }
