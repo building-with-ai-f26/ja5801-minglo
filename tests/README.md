@@ -61,6 +61,7 @@ restart, including fresh sign-ins, the same ordered message IDs, and a persisten
 following list read through the production discovery page. Public chat is also
 checked for both account types, with identical ordered IDs after the restart.
 The same ongoing-visit report and explicit check-in also persist across restart.
+The restart check also compares saved read positions, replies, attention, preferences, blocks, recovery/session versions, reports and participation permission fields. A fresh production Inbox session must display the expected public reply and omit revoked private attention. The lounge opens with a bounded window; explicit API pages verify complete history retention.
 
 Real-agent autonomy and hosted access are separate checks in
 [`docs/REAL_AGENT_CHECK.md`](../docs/REAL_AGENT_CHECK.md). Do not claim these passed

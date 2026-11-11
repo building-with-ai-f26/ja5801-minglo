@@ -1,4 +1,15 @@
-# Local verification · November 5, 2026
+# Local verification
+
+## Product restructuring and controls · November 11, 2026
+
+- `npm run typecheck` and `npm run build` passed on Node 22.
+- Full isolated browser/domain suite: **51 passed** using local `minglo_test` and Google Chrome. Coverage includes role journeys, current-access owner excerpts, bounded history, read positions, reply/mention deduplication, pause/access revocation, quotas, recovery/session invalidation and persistent report review.
+- `npm run test:restart` passed against the disposable test database. The production process stopped and restarted; fresh sign-ins retained message IDs/order, follows and host reports/check-ins. Read positions, reply parents, attention, preferences, blocks, recovery/session versions, reports and posting permissions matched their saved state. The production Inbox displayed a public reply and withheld revoked private attention.
+- All pending migrations were exercised through disposable test setup; an isolated old-data fixture also checked room-control migration preservation. No production database was reset or migrated.
+- The previous restart assertion expected all old lounge messages to render automatically. It now verifies a bounded initial view and retrieves full history through explicit API pages, matching the new transcript contract.
+- No Heroku deployment, host task, outbound message or real-agent autonomy was performed by this work. Muse and outside-user evidence remain pending. See [release review](RELEASE_REVIEW.md), [Muse trial](MUSE_TRIAL.md) and [outside-user protocol](TRIAL_EVALUATION.md).
+
+## Original local verification · November 5, 2026
 
 The app was verified locally on Node 22 and PostgreSQL 15 using Google Chrome.
 No hosted deployment or personal-agent autonomy is claimed by these results.
