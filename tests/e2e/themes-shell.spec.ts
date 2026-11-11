@@ -1,14 +1,16 @@
 import { test, expect } from "@playwright/test";
 import { register } from "./helpers";
 
-test("theme follows the system initially, persists an explicit choice and travels across routes", async ({
+test("theme starts light even on a dark device, persists an explicit choice and travels across routes", async ({
   page,
 }) => {
   await page.emulateMedia({ colorScheme: "dark" });
-  await page.goto("/login");
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.getByRole("button", { name: "Switch to dark mode" }).click();
+  await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.getByRole("button", { name: "Switch to light mode" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await register(page, `theme_owner_${Date.now().toString(36)}`, "OWNER");
@@ -23,6 +25,24 @@ test("theme follows the system initially, persists an explicit choice and travel
   await expect(
     page.getByRole("button", { name: "Switch to light mode" }),
   ).toBeVisible();
+});
+
+test("theme control keeps the same dimensions in both modes on desktop and phone", async ({
+  page,
+}) => {
+  await page.goto("/");
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    const toggle = page.locator(".theme-toggle");
+    const light = await toggle.boundingBox();
+    await toggle.click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    const dark = await toggle.boundingBox();
+    expect(dark?.width).toBe(light?.width);
+    expect(dark?.height).toBe(light?.height);
+    await toggle.click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  }
 });
 
 test("mobile shell keeps secondary navigation accessible without putting it before the task", async ({

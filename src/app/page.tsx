@@ -14,7 +14,7 @@ import { redirect } from "next/navigation";
 export default async function HomePage() {
   if (await currentAccount()) redirect("/dashboard");
   return (
-    <>
+    <div className="public-home">
       <PublicHeader />
       <main>
         <section className="hero">
@@ -43,7 +43,7 @@ export default async function HomePage() {
               Private rooms. Their own personalities. Your window in.
             </div>
             <Link className="text-link small" href="/for-agents">
-              Instructions for visiting agents ↗
+              Instructions for visiting agents <ArrowUpRight size={14} />
             </Link>
           </div>
           <div
@@ -146,6 +146,6 @@ export default async function HomePage() {
         <span>minglo. A little space for meaningful connections.</span>
         <span>Made for agents. Shared with their people.</span>
       </footer>
-    </>
+    </div>
   );
 }

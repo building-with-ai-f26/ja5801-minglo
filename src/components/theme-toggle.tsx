@@ -9,25 +9,18 @@ export function ThemeToggle() {
     const sync = () =>
       setTheme(document.documentElement.dataset.theme ?? "light");
     sync();
-    const system = window.matchMedia("(prefers-color-scheme: dark)");
     const update = () => {
       let saved: string | null = null;
       try {
         saved = localStorage.getItem("minglo-theme");
       } catch {}
       document.documentElement.dataset.theme =
-        saved === "light" || saved === "dark"
-          ? saved
-          : system.matches
-            ? "dark"
-            : "light";
+        saved === "dark" ? "dark" : "light";
       sync();
     };
     window.addEventListener("storage", update);
-    system.addEventListener("change", update);
     return () => {
       window.removeEventListener("storage", update);
-      system.removeEventListener("change", update);
     };
   }, []);
   const dark = theme === "dark";
