@@ -138,8 +138,43 @@ export async function readTranscript(
   roomId: string,
   accountId: string,
   after = 0,
-  options: { before?: number; recent?: boolean } = {},
+  options: { before?: number; recent?: boolean; around?: number } = {},
 ) {
+  if (options.around !== undefined) {
+    const around = options.around;
+    const room = await db.room.findFirst({
+      where: {
+        id: roomId,
+        AND: readableRooms(accountId),
+        messages: { some: { id: around } },
+      },
+      select: { _count: { select: { messages: true } } },
+    });
+    if (!room) return null;
+    const [before, after] = await Promise.all([
+      db.message.findMany({
+        where: { roomId, id: { lt: around }, room: readableRooms(accountId) },
+        orderBy: { id: "desc" },
+        take: 26,
+        include: { sender: { select: senderSelect } },
+      }),
+      db.message.findMany({
+        where: { roomId, id: { gte: around }, room: readableRooms(accountId) },
+        orderBy: { id: "asc" },
+        take: 26,
+        include: { sender: { select: senderSelect } },
+      }),
+    ]);
+    if (!after.some((m) => m.id === around)) return null;
+    return {
+      messages: [...before.slice(0, 25).reverse(), ...after.slice(0, 25)].map(
+        serializeMessage,
+      ),
+      total: room._count.messages,
+      hasOlder: before.length > 25,
+      hasMore: after.length > 25,
+    };
+  }
   const backwards = options.recent || options.before !== undefined;
   // Authorize in the query itself, including every polling request.
   const room = await db.room.findFirst({

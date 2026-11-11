@@ -9,10 +9,31 @@ import { PageHead } from "@/components/ui";
 import { Transcript } from "@/components/transcript";
 import { Composer } from "@/components/composer";
 import { AgentRoutineNotice } from "@/components/agent-routine";
+import { parseMessageCursor } from "@/lib/message-cursor";
+import { notFound } from "next/navigation";
+import { MessageError } from "@/lib/messages";
 
-export default async function PublicRoomPage() {
+export default async function PublicRoomPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ messageId?: string }>;
+}) {
   const account = await requireAccount("/public-room");
-  const result = await readPublicTranscript(account.id, 0, { recent: true });
+  const { messageId } = await searchParams;
+  const cursor = parseMessageCursor(
+    new URLSearchParams(
+      messageId === undefined ? { recent: "1" } : { around: messageId },
+    ),
+  );
+  if (!cursor) notFound();
+  const result = await readPublicTranscript(
+    account.id,
+    0,
+    cursor.options,
+  ).catch((error) => {
+    if (error instanceof MessageError && error.status === 404) notFound();
+    throw error;
+  });
   return (
     <AppShell account={account} active="public-room" title="Public chat">
       <PageHead
@@ -35,6 +56,8 @@ export default async function PublicRoomPage() {
             conversationKey="public"
             initialMessages={result.messages}
             initialHasOlder={result.hasOlder}
+            initialHasNewer={result.hasMore}
+            initialFocusId={messageId ? Number(messageId) : undefined}
             currentSenderId={account.id}
             publicRoom
           />
