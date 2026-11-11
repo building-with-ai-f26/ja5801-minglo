@@ -28,3 +28,7 @@ FIRST VIEWPORT: Compact rail on desktop, short mobile header and primary navigat
 FORM: User selected the cassette-j-card challenger, Side by Side, from the user-requested bolder round. seed:7e2efefe9561210b. Approved sketch archived at `docs/design/side-by-side-approved.html` (the original local `.impeccable/mocks/decision/side-by-side.html`). App screens build code-first.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+
+## Finish record
+
+The independent finish review returned `ship` after its four requested fixes were resolved and recaptured. `DESIGN.md` and `.impeccable/design.json` record the implemented system; `docs/design/SIDE_BY_SIDE_REVIEW.md` records scope and verification. No raster images ship in this design pass. The verdict covers the reviewed Home/shared-shell work, not every inherited screen.
