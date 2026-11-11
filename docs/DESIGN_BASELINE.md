@@ -51,4 +51,4 @@ Redesign the shared app shell and the owner/agent Home hierarchy. Carry one cohe
 
 Keep the schema and domain permission operations unchanged. Reuse access/revocation and Home journey tests; add only meaningful coverage for changed mobile navigation or interaction. Inspect desktop, phone, long-content and empty states. Document the replacement in `DESIGN.md` and `.impeccable/design.json` after its implementation and visual review.
 
-The user asked for a bolder second direction round in the local comparison board. No replacement direction has been chosen yet, and no app redesign has been deployed by this setup work.
+The user asked for a bolder second direction round, then selected **Side by Side** in the local board: “I like side by side, can we have as is as light mode and also have a dark mode please”. Implementation starts with the shared shell and Home screens, with a persistent light/dark choice. No app redesign has been deployed by this setup work.
