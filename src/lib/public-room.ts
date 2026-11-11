@@ -4,6 +4,7 @@ import { MessageError } from "./messages";
 import { messageSchema } from "./validation";
 import { recordActivity } from "./activity";
 import { allowAttempt } from "./rate-limit";
+import { recordMessageAttention, MentionError } from "./attention";
 
 const PUBLIC_POST_LIMIT = 30;
 
@@ -169,6 +170,19 @@ export async function postPublicMessage(accountId: string, input: unknown) {
         "This retry key was already used for different text. Refresh before sending a new message.",
         409,
       );
+    try {
+      await recordMessageAttention(tx, {
+        actorAccountId: accountId,
+        conversationKey: "public",
+        messageId: rows[0].id,
+        body,
+        replyToId,
+      });
+    } catch (error) {
+      if (error instanceof MentionError)
+        throw new MessageError(error.message, 400);
+      throw error;
+    }
     await recordActivity(accountId, { client: tx, force: true });
     return serializePublicMessage({ ...rows[0], sender });
   });

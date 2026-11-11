@@ -10,6 +10,127 @@ export type InboxItem = {
   updatedAt: Date;
 };
 
+export type AttentionView = {
+  id: string;
+  kind: "REPLY" | "MENTION" | "INVITATION";
+  title: string;
+  preview: string;
+  href: string;
+  createdAt: Date;
+};
+
+export async function getAttention(
+  accountId: string,
+): Promise<AttentionView[]> {
+  const rooms = await db.room.findMany({
+    where: readableRooms(accountId),
+    select: { id: true },
+  });
+  const rows = await db.attentionItem.findMany({
+    where: {
+      recipientAccountId: accountId,
+      readAt: null,
+      OR: [
+        {
+          kind: "INVITATION",
+          membership: { status: "INVITED", agent: { accountId } },
+        },
+        {
+          kind: { not: "INVITATION" },
+          conversationKey: {
+            in: ["public", ...rooms.map((r) => `private:${r.id}`)],
+          },
+        },
+      ],
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: 100,
+    include: { actor: { select: { handle: true } } },
+  });
+  const [privateMessages, publicMessages, invitations] = await Promise.all([
+    db.message.findMany({
+      where: {
+        id: {
+          in: rows
+            .filter((r) => r.conversationKey !== "public")
+            .flatMap((r) => (r.messageId === null ? [] : [r.messageId])),
+        },
+        room: readableRooms(accountId),
+      },
+      select: { id: true, roomId: true, body: true },
+    }),
+    db.publicMessage.findMany({
+      where: {
+        id: {
+          in: rows
+            .filter((r) => r.conversationKey === "public")
+            .flatMap((r) => (r.messageId === null ? [] : [r.messageId])),
+        },
+      },
+      select: { id: true, body: true },
+    }),
+    db.membership.findMany({
+      where: {
+        id: {
+          in: rows.flatMap((r) => (r.membershipId ? [r.membershipId] : [])),
+        },
+        agent: { accountId },
+        status: "INVITED",
+        room: { closedAt: null },
+      },
+      select: { id: true, roomId: true, room: { select: { title: true } } },
+    }),
+  ]);
+  const privateById = new Map(privateMessages.map((m) => [m.id, m]));
+  const publicById = new Map(publicMessages.map((m) => [m.id, m]));
+  const invitationById = new Map(invitations.map((m) => [m.id, m]));
+  return rows.flatMap<AttentionView>((row) => {
+    if (row.kind === "INVITATION") {
+      const invitation = row.membershipId
+        ? invitationById.get(row.membershipId)
+        : null;
+      return invitation
+        ? [
+            {
+              id: row.id,
+              kind: row.kind,
+              title: `Invitation from @${row.actor.handle}`,
+              preview: invitation.room.title,
+              href: "/inbox",
+              createdAt: row.createdAt,
+            },
+          ]
+        : [];
+    }
+    const message =
+      row.messageId === null
+        ? null
+        : row.conversationKey === "public"
+          ? publicById.get(row.messageId)
+          : privateById.get(row.messageId);
+    if (
+      !message ||
+      ("roomId" in message &&
+        row.conversationKey !== `private:${message.roomId}`)
+    )
+      return [];
+    const path =
+      row.conversationKey === "public"
+        ? "/public-room"
+        : `/rooms/${row.conversationKey.slice(8)}`;
+    return [
+      {
+        id: row.id,
+        kind: row.kind,
+        title: `@${row.actor.handle} ${row.kind === "REPLY" ? "replied to you" : "mentioned you"}`,
+        preview: message.body,
+        href: `${path}?messageId=${message.id}#message-${message.id}`,
+        createdAt: row.createdAt,
+      },
+    ];
+  });
+}
+
 export async function getInbox(accountId: string): Promise<InboxItem[]> {
   const account = await db.account.findUnique({
     where: { id: accountId },
@@ -123,5 +244,14 @@ export async function markConversationRead(
       VALUES (${accountId}, ${conversationKey}, ${lastMessageId})
       ON CONFLICT ("accountId", "conversationKey") DO UPDATE
       SET "lastMessageId" = GREATEST("ReadPosition"."lastMessageId", EXCLUDED."lastMessageId"), "updatedAt" = NOW()`;
+    await tx.attentionItem.updateMany({
+      where: {
+        recipientAccountId: accountId,
+        conversationKey,
+        messageId: { lte: lastMessageId },
+        readAt: null,
+      },
+      data: { readAt: new Date() },
+    });
   });
 }
