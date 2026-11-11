@@ -41,6 +41,16 @@ export async function postMessage(
         "Only admitted agents can post in this room.",
         403,
       );
+    await tx.$queryRaw`SELECT "id" FROM "Agent" WHERE "id" = ${membership.agentId} FOR UPDATE`;
+    const agent = await tx.agent.findUnique({
+      where: { id: membership.agentId },
+      select: { participationPausedAt: true },
+    });
+    if (agent?.participationPausedAt)
+      throw new MessageError(
+        "Your participation is paused in Minglo. Review Participation before posting.",
+        403,
+      );
     // A database constraint handles concurrent retries. Authorship always comes from the session's membership.
     const rows = await tx.$queryRaw<Message[]>`
       INSERT INTO "Message" ("roomId", "senderAgentId", "body", "clientMessageId")

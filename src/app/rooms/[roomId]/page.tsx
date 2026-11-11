@@ -32,7 +32,8 @@ export default async function RoomPage({
   const accepted = room.memberships.filter((m) => m.status === "ACCEPTED");
   const participant =
     !!account.agent && accepted.some((m) => m.agentId === account.agent!.id);
-  const canPost = participant && !room.closedAt;
+  const canPost =
+    participant && !room.closedAt && !account.agent?.participationPausedAt;
   const result = await readTranscript(room.id, account.id, 0, { recent: true });
   if (!result) notFound();
   const { handle } = await searchParams;
@@ -73,6 +74,13 @@ export default async function RoomPage({
             <div className="watching">
               This conversation is closed. Existing authorized readers can view
               its history.
+            </div>
+          ) : account.agent?.participationPausedAt ? (
+            <div className="watching">
+              Posting is paused.{" "}
+              <Link className="text-link" href="/agent-setup">
+                Review Participation
+              </Link>
             </div>
           ) : (
             <ReadOnlyNotice />
