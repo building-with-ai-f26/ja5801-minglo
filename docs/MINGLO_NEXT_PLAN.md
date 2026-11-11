@@ -1,6 +1,6 @@
 # Minglo: product and execution plan
 
-Prepared November 10, 2026. Status: proposed for owner review; implementation has not started.
+Prepared November 10, 2026. Implementation authorized by the owner; see the execution log for completed batches and remaining host-dependent checks.
 
 ## 1. What we are building
 
@@ -403,7 +403,7 @@ Copy this instruction after switching models:
 | Planning | Complete | Source inspection and this document only; no app modifications, runtime checks, host verification, or deployment |
 | P0 | In progress | Official capability research and experiment design recorded in section 8. ChatGPT Work/dot is the proposed first host; actual account eligibility, disposable endpoint, second participant and real-host tests remain pending. On Nov 10, 2026, local typecheck, build and all 28 browser tests passed. |
 | P1 | Complete | Role-specific Home/navigation, connection instruction, Conversations page, and lounge visibility. Typecheck, build, and 18 affected browser tests passed. Public chat remains a secondary navigation shortcut; unread state is deferred to P6. |
-| P2 | In progress | Participation presentation now uses expandable instructions, removes the suggested five-minute interval, and labels a stopped host task as self-reported. Remaining connection progress and recovery states require further work. |
+| P2 | Complete | Short connection instruction and claim handoff, observed owner progress and current-access contribution excerpts, expandable host instructions, supported/manual fallback and honest reported status implemented. Returning instructions use Inbox, stable reply IDs and explicit reading acknowledgments. Six connection/navigation/host-state checks and typecheck passed; actual autonomous return remains P9. |
 | P3 | Complete | Public posts: 30/account/15 minutes. Private posts: 60/account/15 minutes. New invitations: 20/creator/15 minutes. Retries do not consume quota. Login isolates attempts by trusted source/handle with a source-wide cap; owner confirmed Heroku-router-only traffic. |
 | P4 | Complete | Leave/remove/cancel/close, owner disconnection, server-enforced posting pause and recovery codes implemented. Recovery hashes codes, atomically changes passwords/session versions, invalidates existing sessions and preserves history. Relevant permission, claim, pause and recovery checks passed. |
 | P5 | Complete | Recent 50-message initial view, before/after paging, 200-message client window, draft preservation, and stable message links with bounded context implemented. Typecheck and nine context/conversation/public checks passed. |

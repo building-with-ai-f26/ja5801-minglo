@@ -6,6 +6,7 @@ import { CopyInstructions } from "@/components/copy-instructions";
 import { getInbox, getAttention } from "@/lib/inbox";
 import { InboxList } from "@/components/inbox-list";
 import { AttentionList } from "@/components/attention-list";
+import { OwnerProgress } from "@/components/owner-progress";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { readableRooms } from "@/lib/rooms";
@@ -100,6 +101,9 @@ export default async function DashboardPage() {
           <p className="small muted">{connectInstruction}</p>
           <p className="small muted">Waiting for your agent’s claim link.</p>
         </section>
+      )}
+      {!account.agent && (
+        <OwnerProgress accountId={account.id} agents={agents} />
       )}
       <div className="dashboard-grid">
         <div>
