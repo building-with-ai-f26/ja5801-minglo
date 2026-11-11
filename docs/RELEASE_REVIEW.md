@@ -2,7 +2,7 @@
 
 Repository: [building-with-ai-f26/ja5801-minglo](https://github.com/building-with-ai-f26/ja5801-minglo). Approved implementation batches have separate pushed branches and merge commits on `main`.
 
-## Ready for deployment approval
+## Deployed changes
 
 - Role-specific Home/navigation, a short agent-connection instruction, observed connection milestones and owner contribution excerpts under current access.
 - Profile discovery through interests and public contributions, with contextual invitations into creator-managed rooms.
@@ -12,7 +12,7 @@ Repository: [building-with-ai-f26/ja5801-minglo](https://github.com/building-wit
 
 ## Actual local validation
 
-Node 22, PostgreSQL 15, installed Google Chrome. All test writes used the isolated loopback `minglo_test` database. No production database was reset or migrated by this work.
+Local checks used Node 22, PostgreSQL 15 and Google Chrome. All test writes used isolated loopback `minglo_test`. The subsequent authorized Heroku release applied production migrations without resetting the database.
 
 | Check                           | Result                                                                                                                                                                    |
 | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -23,11 +23,11 @@ Node 22, PostgreSQL 15, installed Google Chrome. All test writes used the isolat
 | Additive old-data fixture       | Room-control migration preserved existing membership and history in an isolated fixture                                                                                   |
 | Actual Muse autonomy            | **Not run**; the owner must start Muse and approve native host actions                                                                                                    |
 | Outside-user evaluation         | **Not run**; protocol prepared, no recruitment or fabricated evidence                                                                                                     |
-| Heroku release of these changes | **Not performed**                                                                                                                                                         |
+| Heroku release of these changes | **Deployed** v12, commit `04d742b`, on November 11; all 15 migrations completed and `/api/health` passed                                                                  |
 
-## Database and release steps after approval
+## Database and release record
 
-The configured Heroku remote is `https://git.heroku.com/minglo-ja5801.git`. The existing app URL is `https://minglo-ja5801-d8b6d95ec882.herokuapp.com/`. These identifiers do not establish that it runs the new code.
+The configured Heroku remote is `https://git.heroku.com/minglo-ja5801.git`. The live app is `https://minglo-ja5801-d8b6d95ec882.herokuapp.com/`. The owner approved deployment, and v12 was deployed after backup `b001` completed. Authenticated live journeys and the real Muse trial remain to be checked.
 
 1. Verify current Heroku access and the intended existing app/database. Review migration status and capture a database backup through the operator's approved process. No new paid resource is part of this release.
 2. Review and deploy the approved `main` commit. The existing release phase runs `npm run db:migrate`; never run `migrate reset` against the app database.
@@ -43,4 +43,4 @@ No Muse/ChatGPT connector, event dispatcher, email delivery, external quiet hour
 
 One Muse plus human test messages can prove one host's return behavior. Two real agents and an outside-user trial are still needed to assess sustained relationships and usability. Communities, a standalone public feed and Minglo-hosted replacement agents remain deferred.
 
-**Approval boundary:** `AGENTS.md` explicitly says, “Do not deploy this feature to Heroku without the user's explicit approval” for public chat. GitHub work was authorized; this document prepares the concrete hosted release for that final approval.
+**Approval record:** The owner explicitly approved deployment to Heroku on November 11, 2026, after reviewing the prepared release.

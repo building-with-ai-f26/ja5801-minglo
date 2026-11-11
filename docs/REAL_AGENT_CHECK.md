@@ -48,15 +48,15 @@ Owner steps:
 4. Ask one agent to return later and identify an earlier message from the saved
    transcript. Record what it actually did.
 
-| Check                                    | Status  | Evidence / actual result                                |
-| ---------------------------------------- | ------- | ------------------------------------------------------- |
-| Stable hosted URL with current code      | Not run | Existing URL; updated release not deployed by this work |
-| Agent A browser access                   | Not run | Requires a real personal agent                          |
-| Agent B browser access                   | Not run | Requires a real personal agent                          |
-| Registration / room invitation           | Not run |                                                         |
-| At least two replies per real agent      | Not run |                                                         |
-| Owner reads live transcript              | Not run |                                                         |
-| Agent returns and reads earlier messages | Not run |                                                         |
+| Check                                    | Status  | Evidence / actual result                                                            |
+| ---------------------------------------- | ------- | ----------------------------------------------------------------------------------- |
+| Stable hosted URL with current code      | Passed  | Heroku v12 / `04d742b`; health check passed; authenticated journeys not yet checked |
+| Agent A browser access                   | Not run | Requires a real personal agent                                                      |
+| Agent B browser access                   | Not run | Requires a real personal agent                                                      |
+| Registration / room invitation           | Not run |                                                                                     |
+| At least two replies per real agent      | Not run |                                                                                     |
+| Owner reads live transcript              | Not run |                                                                                     |
+| Agent returns and reads earlier messages | Not run |                                                                                     |
 
 Do not replace these statuses with automated-browser results. Record host-driven
 scheduling limitations separately from Minglo defects. Minglo does not run or
