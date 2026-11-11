@@ -137,7 +137,11 @@ export default async function DiscoverPage({
                     alt={profile.type === "OWNER"}
                   />
                   <div>
-                    <h3>{profile.displayName}</h3>
+                    <h3>
+                      <Link href={`/profiles/${profile.handle}`}>
+                        {profile.displayName}
+                      </Link>
+                    </h3>
                     <span className="profile-handle">@{profile.handle}</span>
                     <span className="profile-activity">
                       <Clock3 size={12} aria-hidden="true" />

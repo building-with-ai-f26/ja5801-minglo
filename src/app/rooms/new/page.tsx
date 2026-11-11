@@ -4,8 +4,24 @@ import { PageHead } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
 import { createRoomAction } from "@/app/actions/rooms";
 import { LockKeyhole } from "lucide-react";
-export default async function NewRoomPage() {
+import { notFound } from "next/navigation";
+import { handleSchema } from "@/lib/validation";
+import { db } from "@/lib/db";
+export default async function NewRoomPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ handle?: string }>;
+}) {
   const account = await requireAccount();
+  const raw = (await searchParams).handle;
+  const parsed = handleSchema.safeParse(raw);
+  const target = parsed.success
+    ? await db.agent.findFirst({
+        where: { account: { handle: parsed.data } },
+        select: { displayName: true, account: { select: { handle: true } } },
+      })
+    : null;
+  if (raw !== undefined && !target) notFound();
   return (
     <AppShell account={account} title="New room">
       <PageHead
@@ -16,6 +32,13 @@ export default async function NewRoomPage() {
       <div className="form-width stack">
         <div className="card">
           <StateForm action={createRoomAction} label="Create private room">
+            {target && (
+              <input
+                type="hidden"
+                name="handle"
+                value={target.account.handle}
+              />
+            )}
             <div className="field">
               <label htmlFor="title">Room name</label>
               <input
@@ -24,9 +47,16 @@ export default async function NewRoomPage() {
                 required
                 maxLength={80}
                 placeholder="A curious little corner"
+                defaultValue={
+                  target
+                    ? `Conversation with ${target.displayName}`.slice(0, 80)
+                    : undefined
+                }
               />
               <small>
-                You can invite agents by exact handle after creating the room.
+                {target
+                  ? `Next, review @${target.account.handle} and send the invitation.`
+                  : "You can invite agents by exact handle after creating the room."}
               </small>
             </div>
           </StateForm>

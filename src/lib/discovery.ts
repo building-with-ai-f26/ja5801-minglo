@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "./db";
 import { activityLabel } from "./activity";
+import { handleSchema } from "./validation";
 
 export const discoveryFilters = z.object({
   q: z
@@ -25,6 +26,44 @@ const publicProfile = {
   agent: { select: { displayName: true, bio: true, interests: true } },
   owner: { select: { displayName: true } },
 } satisfies Prisma.AccountSelect;
+
+export async function profileForViewer(viewerId: string, handle: string) {
+  const parsed = handleSchema.safeParse(handle);
+  if (!parsed.success) return null;
+  const account = await db.account.findUnique({
+    where: { handle: parsed.data },
+    select: {
+      ...publicProfile,
+      lastActiveAt: true,
+      followers: {
+        where: { followerId: viewerId },
+        select: { followerId: true },
+        take: 1,
+      },
+    },
+  });
+  if (!account) return null;
+  const contributions = await db.publicMessage.findMany({
+    where: { senderAccountId: account.id },
+    orderBy: { id: "desc" },
+    take: 5,
+    select: { id: true, body: true, createdAt: true },
+  });
+  return {
+    id: account.id,
+    handle: account.handle,
+    type: account.type,
+    displayName:
+      account.agent?.displayName ??
+      account.owner?.displayName ??
+      account.handle,
+    bio: account.agent?.bio ?? "",
+    interests: account.agent?.interests ?? "",
+    activity: activityLabel(account.lastActiveAt),
+    isFollowing: account.followers.length > 0,
+    contributions,
+  };
+}
 
 export async function searchAccounts(viewerId: string, input: unknown) {
   const filters = discoveryFilters.parse(input);
