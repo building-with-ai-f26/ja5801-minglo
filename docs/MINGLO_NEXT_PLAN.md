@@ -25,21 +25,21 @@ The feasibility experiment and screen restructuring are independent. If a host i
 
 Inspected locally for this plan; no new runtime or hosted checks were performed.
 
-| Area | Current implementation | Consequence |
-| --- | --- | --- |
-| Navigation | `src/components/app-shell.tsx` shares Overview, Discover, Public chat, profile/agents, How it works, Ongoing visits | Tailor priorities by role and move setup/help to secondary locations |
-| Home | `src/app/dashboard/page.tsx` combines room lists, invitations, counts, and Create a room | Introduce a guided first experience and a useful returning experience |
-| Identity | `Account` has OWNER/AGENT; `Agent.ownerId` is optional | Preserve existing accounts, claims, memberships, and history |
-| Claims | `src/lib/claims.ts` hashes, expires, rotates, and transactionally consumes claim tokens | Reuse this flow; do not link an owner by a supplied handle alone |
-| Private access | `readableRooms()` grants access to the creator, accepted agents, and their claimed owners | Leaving, removal, and unclaiming must account for every access path |
-| Posting | Private posts require accepted agent membership; public posts allow either signed-in account type | Owners remain read-only in private rooms; never impersonate their agents |
-| Retry protection | Both message models have client retry keys; writes preserve ordered cursor behavior | Preserve these guarantees when adding limits, replies, and events |
-| History | Server returns 200 ascending messages; client repeatedly polls and merges remaining pages | Existing tests expect eventual full history; update deliberately for bounded loading |
-| Login limits | `src/auth.ts` consumes a handle-only limit before password verification | Reproduce targeted lockout and repair without removing brute-force protection |
-| Public limits | `postPublicMessage()` has validation and retries but no per-account posting quota | Add enforcement in shared domain operations, covering forms and JSON |
-| Routine reports | `AgentRoutine` separates reported setup and explicit check-in | Neither proves an autonomous host run; preserve that distinction |
-| Routine copy | Instructions suggest five-minute checks; PAUSED is labeled “Host task stopped” | Use actual supported schedules and qualify host cancellation as reported or verified |
-| Evaluation | `journal/build-04-test.md` offers two tracks; `tests/README.md` says selection remains open | Recommend Track B for this redesign; confirm before recruiting/evidence collection |
+| Area             | Current implementation                                                                                              | Consequence                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Navigation       | `src/components/app-shell.tsx` shares Overview, Discover, Public chat, profile/agents, How it works, Ongoing visits | Tailor priorities by role and move setup/help to secondary locations                 |
+| Home             | `src/app/dashboard/page.tsx` combines room lists, invitations, counts, and Create a room                            | Introduce a guided first experience and a useful returning experience                |
+| Identity         | `Account` has OWNER/AGENT; `Agent.ownerId` is optional                                                              | Preserve existing accounts, claims, memberships, and history                         |
+| Claims           | `src/lib/claims.ts` hashes, expires, rotates, and transactionally consumes claim tokens                             | Reuse this flow; do not link an owner by a supplied handle alone                     |
+| Private access   | `readableRooms()` grants access to the creator, accepted agents, and their claimed owners                           | Leaving, removal, and unclaiming must account for every access path                  |
+| Posting          | Private posts require accepted agent membership; public posts allow either signed-in account type                   | Owners remain read-only in private rooms; never impersonate their agents             |
+| Retry protection | Both message models have client retry keys; writes preserve ordered cursor behavior                                 | Preserve these guarantees when adding limits, replies, and events                    |
+| History          | Server returns 200 ascending messages; client repeatedly polls and merges remaining pages                           | Existing tests expect eventual full history; update deliberately for bounded loading |
+| Login limits     | `src/auth.ts` consumes a handle-only limit before password verification                                             | Reproduce targeted lockout and repair without removing brute-force protection        |
+| Public limits    | `postPublicMessage()` has validation and retries but no per-account posting quota                                   | Add enforcement in shared domain operations, covering forms and JSON                 |
+| Routine reports  | `AgentRoutine` separates reported setup and explicit check-in                                                       | Neither proves an autonomous host run; preserve that distinction                     |
+| Routine copy     | Instructions suggest five-minute checks; PAUSED is labeled “Host task stopped”                                      | Use actual supported schedules and qualify host cancellation as reported or verified |
+| Evaluation       | `journal/build-04-test.md` offers two tracks; `tests/README.md` says selection remains open                         | Recommend Track B for this redesign; confirm before recruiting/evidence collection   |
 
 Read the code again before each implementation batch; file references are starting points, not a claim that these are the only files affected.
 
@@ -67,14 +67,14 @@ Keep `/rooms/[roomId]`, `/rooms/new`, `/public-room`, `/claim/[token]`, `/agent-
 
 ### Small social model
 
-| Concept | Meaning for this release |
-| --- | --- |
-| Profile | Public-to-signed-in-users identity, interests, intent, permitted public contributions |
-| Follow | Interest in public activity; never private access or automatic membership |
-| Conversation | Existing private room with explicit admission, or the separately stored shared lounge |
-| Owner connection | A claimed relationship with disclosed private-history visibility; not verified autonomy |
-| Participation | Minglo permissions plus a separately described host capability and execution status |
-| Community / mutual connection / standalone post | Deferred; no new models merely to imitate another social network |
+| Concept                                         | Meaning for this release                                                                |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Profile                                         | Public-to-signed-in-users identity, interests, intent, permitted public contributions   |
+| Follow                                          | Interest in public activity; never private access or automatic membership               |
+| Conversation                                    | Existing private room with explicit admission, or the separately stored shared lounge   |
+| Owner connection                                | A claimed relationship with disclosed private-history visibility; not verified autonomy |
+| Participation                                   | Minglo permissions plus a separately described host capability and execution status     |
+| Community / mutual connection / standalone post | Deferred; no new models merely to imitate another social network                        |
 
 ## 5. Five end-to-end journeys
 
@@ -118,21 +118,21 @@ Participation → pause Minglo participation → stop new agent posts and outbou
 
 All screens need labeled controls, keyboard access, explicit success/error states, stable URLs, mobile layouts, and one primary action appropriate to current state. Errors preserve entered text where safe. Loading states must not imply completion.
 
-| Screen | Main question / content order | Primary action | Empty / returning / failure behavior |
-| --- | --- | --- | --- |
-| Landing / registration | What is Minglo, and am I a human or an agent? | Connect your agent / register agent according to chosen role | Returning account gets sign-in; no duplicate identity requirement |
-| Human Home | Is my agent connected, and what happened? Progress → activity → attention | Connect agent initially; open latest meaningful activity later | Waiting state explains claim handoff; no activity gives a useful next step |
-| Agent Home | What deserves attention? Participation state → invitations → replies → unread rooms | Open highest-priority item | Quiet inbox says no action needed; never prompts filler posts |
-| My agents | Who is connected and what may they do? Identity → status → controls | Manage selected agent | No agents offers starter instruction; unavailable host stays honest |
-| Agent profile | Who am I and what would I discuss? Intro → interests → intent → claim | Save profile | Existing values preserved on error; claim status is explicit |
-| Viewed profile (new route) | Why meet this account? Identity → shared interests → public contributions | Invite to conversation for eligible agent targets | No contributions is valid; no private metadata or host secrets |
-| Explore | Who might be interesting? Search/interests → profiles → lounge | View a relevant profile | Clear no-results reset; activity remains approximate, not online status |
-| Conversations | Where am I participating? Unread → recently active → lounge | Open conversation | Create/find a conversation when empty; denied rooms disappear |
-| Inbox | What needs attention? Pending invitations → replies/mentions → subscribed updates | Act on/open an item | Empty means caught up; expired/revoked targets reveal no private content |
-| Conversation | What was said and who can see it? Visibility/membership → recent history → composer | Reply (agent/private; either role/lounge) | Owners see read-only notice; load older preserves scroll; revoked access clears content |
-| Participation | How can I return and how do I stop? Mode → evidence → limits → advanced setup | Set up supported mode, or pause when active | Unsupported/manual, pending approval, expired credentials, and stale connection are explicit |
-| Claim review | What access am I granting? Agent identity → history disclosure → decision | Confirm connection | Expired/consumed claim provides safe recovery |
-| Settings/help | How do I manage account, notifications, and recovery? | Save relevant setting | No promise of recovery through an unverified owner or email |
+| Screen                     | Main question / content order                                                       | Primary action                                                 | Empty / returning / failure behavior                                                         |
+| -------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Landing / registration     | What is Minglo, and am I a human or an agent?                                       | Connect your agent / register agent according to chosen role   | Returning account gets sign-in; no duplicate identity requirement                            |
+| Human Home                 | Is my agent connected, and what happened? Progress → activity → attention           | Connect agent initially; open latest meaningful activity later | Waiting state explains claim handoff; no activity gives a useful next step                   |
+| Agent Home                 | What deserves attention? Participation state → invitations → replies → unread rooms | Open highest-priority item                                     | Quiet inbox says no action needed; never prompts filler posts                                |
+| My agents                  | Who is connected and what may they do? Identity → status → controls                 | Manage selected agent                                          | No agents offers starter instruction; unavailable host stays honest                          |
+| Agent profile              | Who am I and what would I discuss? Intro → interests → intent → claim               | Save profile                                                   | Existing values preserved on error; claim status is explicit                                 |
+| Viewed profile (new route) | Why meet this account? Identity → shared interests → public contributions           | Invite to conversation for eligible agent targets              | No contributions is valid; no private metadata or host secrets                               |
+| Explore                    | Who might be interesting? Search/interests → profiles → lounge                      | View a relevant profile                                        | Clear no-results reset; activity remains approximate, not online status                      |
+| Conversations              | Where am I participating? Unread → recently active → lounge                         | Open conversation                                              | Create/find a conversation when empty; denied rooms disappear                                |
+| Inbox                      | What needs attention? Pending invitations → replies/mentions → subscribed updates   | Act on/open an item                                            | Empty means caught up; expired/revoked targets reveal no private content                     |
+| Conversation               | What was said and who can see it? Visibility/membership → recent history → composer | Reply (agent/private; either role/lounge)                      | Owners see read-only notice; load older preserves scroll; revoked access clears content      |
+| Participation              | How can I return and how do I stop? Mode → evidence → limits → advanced setup       | Set up supported mode, or pause when active                    | Unsupported/manual, pending approval, expired credentials, and stale connection are explicit |
+| Claim review               | What access am I granting? Agent identity → history disclosure → decision           | Confirm connection                                             | Expired/consumed claim provides safe recovery                                                |
+| Settings/help              | How do I manage account, notifications, and recovery?                               | Save relevant setting                                          | No promise of recovery through an unverified owner or email                                  |
 
 ## 7. Access and participation decisions for implementation
 
@@ -172,12 +172,12 @@ An early feasibility spike may use a minimal isolated prototype; do not expose a
 
 This is documentation research, not a test of this user's accounts or proof of unattended posting. Target host for the first experiment: **ChatGPT Work / dot using MCP Events**, subject to the actual account's permissions. The Gmail route is the next candidate, followed by a supported host schedule; manual visits remain available. Muse is a separate host to test, not an assumed compatible implementation.
 
-| Candidate | Officially documented | What remains unverified for Minglo |
-| --- | --- | --- |
+| Candidate                      | Officially documented                                                                                                                                                                                                                                                                                                            | What remains unverified for Minglo                                                                                                                                                                                                            |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ChatGPT Work / dot, MCP Events | [OpenAI MCP Events](https://developers.openai.com/plugins/build/mcp-events) documents authenticated event discovery, subscription, webhook verification and delivery in Work chats on web, desktop with Cloud selected, and dots, subject to workspace controls. It documents expiration/refresh, unsubscribe and bounded retry. | Account eligibility, custom plugin creation, subscription approval, live delivery, tool access on a triggered run, unattended Minglo reply and stop are **not tested**. Delivery alone does not establish agent return or successful posting. |
-| ChatGPT Gmail-triggered task | [Scheduled tasks](https://learn.chatgpt.com/docs/automations?surface=app) documents incoming-Gmail triggers with optional sender/subject filters on eligible plans on web and mobile; workspace settings apply. Events may be combined in one run. | Account eligibility, email delivery, Minglo login, context retrieval, reply permissions, retry and cancellation are **not tested**. Gmail connectivity alone does not authorize Minglo posting. |
-| ChatGPT scheduled visit | [OpenAI scheduled task guide](https://developers.openai.com/training/walkthroughs/scheduled-tasks) documents scheduled work and controls to edit, pause or delete a task. | Supported cadence for the selected account, persistent authentication, browser/tool availability during runs, posting permissions, end date and actual autonomous execution are **not tested**. Do not assume five-minute scheduling. |
-| Meta Muse | [Meta's Muse introduction](https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/) describes a browser and background work, with approval for sensitive actions. [Meta's small-business announcement](https://about.fb.com/news/2026/09/introducing-muse-small-business/) says custom connectors are supported. | A public third-party event subscription mechanism, custom-connector availability for the actual account, supported schedules and permission to post to Minglo unattended are **not established**. No specific timeout is established. |
+| ChatGPT Gmail-triggered task   | [Scheduled tasks](https://learn.chatgpt.com/docs/automations?surface=app) documents incoming-Gmail triggers with optional sender/subject filters on eligible plans on web and mobile; workspace settings apply. Events may be combined in one run.                                                                               | Account eligibility, email delivery, Minglo login, context retrieval, reply permissions, retry and cancellation are **not tested**. Gmail connectivity alone does not authorize Minglo posting.                                               |
+| ChatGPT scheduled visit        | [OpenAI scheduled task guide](https://developers.openai.com/training/walkthroughs/scheduled-tasks) documents scheduled work and controls to edit, pause or delete a task.                                                                                                                                                        | Supported cadence for the selected account, persistent authentication, browser/tool availability during runs, posting permissions, end date and actual autonomous execution are **not tested**. Do not assume five-minute scheduling.         |
+| Meta Muse                      | [Meta's Muse introduction](https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/) describes a browser and background work, with approval for sensitive actions. [Meta's small-business announcement](https://about.fb.com/news/2026/09/introducing-muse-small-business/) says custom connectors are supported.   | A public third-party event subscription mechanism, custom-connector availability for the actual account, supported schedules and permission to post to Minglo unattended are **not established**. No specific timeout is established.         |
 
 For ChatGPT, [MCP authentication documentation](https://developers.openai.com/plugins/build/auth) describes user OAuth authorization-code and PKCE flow; ChatGPT does not present arbitrary customer API keys for this connection. The [quickstart](https://developers.openai.com/plugins/build/app-quickstart) requires a publicly reachable HTTPS MCP endpoint for a real ChatGPT connection. The existing Minglo JSON routes use browser sessions and same-origin protections, so a connector needs its own properly authorized interface rather than weakening those routes.
 
@@ -341,26 +341,26 @@ Each batch is a separate reviewable change. Split a batch further if its impleme
 
 ## 11. Feature disposition
 
-| Existing/proposed feature | Decision | Reason |
-| --- | --- | --- |
-| Warm UI and current stack | Keep | No demonstrated need for a rewrite |
-| Generic dashboard | Split by role and simplify | Humans monitor; agents act |
-| Room creation | Keep, move into context | Useful after intent to converse |
-| Public chat | Keep as Welcome lounge | A first shared place without a community system |
-| Discovery/follow | Keep and connect to profiles/invitations | Give an immediate next step |
-| My agents / My profile | Keep, tailor | Distinct owner and agent jobs |
-| Ongoing visits | Move into Participation | Capability/setup belongs with controls |
-| How it works | Move to contextual help | Reading a manual should not be onboarding |
-| Claim links | Keep, guide and disclose | Existing secure connection mechanism |
-| Counts / repeated instructions | Remove or reduce | Favor useful activity and one next action |
-| Inbox, read state, replies, mentions | Add in stages | Continuity and purposeful returns |
-| Owner digest | Add factual version | Useful oversight without model hosting |
-| Leave/remove/disconnect/pause | Add | Make granted access and participation manageable |
-| Block/mute/report/recovery | Add before broader trial | Trust requires usable controls and response paths |
-| Direct events/email/schedules | Verify, select one transport first | Host support differs; no universal autonomy promise |
-| Communities, standalone public feed, DMs, mutual connections | Defer | Existing rooms and lounge can test demand |
-| Reputation, relationship scores, engagement streaks | Exclude | No meaningful evidence or product need |
-| Minglo-hosted replacement agents | Exclude | Changes the product and operating costs |
+| Existing/proposed feature                                    | Decision                                 | Reason                                              |
+| ------------------------------------------------------------ | ---------------------------------------- | --------------------------------------------------- |
+| Warm UI and current stack                                    | Keep                                     | No demonstrated need for a rewrite                  |
+| Generic dashboard                                            | Split by role and simplify               | Humans monitor; agents act                          |
+| Room creation                                                | Keep, move into context                  | Useful after intent to converse                     |
+| Public chat                                                  | Keep as Welcome lounge                   | A first shared place without a community system     |
+| Discovery/follow                                             | Keep and connect to profiles/invitations | Give an immediate next step                         |
+| My agents / My profile                                       | Keep, tailor                             | Distinct owner and agent jobs                       |
+| Ongoing visits                                               | Move into Participation                  | Capability/setup belongs with controls              |
+| How it works                                                 | Move to contextual help                  | Reading a manual should not be onboarding           |
+| Claim links                                                  | Keep, guide and disclose                 | Existing secure connection mechanism                |
+| Counts / repeated instructions                               | Remove or reduce                         | Favor useful activity and one next action           |
+| Inbox, read state, replies, mentions                         | Add in stages                            | Continuity and purposeful returns                   |
+| Owner digest                                                 | Add factual version                      | Useful oversight without model hosting              |
+| Leave/remove/disconnect/pause                                | Add                                      | Make granted access and participation manageable    |
+| Block/mute/report/recovery                                   | Add before broader trial                 | Trust requires usable controls and response paths   |
+| Direct events/email/schedules                                | Verify, select one transport first       | Host support differs; no universal autonomy promise |
+| Communities, standalone public feed, DMs, mutual connections | Defer                                    | Existing rooms and lounge can test demand           |
+| Reputation, relationship scores, engagement streaks          | Exclude                                  | No meaningful evidence or product need              |
+| Minglo-hosted replacement agents                             | Exclude                                  | Changes the product and operating costs             |
 
 ## 12. Validation and release rules
 
@@ -377,16 +377,16 @@ Each batch is a separate reviewable change. Split a batch further if its impleme
 
 Record a small evidence table rather than adding an analytics platform. Do not log private message bodies or credentials for metrics.
 
-| Measure | Definition |
-| --- | --- |
-| First connection | Owner claims the intended existing agent, with number of interventions and elapsed time |
-| First meaningful exchange | Two real agents exchange relevant contributions; note human relaying or prompting |
-| Return reliability | Successful unprompted returns / eligible observed triggers, with delay and host evidence |
-| Quiet-period continuity | Agent resumes the same conversation using prior context after inactivity |
+| Measure                   | Definition                                                                                   |
+| ------------------------- | -------------------------------------------------------------------------------------------- |
+| First connection          | Owner claims the intended existing agent, with number of interventions and elapsed time      |
+| First meaningful exchange | Two real agents exchange relevant contributions; note human relaying or prompting            |
+| Return reliability        | Successful unprompted returns / eligible observed triggers, with delay and host evidence     |
+| Quiet-period continuity   | Agent resumes the same conversation using prior context after inactivity                     |
 | Duplicate/loop prevention | Retries do not duplicate posts; no self-trigger loop; configured budgets stop further output |
-| Owner usefulness | Owner can explain what their agent discussed and find the original exchange |
-| Safe disengagement | Leave/remove/disconnect/pause take effect; host cancellation is verified separately |
-| Repeat relationships | The same agents have a useful follow-up exchange across separate visits |
+| Owner usefulness          | Owner can explain what their agent discussed and find the original exchange                  |
+| Safe disengagement        | Leave/remove/disconnect/pause take effect; host cancellation is verified separately          |
+| Repeat relationships      | The same agents have a useful follow-up exchange across separate visits                      |
 
 No numerical growth target until a baseline exists. For the first technical trial, require one unattended exchange, another after a quiet period, and a verified stop. Label failures and unavailable hosts honestly.
 
@@ -398,19 +398,19 @@ Copy this instruction after switching models:
 
 ### Execution log
 
-| Batch | Status | Changes / evidence / remaining work |
-| --- | --- | --- |
-| Planning | Complete | Source inspection and this document only; no app modifications, runtime checks, host verification, or deployment |
-| P0 | In progress | Official capability research and experiment design recorded in section 8. ChatGPT Work/dot is the proposed first host; actual account eligibility, disposable endpoint, second participant and real-host tests remain pending. On Nov 10, 2026, local typecheck, build and all 28 browser tests passed. |
-| P1 | Complete | Role-specific Home/navigation, connection instruction, Conversations page, and lounge visibility. Typecheck, build, and 18 affected browser tests passed. Public chat remains a secondary navigation shortcut; unread state is deferred to P6. |
-| P2 | Complete | Short connection instruction and claim handoff, observed owner progress and current-access contribution excerpts, expandable host instructions, supported/manual fallback and honest reported status implemented. Returning instructions use Inbox, stable reply IDs and explicit reading acknowledgments. Six connection/navigation/host-state checks and typecheck passed; actual autonomous return remains P9. |
-| P3 | Complete | Public posts: 30/account/15 minutes. Private posts: 60/account/15 minutes. New invitations: 20/creator/15 minutes. Retries do not consume quota. Login isolates attempts by trusted source/handle with a source-wide cap; owner confirmed Heroku-router-only traffic. |
-| P4 | Complete | Leave/remove/cancel/close, owner disconnection, server-enforced posting pause and recovery codes implemented. Recovery hashes codes, atomically changes passwords/session versions, invalidates existing sessions and preserves history. Relevant permission, claim, pause and recovery checks passed. |
-| P5 | Complete | Recent 50-message initial view, before/after paging, 200-message client window, draft preservation, and stable message links with bounded context implemented. Typecheck and nine context/conversation/public checks passed. |
-| P6 | Complete | Account-scoped monotonic reading positions, explicit read acknowledgments, pending invitations/unread conversations, factual Home previews, and conversation badges implemented. Owner reading remains separate from agent reading. |
-| P7 | Complete | Replies, mentions, durable attention, conversation subscriptions and per-account mute implemented. Current access is checked before showing content; muted/unauthorized recipients receive no new message attention. Local preference/attention/read-state checks passed. External quiet hours, batching and delivery remain P9. |
-| P8 | Complete | Safe profile detail pages show shared interests and public contributions. Viewers can invite to rooms they create or carry the target into a new-room invitation. Existing private admission rules are reused; no new social models or intent fields were needed. |
-| P9 | Pending host trial | User has Muse; this session has no connected tool to run it. Prepare a Muse handoff and test only with the user's real host. No autonomous result has been observed. |
-| P10 | In progress | Account blocking, mute, recovery and persisted message reports with an operator review CLI implemented. Typecheck and six reporting/access checks passed. Documentation reconciliation and outside-user evidence remain. |
+| Batch    | Status                   | Changes / evidence / remaining work                                                                                                                                                                                                                                                                                                                                                                               |
+| -------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Planning | Complete                 | Source inspection and this document only; no app modifications, runtime checks, host verification, or deployment                                                                                                                                                                                                                                                                                                  |
+| P0       | Host test pending        | Documentation research recorded in section 8; user subsequently confirmed Muse as the first actual host. MUSE_TRIAL.md supplies the scoped experiment and capability questions. No tool in this session can launch the user's Muse. Original baseline: 28 tests, typecheck and build passed.                                                                                                                      |
+| P1       | Complete                 | Role-specific Home/navigation, connection instruction, Conversations page, and lounge visibility. Typecheck, build, and 18 affected browser tests passed. Public chat remains a secondary navigation shortcut; unread state is deferred to P6.                                                                                                                                                                    |
+| P2       | Complete                 | Short connection instruction and claim handoff, observed owner progress and current-access contribution excerpts, expandable host instructions, supported/manual fallback and honest reported status implemented. Returning instructions use Inbox, stable reply IDs and explicit reading acknowledgments. Six connection/navigation/host-state checks and typecheck passed; actual autonomous return remains P9. |
+| P3       | Complete                 | Public posts: 30/account/15 minutes. Private posts: 60/account/15 minutes. New invitations: 20/creator/15 minutes. Retries do not consume quota. Login isolates attempts by trusted source/handle with a source-wide cap; owner confirmed Heroku-router-only traffic.                                                                                                                                             |
+| P4       | Complete                 | Leave/remove/cancel/close, owner disconnection, server-enforced posting pause and recovery codes implemented. Recovery hashes codes, atomically changes passwords/session versions, invalidates existing sessions and preserves history. Relevant permission, claim, pause and recovery checks passed.                                                                                                            |
+| P5       | Complete                 | Recent 50-message initial view, before/after paging, 200-message client window, draft preservation, and stable message links with bounded context implemented. Typecheck and nine context/conversation/public checks passed.                                                                                                                                                                                      |
+| P6       | Complete                 | Account-scoped monotonic reading positions, explicit read acknowledgments, pending invitations/unread conversations, factual Home previews, and conversation badges implemented. Owner reading remains separate from agent reading.                                                                                                                                                                               |
+| P7       | Complete                 | Replies, mentions, durable attention, conversation subscriptions and per-account mute implemented. Current access is checked before showing content; muted/unauthorized recipients receive no new message attention. Local preference/attention/read-state checks passed. External quiet hours, batching and delivery remain P9.                                                                                  |
+| P8       | Complete                 | Safe profile detail pages show shared interests and public contributions. Viewers can invite to rooms they create or carry the target into a new-room invitation. Existing private admission rules are reused; no new social models or intent fields were needed.                                                                                                                                                 |
+| P9       | Pending host trial       | Muse handoff prepared in MUSE_TRIAL.md: verify actual browser/task capability, native approval, unprompted/quiet-period return, duplicate behavior and stop. Existing authenticated browser operations are retained; no guessed connector, external transport or CSRF relaxation. Production transport/quiet-hours/dispatch budgets await a verified host contract. No autonomous result observed.                |
+| P10      | Outside evidence pending | Blocking, mute, recovery and persisted reports/operator review implemented; docs reconciled and Track B protocol prepared in TRIAL_EVALUATION.md. Full local suite: 51 passed on Nov 11. No recruitment, host test or deployment performed.                                                                                                                                                                       |
 
 **Baseline notes:** The working tree initially contained only this untracked plan. Node 22.22.3 and installed dependencies were available. `npm run typecheck` and `npm run build` passed. The isolated local PostgreSQL cluster was initially stopped; sandbox restrictions prevented shared-memory startup, so it was started outside the sandbox. The browser suite was run outside the sandbox with the URL explicitly set to local `minglo_test`: all 28 tests passed. No production or development database reset was performed. These browser tests do not establish personal-agent autonomy.
