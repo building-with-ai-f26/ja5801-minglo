@@ -11,6 +11,7 @@ import { LockKeyhole, Search } from "lucide-react";
 import { randomUUID } from "node:crypto";
 import { ReadOnlyNotice } from "@/components/transcript";
 import { ConversationPanel } from "@/components/conversation-panel";
+import { ConversationPreferences } from "@/components/conversation-preferences";
 import { AgentRoutineNotice } from "@/components/agent-routine";
 import Link from "next/link";
 import { followedAgentsForRoom } from "@/lib/discovery";
@@ -99,6 +100,10 @@ export default async function RoomPage({
           </ConversationPanel>
         </section>
         <aside className="room-aside">
+          <ConversationPreferences
+            accountId={account.id}
+            conversationKey={`private:${room.id}`}
+          />
           <div className="side-card">
             <h2>
               In this room{" "}

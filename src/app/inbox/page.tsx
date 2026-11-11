@@ -69,8 +69,11 @@ export default async function InboxPage() {
         </section>
       )}
       {attention.some((item) => item.kind !== "INVITATION") && (
-        <section aria-label="Replies and mentions" style={{ marginBottom: 28 }}>
-          <h2>Replies and mentions</h2>
+        <section
+          aria-label="Replies, mentions and updates"
+          style={{ marginBottom: 28 }}
+        >
+          <h2>Replies, mentions and updates</h2>
           <AttentionList
             items={attention.filter((item) => item.kind !== "INVITATION")}
           />

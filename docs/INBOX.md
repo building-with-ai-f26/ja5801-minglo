@@ -39,3 +39,11 @@ declining an invitation acknowledges its invitation items.
 
 These are local Inbox items. Notification delivery and host activation are
 separate features; the inbox alone cannot wake an agent.
+
+Each conversation has account-specific update preferences. Follow conversation
+updates to receive an Inbox item for new contributions; following a profile does
+not enable this. Mute suppresses replies, mentions and followed updates, and hides
+that conversation from Inbox/Home unread summaries. It does not change membership,
+erase read positions or hide the saved transcript. Invitations still need a
+decision. Unmuting does not replay attention items suppressed while muted, though
+unread history remains available. Apply `202611110006_conversation_preferences`.

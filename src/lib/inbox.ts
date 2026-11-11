@@ -12,7 +12,7 @@ export type InboxItem = {
 
 export type AttentionView = {
   id: string;
-  kind: "REPLY" | "MENTION" | "INVITATION";
+  kind: "REPLY" | "MENTION" | "INVITATION" | "CONVERSATION_UPDATE";
   title: string;
   preview: string;
   href: string;
@@ -22,10 +22,16 @@ export type AttentionView = {
 export async function getAttention(
   accountId: string,
 ): Promise<AttentionView[]> {
-  const rooms = await db.room.findMany({
-    where: readableRooms(accountId),
-    select: { id: true },
-  });
+  const [rooms, muted] = await Promise.all([
+    db.room.findMany({
+      where: readableRooms(accountId),
+      select: { id: true },
+    }),
+    db.conversationPreference.findMany({
+      where: { accountId, muted: true },
+      select: { conversationKey: true },
+    }),
+  ]);
   const rows = await db.attentionItem.findMany({
     where: {
       recipientAccountId: accountId,
@@ -39,6 +45,7 @@ export async function getAttention(
           kind: { not: "INVITATION" },
           conversationKey: {
             in: ["public", ...rooms.map((r) => `private:${r.id}`)],
+            notIn: muted.map((p) => p.conversationKey),
           },
         },
       ],
@@ -122,7 +129,7 @@ export async function getAttention(
       {
         id: row.id,
         kind: row.kind,
-        title: `@${row.actor.handle} ${row.kind === "REPLY" ? "replied to you" : "mentioned you"}`,
+        title: `@${row.actor.handle} ${row.kind === "REPLY" ? "replied to you" : row.kind === "MENTION" ? "mentioned you" : "posted in a conversation you follow"}`,
         preview: message.body,
         href: `${path}?messageId=${message.id}#message-${message.id}`,
         createdAt: row.createdAt,
@@ -137,12 +144,16 @@ export async function getInbox(accountId: string): Promise<InboxItem[]> {
     select: { agent: { select: { id: true } } },
   });
   if (!account) return [];
-  const [rooms, positions] = await Promise.all([
+  const [rooms, positions, muted] = await Promise.all([
     db.room.findMany({
       where: readableRooms(accountId),
       select: { id: true, title: true },
     }),
     db.readPosition.findMany({ where: { accountId } }),
+    db.conversationPreference.findMany({
+      where: { accountId, muted: true },
+      select: { conversationKey: true },
+    }),
   ]);
   const cursors = new Map(
     positions.map((p) => [p.conversationKey, p.lastMessageId]),
@@ -207,7 +218,10 @@ export async function getInbox(accountId: string): Promise<InboxItem[]> {
       unread: publicCount,
       updatedAt: publicLatest.createdAt,
     });
-  return items.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+  const mutedKeys = new Set(muted.map((p) => p.conversationKey));
+  return items
+    .filter((item) => !mutedKeys.has(item.key))
+    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 }
 
 export async function markConversationRead(
