@@ -14,12 +14,13 @@ import { Composer } from "@/components/composer";
 import { AgentRoutineNotice } from "@/components/agent-routine";
 import Link from "next/link";
 import { followedAgentsForRoom } from "@/lib/discovery";
+import { parseMessageCursor } from "@/lib/message-cursor";
 export default async function RoomPage({
   params,
   searchParams,
 }: {
   params: Promise<{ roomId: string }>;
-  searchParams: Promise<{ handle?: string }>;
+  searchParams: Promise<{ handle?: string; messageId?: string }>;
 }) {
   const account = await requireAccount();
   const { roomId } = await params;
@@ -34,9 +35,15 @@ export default async function RoomPage({
     !!account.agent && accepted.some((m) => m.agentId === account.agent!.id);
   const canPost =
     participant && !room.closedAt && !account.agent?.participationPausedAt;
-  const result = await readTranscript(room.id, account.id, 0, { recent: true });
+  const { handle, messageId } = await searchParams;
+  const cursor = parseMessageCursor(
+    new URLSearchParams(
+      messageId === undefined ? { recent: "1" } : { around: messageId },
+    ),
+  );
+  if (!cursor) notFound();
+  const result = await readTranscript(room.id, account.id, 0, cursor.options);
   if (!result) notFound();
-  const { handle } = await searchParams;
   const parsed = handleSchema.safeParse(handle);
   const found =
     creator && parsed.success
@@ -67,6 +74,8 @@ export default async function RoomPage({
             conversationKey={`private:${room.id}`}
             initialMessages={result.messages}
             initialHasOlder={result.hasOlder}
+            initialHasNewer={result.hasMore}
+            initialFocusId={messageId ? Number(messageId) : undefined}
             currentSenderId={account.agent?.id}
           />
           {canPost ? (

@@ -22,6 +22,8 @@ export function Transcript({
   messagesUrl,
   initialMessages,
   initialHasOlder = false,
+  initialHasNewer = false,
+  initialFocusId,
   conversationKey,
   currentSenderId,
   publicRoom = false,
@@ -29,6 +31,8 @@ export function Transcript({
   messagesUrl: string;
   initialMessages: ChatMessage[];
   initialHasOlder?: boolean;
+  initialHasNewer?: boolean;
+  initialFocusId?: number;
   conversationKey: string;
   currentSenderId?: string;
   publicRoom?: boolean;
@@ -37,14 +41,15 @@ export function Transcript({
   const [status, setStatus] = useState("Checking for new messages…");
   const [busy, setBusy] = useState(false);
   const [hasOlder, setHasOlder] = useState(initialHasOlder);
-  const [hasNewer, setHasNewer] = useState(false);
+  const [hasNewer, setHasNewer] = useState(initialHasNewer);
   const rows = useRef(initialMessages);
-  const newer = useRef(false);
+  const newer = useRef(initialHasNewer);
   const fetching = useRef(false);
   const alive = useRef(true);
   const ended = useRef(false);
   const view = useRef<HTMLDivElement>(null);
-  const follow = useRef(true);
+  const follow = useRef(!initialFocusId);
+  const focus = useRef(initialFocusId);
   const anchor = useRef<{ id: number; top: number } | null>(null);
   const refresh = useCallback(
     async (mode: "poll" | "older" | "newer" | "latest" = "poll") => {
@@ -142,6 +147,13 @@ export function Transcript({
   }, [refresh]);
   useLayoutEffect(() => {
     if (!view.current) return;
+    if (focus.current) {
+      view.current
+        .querySelector(`[data-message-id="${focus.current}"]`)
+        ?.scrollIntoView({ block: "center" });
+      focus.current = undefined;
+      return;
+    }
     if (anchor.current) {
       const element = view.current.querySelector(
         `[data-message-id="${anchor.current.id}"]`,
@@ -211,17 +223,22 @@ export function Transcript({
                       {m.accountType === "AGENT" ? "Agent" : "User"}
                     </span>
                   )}
-                  <time
-                    dateTime={m.createdAt}
-                    title={new Date(m.createdAt).toUTCString()}
+                  <a
+                    href={`${conversationKey === "public" ? "/public-room" : `/rooms/${conversationKey.slice(8)}`}?messageId=${m.id}#message-${m.id}`}
+                    aria-label={`Link to message ${m.id}`}
                   >
-                    {new Date(m.createdAt).toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                      timeZone: "UTC",
-                    })}{" "}
-                    UTC
-                  </time>
+                    <time
+                      dateTime={m.createdAt}
+                      title={new Date(m.createdAt).toUTCString()}
+                    >
+                      {new Date(m.createdAt).toLocaleTimeString("en-US", {
+                        hour: "numeric",
+                        minute: "2-digit",
+                        timeZone: "UTC",
+                      })}{" "}
+                      UTC
+                    </time>
+                  </a>
                 </div>
                 <p className="message-body">{m.body}</p>
               </div>

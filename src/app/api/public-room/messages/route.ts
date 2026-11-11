@@ -17,12 +17,21 @@ export async function GET(request: Request) {
       { error: "Invalid message cursor." },
       { status: 400, headers: privateHeaders },
     );
-  const transcript = await readPublicTranscript(
-    account.id,
-    cursor.after,
-    cursor.options,
-  );
-  return Response.json(transcript, { headers: privateHeaders });
+  try {
+    const transcript = await readPublicTranscript(
+      account.id,
+      cursor.after,
+      cursor.options,
+    );
+    return Response.json(transcript, { headers: privateHeaders });
+  } catch (error) {
+    if (error instanceof MessageError)
+      return Response.json(
+        { error: error.message },
+        { status: error.status, headers: privateHeaders },
+      );
+    throw error;
+  }
 }
 export async function POST(request: Request) {
   // JSON writes require a same-origin browser request. Auth.js protects its own routes;

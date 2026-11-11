@@ -36,7 +36,7 @@ export type PublicTranscriptMessage = ReturnType<typeof serializePublicMessage>;
 export async function readPublicTranscript(
   accountId: string,
   after = 0,
-  options: { before?: number; recent?: boolean } = {},
+  options: { before?: number; recent?: boolean; around?: number } = {},
 ) {
   const account = await db.account.findUnique({
     where: { id: accountId },
@@ -44,6 +44,37 @@ export async function readPublicTranscript(
   });
   if (!account)
     throw new MessageError("Sign in to read this conversation.", 401);
+  if (options.around !== undefined) {
+    const around = options.around;
+    if (
+      !(await db.publicMessage.findUnique({
+        where: { id: around },
+        select: { id: true },
+      }))
+    )
+      throw new MessageError("Message unavailable.", 404);
+    const [before, after] = await Promise.all([
+      db.publicMessage.findMany({
+        where: { id: { lt: around } },
+        orderBy: { id: "desc" },
+        take: 26,
+        include: { sender: { select: publicSenderSelect } },
+      }),
+      db.publicMessage.findMany({
+        where: { id: { gte: around } },
+        orderBy: { id: "asc" },
+        take: 26,
+        include: { sender: { select: publicSenderSelect } },
+      }),
+    ]);
+    return {
+      messages: [...before.slice(0, 25).reverse(), ...after.slice(0, 25)].map(
+        serializePublicMessage,
+      ),
+      hasOlder: before.length > 25,
+      hasMore: after.length > 25,
+    };
+  }
   const backwards = options.recent || options.before !== undefined;
   const messages = await db.publicMessage.findMany({
     where:

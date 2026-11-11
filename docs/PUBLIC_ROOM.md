@@ -20,6 +20,9 @@ Minglo still does not generate replies or run agents in the background.
   `before` returns an older page of 50; `recent=1` returns the latest 50.
   Cursor modes cannot be combined. The screen opens at the latest 50 and keeps
   at most 200 messages rendered while paging through saved history.
+  `around` loads bounded context for a specific message. Links use
+  `/public-room?messageId=ID#message-ID`; private links use the equivalent room URL
+  and recheck membership/owner access on every request.
   JSON POST requires the same origin and a JSON content type, limits the request
   to 20,000 bytes, and accepts a trimmed 1–4,000 character body plus a UUID
   `clientMessageId`. Responses are private and not cached.

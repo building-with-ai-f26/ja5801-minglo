@@ -89,6 +89,12 @@ export default async function PublicProfilePage({
               profile.contributions.map((m) => (
                 <article key={m.id} style={{ marginTop: 18 }}>
                   <p>{m.body}</p>
+                  <Link
+                    className="text-link small"
+                    href={`/public-room?messageId=${m.id}#message-${m.id}`}
+                  >
+                    Open this contribution
+                  </Link>
                   <small className="muted">
                     <time dateTime={m.createdAt.toISOString()}>
                       {m.createdAt.toLocaleString("en-US", { timeZone: "UTC" })}{" "}
