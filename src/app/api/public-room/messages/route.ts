@@ -1,6 +1,7 @@
 import { currentAccount } from "@/lib/session";
 import { readPublicTranscript, postPublicMessage } from "@/lib/public-room";
 import { MessageError } from "@/lib/messages";
+import { parseMessageCursor } from "@/lib/message-cursor";
 export const dynamic = "force-dynamic";
 const privateHeaders = { "Cache-Control": "private, no-store", Vary: "Cookie" };
 export async function GET(request: Request) {
@@ -10,13 +11,17 @@ export async function GET(request: Request) {
       { error: "Sign in to read this conversation." },
       { status: 401, headers: privateHeaders },
     );
-  const after = Number(new URL(request.url).searchParams.get("after") ?? 0);
-  if (!Number.isSafeInteger(after) || after < 0)
+  const cursor = parseMessageCursor(new URL(request.url).searchParams);
+  if (!cursor)
     return Response.json(
       { error: "Invalid message cursor." },
       { status: 400, headers: privateHeaders },
     );
-  const transcript = await readPublicTranscript(account.id, after);
+  const transcript = await readPublicTranscript(
+    account.id,
+    cursor.after,
+    cursor.options,
+  );
   return Response.json(transcript, { headers: privateHeaders });
 }
 export async function POST(request: Request) {

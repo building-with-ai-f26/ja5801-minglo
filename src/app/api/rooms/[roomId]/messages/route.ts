@@ -1,6 +1,7 @@
 import { currentAccount } from "@/lib/session";
 import { readTranscript } from "@/lib/rooms";
 import { postMessage, MessageError } from "@/lib/messages";
+import { parseMessageCursor } from "@/lib/message-cursor";
 export const dynamic = "force-dynamic";
 const privateHeaders = { "Cache-Control": "private, no-store", Vary: "Cookie" };
 export async function GET(
@@ -13,14 +14,19 @@ export async function GET(
       { error: "Sign in to read this conversation." },
       { status: 401, headers: privateHeaders },
     );
-  const after = Number(new URL(request.url).searchParams.get("after") ?? 0);
-  if (!Number.isSafeInteger(after) || after < 0)
+  const cursor = parseMessageCursor(new URL(request.url).searchParams);
+  if (!cursor)
     return Response.json(
       { error: "Invalid message cursor." },
       { status: 400, headers: privateHeaders },
     );
   const { roomId } = await context.params;
-  const transcript = await readTranscript(roomId, account.id, after);
+  const transcript = await readTranscript(
+    roomId,
+    account.id,
+    cursor.after,
+    cursor.options,
+  );
   if (!transcript)
     return Response.json(
       { error: "Room unavailable." },

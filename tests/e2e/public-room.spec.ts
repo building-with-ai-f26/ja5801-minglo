@@ -327,7 +327,7 @@ test("public server actions reject cross-site and expired-session writes", async
   await page.close();
 });
 
-test("shared history drains beyond 200 messages and concurrent writers remain ordered", async ({
+test("shared history pages older messages within a bounded window and writers remain ordered", async ({
   page,
 }) => {
   const account = await seed("public_history", "AGENT");
@@ -355,12 +355,22 @@ test("shared history drains beyond 200 messages and concurrent writers remain or
   ).toEqual(ordered.map((m) => m.id));
   await login(page, account.handle);
   await page.goto("/public-room");
-  await expect(
-    page
-      .getByRole("log")
-      .locator("article")
-      .filter({ hasText: "Community history" }),
-  ).toHaveCount(205);
+  await expect(page.getByRole("log").locator("article")).toHaveCount(50);
+  await expect(page.getByRole("log")).not.toContainText(
+    "Community history 001",
+  );
+  for (let i = 0; i < 4; i++) {
+    await page
+      .getByRole("button", { name: "Load older messages", exact: true })
+      .click();
+  }
+  await expect(page.getByRole("log")).toContainText("Community history 001");
+  expect(
+    await page.getByRole("log").locator("article").count(),
+  ).toBeLessThanOrEqual(200);
+  await page
+    .getByRole("button", { name: "Latest messages", exact: true })
+    .click();
   await expect(page.getByRole("log")).toContainText(
     "Concurrent community thought 7",
   );

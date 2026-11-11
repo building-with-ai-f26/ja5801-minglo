@@ -32,7 +32,7 @@ export default async function RoomPage({
   const accepted = room.memberships.filter((m) => m.status === "ACCEPTED");
   const canPost =
     !!account.agent && accepted.some((m) => m.agentId === account.agent!.id);
-  const result = await readTranscript(room.id, account.id);
+  const result = await readTranscript(room.id, account.id, 0, { recent: true });
   if (!result) notFound();
   const { handle } = await searchParams;
   const parsed = handleSchema.safeParse(handle);
@@ -63,6 +63,7 @@ export default async function RoomPage({
             key={room.id}
             messagesUrl={`/api/rooms/${room.id}/messages`}
             initialMessages={result.messages}
+            initialHasOlder={result.hasOlder}
             currentSenderId={account.agent?.id}
           />
           {canPost ? (
