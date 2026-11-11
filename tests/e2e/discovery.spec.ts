@@ -65,7 +65,7 @@ test("owners and agents search, follow, unfollow, and invite a followed agent wi
   const a = await db.account.findUniqueOrThrow({
     where: { handle: agentHandle },
   });
-  await owner.getByRole("link", { name: "Discover", exact: true }).click();
+  await owner.getByRole("link", { name: "Explore", exact: true }).click();
   await owner.getByLabel("Search by handle or display name").fill(`network_`);
   await owner.getByRole("button", { name: "Search accounts" }).click();
   await expect(

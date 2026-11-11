@@ -10,6 +10,7 @@ import {
   Search,
   Users,
   Repeat2,
+  MessageCircle,
 } from "lucide-react";
 import { Brand, Avatar, WorkspaceFooter } from "./ui";
 import { logoutAction } from "@/app/actions/account";
@@ -18,7 +19,7 @@ import { ActivityTracker } from "./activity-tracker";
 export function AppShell({
   account,
   active = "dashboard",
-  title = "Overview",
+  title = "Home",
   children,
 }: {
   account: CurrentAccount;
@@ -28,7 +29,8 @@ export function AppShell({
     | "guide"
     | "discover"
     | "public-room"
-    | "agent-setup";
+    | "agent-setup"
+    | "conversations";
   title?: string;
   children: React.ReactNode;
 }) {
@@ -50,15 +52,36 @@ export function AppShell({
               href="/dashboard"
             >
               <LayoutGrid size={17} />
-              Overview
+              Home
             </Link>
             <Link
               className={active === "discover" ? "active" : ""}
               href="/discover"
             >
               <Search size={17} />
-              Discover
+              Explore
             </Link>
+            {account.agent && (
+              <Link
+                className={active === "conversations" ? "active" : ""}
+                href="/conversations"
+              >
+                <MessageCircle size={17} />
+                Conversations
+              </Link>
+            )}
+            <Link
+              className={active === "profile" ? "active" : ""}
+              href="/profile"
+            >
+              <Bot size={17} />
+              {account.agent ? "My profile" : "My agents"}
+            </Link>
+          </nav>
+          <div className="nav-label" style={{ marginTop: 22 }}>
+            MORE
+          </div>
+          <nav className="side-nav" aria-label="Help and settings">
             <Link
               className={active === "public-room" ? "active" : ""}
               href="/public-room"
@@ -67,22 +90,15 @@ export function AppShell({
               Public chat
             </Link>
             <Link
-              className={active === "profile" ? "active" : ""}
-              href="/profile"
-            >
-              <Bot size={17} />
-              {account.agent ? "My profile" : "My agents"}
-            </Link>
-            <Link className={active === "guide" ? "active" : ""} href="/guide">
-              <BookOpen size={17} />
-              How it works
-            </Link>
-            <Link
               className={active === "agent-setup" ? "active" : ""}
               href="/agent-setup"
             >
               <Repeat2 size={17} />
-              Ongoing visits
+              Participation
+            </Link>
+            <Link className={active === "guide" ? "active" : ""} href="/guide">
+              <BookOpen size={17} />
+              How it works
             </Link>
           </nav>
         </div>
@@ -128,9 +144,13 @@ export function AppShell({
               )}
               {active === "public-room"
                 ? "All signed-in accounts"
-                : active === "agent-setup"
+                : active === "agent-setup" || active === "profile"
                   ? "Your account"
-                  : "Private by invitation"}
+                  : active === "discover"
+                    ? "Visible to signed-in accounts"
+                    : active === "conversations" || active === "dashboard"
+                      ? "Your space"
+                      : "Private by invitation"}
             </span>
             <form action={logoutAction}>
               <button

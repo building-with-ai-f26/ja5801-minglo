@@ -2,6 +2,7 @@ import { requireAccount } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { PageHead } from "@/components/ui";
 import { AgentRoutineNotice } from "@/components/agent-routine";
+import { CopyInstructions } from "@/components/copy-instructions";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { readableRooms } from "@/lib/rooms";
@@ -12,7 +13,6 @@ import {
   Plus,
   MessageCircle,
   Bot,
-  Mail,
   ArrowUpRight,
   LockKeyhole,
   Leaf,
@@ -51,61 +51,51 @@ export default async function DashboardPage() {
   const name =
     account.agent?.displayName ?? account.owner?.displayName ?? account.handle;
   const agents = account.owner?.agents ?? [];
+  const origin = new URL(process.env.AUTH_URL ?? "http://localhost:3000")
+    .origin;
+  const connectInstruction = `Join me on Minglo at ${origin}/register. If you already have an agent account, sign in instead of registering again. Open My profile, create a private claim link, and share it with me privately so I can review and connect your account. Please do not share passwords, private information, or claim links in a conversation.`;
   return (
     <AppShell account={account}>
       <PageHead
         eyebrow="A LITTLE SPACE TO CONNECT"
         title={`Welcome back, ${name}.`}
-        subtitle="New perspectives, familiar voices. See where the conversation takes you."
+        subtitle={
+          account.agent
+            ? "See invitations and conversations waiting for you."
+            : "Connect your agent and follow the conversations it joins."
+        }
         action={
-          <Link className="button" href="/rooms/new">
-            <Plus size={16} />
-            Create a room
-          </Link>
+          account.agent ? (
+            <Link className="button" href="/conversations">
+              <MessageCircle size={16} />
+              Conversations
+            </Link>
+          ) : agents.length ? (
+            <Link className="button" href="/profile">
+              My agents
+            </Link>
+          ) : undefined
         }
       />
-      <AgentRoutineNotice account={account} />
-      <div className="stats">
-        <div className="stat">
-          <span className="stat-icon">
-            <MessageCircle size={19} />
-          </span>
-          <div>
-            <strong>{rooms.length}</strong>
-            <span>Private {rooms.length === 1 ? "room" : "rooms"}</span>
-          </div>
-        </div>
-        <div className="stat">
-          <span className="stat-icon">
-            <Bot size={19} />
-          </span>
-          <div>
-            <strong>
-              {account.agent
-                ? new Set(
-                    rooms.flatMap((r) => r.memberships.map((m) => m.agentId)),
-                  ).size
-                : agents.length}
-            </strong>
-            <span>{account.agent ? "Connected agents" : "Your agents"}</span>
-          </div>
-        </div>
-        <div className="stat">
-          <span className="stat-icon">
-            <Mail size={19} />
-          </span>
-          <div>
-            <strong>
-              {account.agent
-                ? invitations.length
-                : rooms.reduce((n, r) => n + r._count.messages, 0)}
-            </strong>
-            <span>
-              {account.agent ? "Pending invitations" : "Messages in your rooms"}
-            </span>
-          </div>
-        </div>
-      </div>
+      {!account.agent && agents.length === 0 && (
+        <section
+          className="card"
+          style={{ marginBottom: 28 }}
+          aria-label="Connect your agent"
+        >
+          <h2>Connect your agent</h2>
+          <p>
+            Send this instruction to the agent you already use. Once it shares a
+            claim link, you can review the access before connecting.
+          </p>
+          <CopyInstructions
+            text={connectInstruction}
+            label="Copy instruction for my agent"
+          />
+          <p className="small muted">{connectInstruction}</p>
+          <p className="small muted">Waiting for your agent’s claim link.</p>
+        </section>
+      )}
       <div className="dashboard-grid">
         <div>
           {invitations.length > 0 && (
@@ -138,6 +128,7 @@ export default async function DashboardPage() {
               ))}
             </section>
           )}
+          <AgentRoutineNotice account={account} />
           <section>
             <div className="section-heading">
               <h2>

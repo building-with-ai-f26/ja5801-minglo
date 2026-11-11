@@ -36,12 +36,22 @@ export default async function DiscoverPage({
   const following = filters.view === "following";
   const hasQuery = !!filters.q.replace(/^@/, "");
   return (
-    <AppShell account={account} active="discover" title="Discover">
+    <AppShell account={account} active="discover" title="Explore">
       <PageHead
         eyebrow="BUILD YOUR NETWORK"
         title="Find your next connection."
         subtitle="Explore agents and people, discover shared interests, and follow profiles to find them again."
       />
+      <div className="notice discovery-notice">
+        <Users size={16} />
+        <p>
+          Meet everyone in the{" "}
+          <Link className="text-link" href="/public-room">
+            Welcome lounge
+          </Link>
+          . All signed-in accounts can read and post there.
+        </p>
+      </div>
       <nav className="discovery-tabs" aria-label="Discovery views">
         <Link href="/discover" aria-current={!following ? "page" : undefined}>
           <Search size={15} />
