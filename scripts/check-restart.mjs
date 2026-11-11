@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { once } from "node:events";
-import { randomBytes } from "node:crypto";
+import { randomBytes, createHash } from "node:crypto";
 import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
 import { PrismaClient } from "@prisma/client";
@@ -117,16 +117,14 @@ async function checkPublic(handle, expectedIds) {
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.waitForURL("**/dashboard");
   await page.goto("http://localhost:3100/public-room");
-  await page
-    .getByRole("log")
-    .getByText("Hello from a user in the public room.", { exact: true })
-    .waitFor();
-  await page
-    .getByRole("log")
-    .getByText("Hello from an agent in the public room.", { exact: true })
-    .waitFor();
+  await page.getByRole("log").waitFor();
+  assert(
+    (await page.getByRole("log").locator("article").count()) <= 50,
+    "The initial public view must remain bounded.",
+  );
   await page.getByLabel("Your message", { exact: true }).waitFor();
   const actual = [];
+  const bodies = new Set();
   let after = 0;
   while (true) {
     const response = await page.request.get(
@@ -135,10 +133,13 @@ async function checkPublic(handle, expectedIds) {
     assert.equal(response.status(), 200);
     const result = await response.json();
     actual.push(...result.messages.map((m) => m.id));
+    for (const message of result.messages) bodies.add(message.body);
     if (!result.hasMore) break;
     after = actual.at(-1);
   }
   assert.deepEqual(actual, expectedIds);
+  assert(bodies.has("Hello from a user in the public room."));
+  assert(bodies.has("Hello from an agent in the public room."));
   await page.close();
 }
 async function checkRoutine(account) {
@@ -170,6 +171,74 @@ async function checkRoutine(account) {
       .getByLabel("Actual check interval (minutes)", { exact: true })
       .inputValue(),
     String(account.agent.routine.intervalMinutes),
+  );
+  await page.close();
+}
+async function continuityState() {
+  // Compare only durable social/security fields; page activity timestamps change on sign-in.
+  const tables = await Promise.all([
+    db.readPosition.findMany({
+      orderBy: [{ accountId: "asc" }, { conversationKey: "asc" }],
+    }),
+    db.attentionItem.findMany({ orderBy: { id: "asc" } }),
+    db.conversationPreference.findMany({
+      orderBy: [{ accountId: "asc" }, { conversationKey: "asc" }],
+    }),
+    db.accountBlock.findMany({
+      orderBy: [{ blockerAccountId: "asc" }, { targetAccountId: "asc" }],
+    }),
+    db.recoveryCode.findMany({ orderBy: { id: "asc" } }),
+    db.messageReport.findMany({ orderBy: { id: "asc" } }),
+    db.message.findMany({
+      where: { replyToId: { not: null } },
+      select: { id: true, replyToId: true },
+      orderBy: { id: "asc" },
+    }),
+    db.publicMessage.findMany({
+      where: { replyToId: { not: null } },
+      select: { id: true, replyToId: true },
+      orderBy: { id: "asc" },
+    }),
+    db.account.findMany({
+      where: { sessionVersion: { gt: 0 } },
+      select: { id: true, sessionVersion: true },
+      orderBy: { id: "asc" },
+    }),
+    db.agent.findMany({
+      select: {
+        id: true,
+        participationPausedAt: true,
+        participationPausedByAccountId: true,
+      },
+      orderBy: { id: "asc" },
+    }),
+  ]);
+  assert(
+    tables.every((rows) => rows.length > 0),
+    "Run the complete browser suite before checking continuity persistence.",
+  );
+  // Never print report reasons, recovery hashes or private content in verification output.
+  return createHash("sha256").update(JSON.stringify(tables)).digest("hex");
+}
+async function checkAttention(account) {
+  const page = await browser.newPage();
+  await page.goto("http://localhost:3100/login");
+  await page.getByLabel("Handle", { exact: true }).fill(account.handle);
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("OnlyForLocalTests_42!");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.waitForURL("**/dashboard");
+  await page.goto("http://localhost:3100/inbox");
+  const attention = page.getByRole("region", {
+    name: "Replies, mentions and updates",
+  });
+  await attention
+    .getByText(`Public reply @${account.handle}`, { exact: true })
+    .waitFor();
+  assert(
+    !(await attention.textContent()).includes("Another private message"),
+    "Revoked private attention must not reappear after restart.",
   );
   await page.close();
 }
@@ -243,6 +312,11 @@ try {
     routineAccount.agent.routine.lastCheckAt,
     "Run the ongoing-visit browser tests first.",
   );
+  const attentionAccount = await db.account.findFirstOrThrow({
+    where: { handle: { startsWith: "attention_b_" } },
+    select: { handle: true },
+  });
+  const expectedContinuity = await continuityState();
   browser = await chromium.launch({
     channel:
       process.env.PLAYWRIGHT_CHANNEL === "chromium" ? undefined : "chrome",
@@ -253,6 +327,8 @@ try {
   for (const account of publicAccounts)
     await checkPublic(account.handle, publicIds);
   await checkRoutine(routineAccount);
+  await checkAttention(attentionAccount);
+  assert.equal(await continuityState(), expectedContinuity);
   if (process.argv.includes("--capture")) {
     mkdirSync(".local", { recursive: true });
     const owner = await db.account.findFirstOrThrow({
@@ -287,8 +363,10 @@ try {
   for (const account of publicAccounts)
     await checkPublic(account.handle, publicIds);
   await checkRoutine(routineAccount);
+  await checkAttention(attentionAccount);
+  assert.equal(await continuityState(), expectedContinuity);
   console.log(
-    "PASS: production server stopped and restarted; private/public messages, follows, and the same ongoing-task report and explicit check-in persisted across fresh sign-ins.",
+    "PASS: production restart retained private/public history, follows, host reports/check-ins, read positions, replies, attention, preferences, blocks, recovery/session versions, reports and posting permissions. Fresh Inbox sign-in showed the public reply and withheld revoked private attention.",
   );
 } finally {
   await browser?.close();
