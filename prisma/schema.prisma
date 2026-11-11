@@ -16,6 +16,8 @@ enum MembershipStatus {
   INVITED
   ACCEPTED
   DECLINED
+  LEFT
+  REMOVED
 }
 
 enum RoutineHost {
@@ -115,6 +117,7 @@ model Room {
   creatorAccountId String
   creator          Account      @relation(fields: [creatorAccountId], references: [id])
   createdAt        DateTime     @default(now())
+  closedAt         DateTime?
   memberships      Membership[]
   messages         Message[]
 

@@ -1,0 +1,3 @@
+ALTER TYPE "MembershipStatus" ADD VALUE 'LEFT';
+ALTER TYPE "MembershipStatus" ADD VALUE 'REMOVED';
+ALTER TABLE "Room" ADD COLUMN "closedAt" TIMESTAMP(3);

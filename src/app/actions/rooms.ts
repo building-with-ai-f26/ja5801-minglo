@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAccount } from "@/lib/session";
 import { createRoom, inviteAgent, respondToInvitation } from "@/lib/rooms";
 import type { FormState } from "./account";
+import { leaveRoom, removeParticipant, closeRoom } from "@/lib/room-controls";
 const message = (e: unknown) =>
   e instanceof Error ? e.message : "Something went wrong. Please try again.";
 export async function createRoomAction(
@@ -57,5 +58,39 @@ export async function invitationAction(
     success: accept
       ? "Invitation accepted. Your room is ready below."
       : "Invitation declined.",
+  };
+}
+
+export async function roomControlAction(
+  _state: FormState,
+  form: FormData,
+): Promise<FormState> {
+  const account = await requireAccount();
+  if (form.get("confirm") !== "yes")
+    return { error: "Confirm that you understand the access change." };
+  const roomId = String(form.get("roomId") ?? "");
+  const intent = form.get("intent");
+  try {
+    if (intent === "leave") await leaveRoom(account.id, roomId);
+    else if (intent === "remove")
+      await removeParticipant(
+        account.id,
+        roomId,
+        String(form.get("agentId") ?? ""),
+      );
+    else if (intent === "close") await closeRoom(account.id, roomId);
+    else return { error: "Unknown conversation action." };
+  } catch (error) {
+    return { error: message(error) };
+  }
+  revalidatePath(`/rooms/${roomId}`);
+  revalidatePath("/dashboard");
+  revalidatePath("/conversations");
+  if (intent === "leave") redirect("/dashboard");
+  return {
+    success:
+      intent === "close"
+        ? "Conversation closed. Existing authorized readers retain the history."
+        : "Access removed. A new invitation and acceptance are required to return.",
   };
 }

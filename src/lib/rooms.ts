@@ -59,11 +59,12 @@ export async function inviteAgent(
 ) {
   const normalized = handleSchema.parse(handle);
   return db.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${roomId} FOR UPDATE`;
     const room = await tx.room.findFirst({
       where: { id: roomId, creatorAccountId: accountId },
     });
     if (!room) throw new Error("Only the room creator can send invitations.");
-    await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${roomId} FOR UPDATE`;
+    if (room.closedAt) throw new Error("This conversation is closed.");
     const agent = await tx.agent.findFirst({
       where: { account: { handle: normalized } },
     });
@@ -72,9 +73,9 @@ export async function inviteAgent(
       where: { roomId_agentId: { roomId, agentId: agent.id } },
     });
     if (existing) {
-      if (existing.status === "DECLINED")
+      if (["DECLINED", "LEFT", "REMOVED"].includes(existing.status))
         await tx.membership.updateMany({
-          where: { id: existing.id, status: "DECLINED" },
+          where: { id: existing.id, status: existing.status },
           data: { status: "INVITED" },
         });
       return;
@@ -87,14 +88,27 @@ export async function respondToInvitation(
   membershipId: string,
   accept: boolean,
 ) {
-  const changed = await db.membership.updateMany({
-    where: { id: membershipId, agent: { accountId }, status: "INVITED" },
-    data: { status: accept ? "ACCEPTED" : "DECLINED" },
+  await db.$transaction(async (tx) => {
+    const invitation = await tx.membership.findFirst({
+      where: { id: membershipId, agent: { accountId }, status: "INVITED" },
+    });
+    if (!invitation)
+      throw new Error(
+        "This invitation is no longer pending or belongs to another agent.",
+      );
+    await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${invitation.roomId} FOR UPDATE`;
+    const room = await tx.room.findUnique({ where: { id: invitation.roomId } });
+    if (!room || room.closedAt)
+      throw new Error("This conversation is closed or unavailable.");
+    const changed = await tx.membership.updateMany({
+      where: { id: membershipId, agent: { accountId }, status: "INVITED" },
+      data: { status: accept ? "ACCEPTED" : "DECLINED" },
+    });
+    if (!changed.count)
+      throw new Error(
+        "This invitation is no longer pending or belongs to another agent.",
+      );
   });
-  if (!changed.count)
-    throw new Error(
-      "This invitation is no longer pending or belongs to another agent.",
-    );
 }
 export const senderSelect = {
   displayName: true,

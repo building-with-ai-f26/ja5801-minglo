@@ -6,7 +6,7 @@ import { handleSchema } from "@/lib/validation";
 import { AppShell } from "@/components/app-shell";
 import { PageHead, Avatar, Tags } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
-import { inviteAgentAction } from "@/app/actions/rooms";
+import { inviteAgentAction, roomControlAction } from "@/app/actions/rooms";
 import { LockKeyhole, Search } from "lucide-react";
 import { randomUUID } from "node:crypto";
 import { Transcript, ReadOnlyNotice } from "@/components/transcript";
@@ -30,8 +30,9 @@ export default async function RoomPage({
     ? await followedAgentsForRoom(account.id, room.id)
     : [];
   const accepted = room.memberships.filter((m) => m.status === "ACCEPTED");
-  const canPost =
+  const participant =
     !!account.agent && accepted.some((m) => m.agentId === account.agent!.id);
+  const canPost = participant && !room.closedAt;
   const result = await readTranscript(room.id, account.id, 0, { recent: true });
   if (!result) notFound();
   const { handle } = await searchParams;
@@ -52,7 +53,7 @@ export default async function RoomPage({
         action={
           <span className="pill neutral">
             <LockKeyhole size={12} />
-            Private room
+            {room.closedAt ? "Closed · read only" : "Private room"}
           </span>
         }
       />
@@ -68,6 +69,11 @@ export default async function RoomPage({
           />
           {canPost ? (
             <Composer roomId={room.id} initialKey={randomUUID()} />
+          ) : room.closedAt ? (
+            <div className="watching">
+              This conversation is closed. Existing authorized readers can view
+              its history.
+            </div>
           ) : (
             <ReadOnlyNotice />
           )}
@@ -82,7 +88,9 @@ export default async function RoomPage({
             </h2>
             {room.memberships.length ? (
               room.memberships
-                .filter((m) => m.status !== "DECLINED")
+                .filter(
+                  (m) => m.status === "ACCEPTED" || m.status === "INVITED",
+                )
                 .map((m, i) => (
                   <div className="participant" key={m.id}>
                     <Avatar
@@ -103,7 +111,116 @@ export default async function RoomPage({
               <p>Invite the first agents to this room.</p>
             )}
           </div>
-          {creator && (
+          {(creator || participant) && (
+            <div className="side-card">
+              <h2>Conversation settings</h2>
+              <p className="small muted">
+                Messages already read cannot be recalled. Remaining authorized
+                readers keep the saved history.
+              </p>
+              {creator ? (
+                <>
+                  {!room.closedAt && (
+                    <details>
+                      <summary>Close conversation</summary>
+                      <p>
+                        Keep the history readable, stop new messages, and cancel
+                        pending invitations. As creator, you retain access.
+                      </p>
+                      <StateForm
+                        action={roomControlAction}
+                        label="Close conversation"
+                      >
+                        <input type="hidden" name="roomId" value={room.id} />
+                        <input type="hidden" name="intent" value="close" />
+                        <label className="small">
+                          <input
+                            type="checkbox"
+                            name="confirm"
+                            value="yes"
+                            required
+                          />{" "}
+                          I understand this conversation becomes read-only.
+                        </label>
+                      </StateForm>
+                    </details>
+                  )}
+                  {room.memberships
+                    .filter(
+                      (m) =>
+                        ["ACCEPTED", "INVITED"].includes(m.status) &&
+                        m.agent.accountId !== account.id,
+                    )
+                    .map((m) => (
+                      <details key={m.id} style={{ marginTop: 16 }}>
+                        <summary>
+                          {m.status === "INVITED"
+                            ? "Cancel invitation for"
+                            : "Remove"}{" "}
+                          @{m.agent.account.handle}
+                        </summary>
+                        <p>
+                          This agent and its owner lose membership-derived
+                          access to all messages. Returning requires a new
+                          accepted invitation, which restores retained history.
+                        </p>
+                        <StateForm
+                          action={roomControlAction}
+                          label={
+                            m.status === "INVITED"
+                              ? "Cancel invitation"
+                              : "Remove participant"
+                          }
+                        >
+                          <input type="hidden" name="roomId" value={room.id} />
+                          <input
+                            type="hidden"
+                            name="agentId"
+                            value={m.agentId}
+                          />
+                          <input type="hidden" name="intent" value="remove" />
+                          <label className="small">
+                            <input
+                              type="checkbox"
+                              name="confirm"
+                              value="yes"
+                              required
+                            />{" "}
+                            I understand this access will end.
+                          </label>
+                        </StateForm>
+                      </details>
+                    ))}
+                </>
+              ) : (
+                <details>
+                  <summary>Leave conversation</summary>
+                  <p>
+                    You and your owner lose access through your membership,
+                    including past messages. Your sent messages remain. Any
+                    independent creator or other agent access is unaffected.
+                  </p>
+                  <StateForm
+                    action={roomControlAction}
+                    label="Leave conversation"
+                  >
+                    <input type="hidden" name="roomId" value={room.id} />
+                    <input type="hidden" name="intent" value="leave" />
+                    <label className="small">
+                      <input
+                        type="checkbox"
+                        name="confirm"
+                        value="yes"
+                        required
+                      />{" "}
+                      I understand I will lose access to this conversation.
+                    </label>
+                  </StateForm>
+                </details>
+              )}
+            </div>
+          )}
+          {creator && !room.closedAt && (
             <div className="side-card">
               <h2>Invite an agent</h2>
               <section
@@ -191,7 +308,9 @@ export default async function RoomPage({
                   <Tags value={found.interests} />
                   <div style={{ marginTop: 15 }}>
                     {room.memberships.some(
-                      (m) => m.agentId === found.id && m.status !== "DECLINED",
+                      (m) =>
+                        m.agentId === found.id &&
+                        ["INVITED", "ACCEPTED"].includes(m.status),
                     ) ? (
                       <span className="pill">Already invited or admitted</span>
                     ) : (

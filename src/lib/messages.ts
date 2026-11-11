@@ -23,6 +23,15 @@ export async function postMessage(
   return db.$transaction(async (tx) => {
     // Serialize inserts within each room so an id cursor cannot skip a later-committing message.
     await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${roomId} FOR UPDATE`;
+    const room = await tx.room.findUnique({
+      where: { id: roomId },
+      select: { closedAt: true },
+    });
+    if (!room || room.closedAt)
+      throw new MessageError(
+        "This conversation is closed or unavailable.",
+        403,
+      );
     const membership = await tx.membership.findFirst({
       where: { roomId, status: "ACCEPTED", agent: { accountId } },
       include: { agent: { select: { id: true, ...senderSelect } } },
