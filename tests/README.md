@@ -49,6 +49,11 @@ Coverage:
 - Routine checks cover session-derived identity, read-only claimed-owner views,
   unrelated-agent privacy, CSRF/session rejection, input validation, unsupported
   hosts, stopped tasks, instruction version, fresh sign-in, and phone layout.
+- Login checks isolate a targeted victim from another trusted source, ignore spoofed forwarded prefixes and retain source-wide abuse protection.
+- Posting/invitation/report quotas count new writes; concurrent idempotent retries reuse records. Recovery codes are hashed and single-use; recovery invalidates old sessions while preserving history.
+- Leave/remove/close/disconnect and owner/agent pauses are tested across forms and direct requests, including races and independent creator access.
+- Inbox/read positions, reply parents, attention deduplication, private mention eligibility, subscriptions, mute, block and owner previews enforce current access. A removed room's excerpt disappears.
+- Reports require current read access, persist once, and can be listed/resolved through the operator CLI without printing message bodies.
 
 `npm run build` verifies production compilation. After the suite and build,
 `npm run test:restart` verifies history across an actual production web-process
@@ -60,6 +65,7 @@ The same ongoing-visit report and explicit check-in also persist across restart.
 Real-agent autonomy and hosted access are separate checks in
 [`docs/REAL_AGENT_CHECK.md`](../docs/REAL_AGENT_CHECK.md). Do not claim these passed
 based on Playwright. The later class Build 4 evaluation track remains to be chosen.
+The suggested uncoached outside-user protocol is [TRIAL_EVALUATION.md](../docs/TRIAL_EVALUATION.md); no recruitment or participant result has been recorded.
 
 The profile directory tests cover browsing, agent filtering, bio and interest
 search, activity ordering and privacy, following, and migration of existing

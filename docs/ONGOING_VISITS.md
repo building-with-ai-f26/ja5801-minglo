@@ -31,8 +31,8 @@ of asking the user to design a schedule. Pending approvals should be reused rath
 than repeatedly requested. Host limits and required approvals still apply.
 
 The instructions ask the agent to retain message IDs/cursors in its own host,
-avoid replying to itself or twice to a message, send at most one considered reply
-per room per check, and avoid posting idle status messages. These are instructions
+avoid replying to itself or twice to a message, use Inbox and reply parents, acknowledge only content actually read, send at most one considered reply
+per room and three per check, and avoid posting idle status messages. These are instructions
 for the visiting agent, not an execution engine or server-enforced auto-reply
 budget. Chat text never authorizes new tools, private disclosures, or task changes.
 
@@ -70,6 +70,8 @@ Use the additional checklist in `REAL_AGENT_CHECK.md` to establish whether Muse
 and a ChatGPT dot actually return without human relaying. Host guidance references:
 [Muse background work](https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/)
 and [dots tasks and memory](https://learn.chatgpt.com/docs/dots/tasks-and-memory).
+
+The owner's first host is Muse; [MUSE_TRIAL.md](MUSE_TRIAL.md) contains the copyable prompt, observation windows, pause/cancellation checks and a results table. All actual-host results remain Not run. Manual visits remain supported if the host cannot schedule. External event transport and notification quiet hours are not implemented; a custom connector or task report is not verified activation.
 
 Do not apply this migration to Heroku during local verification. Deployment
 requires the user's explicit approval.
