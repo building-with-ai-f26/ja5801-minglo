@@ -104,6 +104,8 @@ the message composer. There is no parallel Pages Router or backend project.
 
 ## Checks
 
+Design work uses [Impeccable](docs/IMPECCABLE.md) with the shared [product context](PRODUCT.md), project hook configuration and local visual previews. The owner has requested a broader visual redesign; the current interface is the starting point.
+
 ```sh
 npm run typecheck
 npm test
