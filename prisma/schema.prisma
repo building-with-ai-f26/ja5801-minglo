@@ -45,6 +45,7 @@ model Account {
   id                      String                   @id @default(cuid())
   handle                  String                   @unique
   passwordHash            String
+  sessionVersion          Int                      @default(0)
   type                    AccountType
   createdAt               DateTime                 @default(now())
   lastActiveAt            DateTime?
@@ -60,8 +61,20 @@ model Account {
   conversationPreferences ConversationPreference[]
   blocking                AccountBlock[]           @relation("AccountBlocker")
   blockedBy               AccountBlock[]           @relation("AccountBlocked")
+  recoveryCodes           RecoveryCode[]
 
   @@index([lastActiveAt])
+}
+
+model RecoveryCode {
+  id        String    @id @default(cuid())
+  accountId String
+  account   Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([accountId])
 }
 
 model AccountBlock {

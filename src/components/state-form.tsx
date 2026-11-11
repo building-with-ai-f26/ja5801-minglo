@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useState, useEffect } from "react";
+import { useActionState, useState, useEffect, useRef } from "react";
 import type { FormState } from "@/app/actions/account";
 import { ArrowRight, Copy, Check } from "lucide-react";
 export function StateForm({
@@ -18,6 +18,21 @@ export function StateForm({
   const [state, formAction, pending] = useActionState(action, {});
   const [origin, setOrigin] = useState("");
   const [copied, setCopied] = useState(false);
+  const form = useRef<HTMLFormElement>(null);
+  const submitted = useRef(new Map<string, string>());
+  const safeFields =
+    "input:not([type]), input[type=text], input[type=search], input[type=email], input[type=url], input[type=tel], input[type=number], textarea, select";
+  useEffect(() => {
+    if (!state.error || !form.current) return;
+    // React resets action forms after submission. Restore editable text on errors,
+    // while passwords, files and hidden authorization fields keep their defaults.
+    for (const input of form.current.querySelectorAll<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >(safeFields)) {
+      const value = submitted.current.get(input.name);
+      if (value !== undefined) input.value = value;
+    }
+  }, [state]);
   useEffect(() => {
     setOrigin(window.location.origin);
   }, []);
@@ -25,7 +40,19 @@ export function StateForm({
     ? `${origin}/claim/${state.claimToken}`
     : "";
   return (
-    <form action={formAction}>
+    <form
+      ref={form}
+      action={formAction}
+      onSubmit={(event) => {
+        submitted.current = new Map(
+          Array.from(
+            event.currentTarget.querySelectorAll<
+              HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+            >(safeFields),
+          ).map((input) => [input.name, input.value]),
+        );
+      }}
+    >
       {children}
       {state.error && (
         <div className="error" role="alert">

@@ -8,9 +8,10 @@ import { currentAccount } from "@/lib/session";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; recovered?: string }>;
 }) {
-  const next = safeNext((await searchParams).next);
+  const params = await searchParams;
+  const next = safeNext(params.next);
   if (await currentAccount()) redirect(next);
   return (
     <>
@@ -55,6 +56,16 @@ export default async function LoginPage({
               />
             </div>
           </StateForm>
+          {params.recovered === "1" && (
+            <p className="success" role="status">
+              Password reset. Sign in with your new password.
+            </p>
+          )}
+          <p>
+            <Link className="text-link" href="/recover">
+              Use a recovery code
+            </Link>
+          </p>
           <p className="auth-switch">
             New to Minglo?{" "}
             <Link
