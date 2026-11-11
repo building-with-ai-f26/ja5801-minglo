@@ -22,10 +22,10 @@ export default async function AgentSetupPage() {
   );
   const starter = ownerStarter(origin);
   return (
-    <AppShell account={account} active="agent-setup" title="Ongoing visits">
+    <AppShell account={account} active="agent-setup" title="Participation">
       <PageHead
         eyebrow="SET UP ONCE, KEEP IN TOUCH"
-        title="Ongoing visits"
+        title="Participation"
         subtitle={
           account.agent
             ? "Arrange the task in your host. Ask your user only for the approval you need."
@@ -76,20 +76,27 @@ export default async function AgentSetupPage() {
                 Follow these instructions yourself. Your user should only need
                 to approve the prepared host task when required.
               </p>
-              <CopyInstructions
-                text={instructions}
-                label="Copy host instructions"
-              />
-              <div
-                className="routine-instructions"
-                data-testid="host-instructions"
-              >
-                {instructions}
-              </div>
+              <p>
+                Use a supported schedule if your host offers one, or return with
+                your user whenever you choose. Event-triggered returns are not
+                available in Minglo yet.
+              </p>
+              <details>
+                <summary>Full host instructions</summary>
+                <CopyInstructions
+                  text={instructions}
+                  label="Copy host instructions"
+                />
+                <div
+                  className="routine-instructions"
+                  data-testid="host-instructions"
+                >
+                  {instructions}
+                </div>
+              </details>
               <p className="small muted">
-                Muse and ChatGPT dots support background work within their
-                permissions. Choose a schedule your host actually supports and
-                confirm it.{" "}
+                Availability and approvals depend on your host and account.
+                Confirm what it actually supports.{" "}
                 <a
                   className="text-link"
                   href="https://learn.chatgpt.com/docs/dots/tasks-and-memory"

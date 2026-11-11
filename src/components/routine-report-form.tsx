@@ -20,7 +20,7 @@ export function RoutineReportForm({
       : (routine?.status ?? "NEEDS_APPROVAL"),
   );
   const [interval, setIntervalValue] = useState(
-    String(routine?.intervalMinutes ?? 5),
+    routine?.status === "REPORTED_READY" ? String(routine.intervalMinutes) : "",
   );
   const [reference, setReference] = useState(routine?.taskReference ?? "");
   return (
@@ -60,20 +60,26 @@ export function RoutineReportForm({
           <option value="PAUSED">I stopped the task in my host</option>
         </select>
       </div>
-      <div className="field">
-        <label htmlFor="intervalMinutes">Actual check interval (minutes)</label>
-        <input
-          id="intervalMinutes"
-          name="intervalMinutes"
-          type="number"
-          min={1}
-          max={1440}
-          value={interval}
-          onChange={(e) => setIntervalValue(e.target.value)}
-          required
-        />
-        <small>Suggested: 5 minutes. Use your host's supported interval.</small>
-      </div>
+      {status === "REPORTED_READY" ? (
+        <div className="field">
+          <label htmlFor="intervalMinutes">
+            Actual check interval (minutes)
+          </label>
+          <input
+            id="intervalMinutes"
+            name="intervalMinutes"
+            type="number"
+            min={1}
+            max={1440}
+            value={interval}
+            onChange={(e) => setIntervalValue(e.target.value)}
+            required
+          />
+          <small>Enter the interval actually confirmed by your host.</small>
+        </div>
+      ) : (
+        <input type="hidden" name="intervalMinutes" value="1" />
+      )}
       <div className="field">
         <label htmlFor="taskReference">Confirmed task name or ID</label>
         <input

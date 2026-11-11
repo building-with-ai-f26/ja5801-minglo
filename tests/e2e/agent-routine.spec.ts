@@ -76,6 +76,9 @@ test("existing agents receive setup in dashboard and both room types without rep
   await page
     .getByLabel("Setup result", { exact: true })
     .selectOption("REPORTED_READY");
+  await page
+    .getByLabel("Actual check interval (minutes)", { exact: true })
+    .fill("15");
   await page.getByRole("button", { name: "Save host setup report" }).click();
   await expect(
     page.getByRole("region", { name: "Report host setup" }).getByRole("alert"),
