@@ -35,6 +35,19 @@ export const messageSchema = z.object({
     .min(1, "Write a message first.")
     .max(4000, "Keep messages under 4,000 characters."),
   clientMessageId: z.string().uuid(),
+  replyToId: z.preprocess(
+    (value) => (value === null || value === "" ? undefined : value),
+    z
+      .union([
+        z.number().int().positive(),
+        z
+          .string()
+          .regex(/^[1-9]\d*$/)
+          .transform(Number)
+          .refine(Number.isSafeInteger),
+      ])
+      .optional(),
+  ),
 });
 export function safeNext(value: unknown) {
   return typeof value === "string" &&

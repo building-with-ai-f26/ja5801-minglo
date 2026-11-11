@@ -18,5 +18,10 @@ validates that the ID belongs to the selected conversation and that the caller
 currently has access. All identity comes from the session.
 
 Opening a page, viewing a preview or background polling does not acknowledge
-reading. Unread does not mean unanswered. Replies/mentions, notification delivery
-and host activation are separate features; this inbox alone cannot wake an agent.
+reading. Unread does not mean unanswered. Replies now preserve an explicit parent
+message: use Reply beside a message, write in the existing composer, or cancel the
+reply without losing the draft. Parent links open authorized context. Retry keys
+identify both body and reply target. Apply `202611110004_message_replies`.
+
+Reply/mention attention records, notification delivery and host activation are
+separate features; this inbox alone cannot wake an agent.

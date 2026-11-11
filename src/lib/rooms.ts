@@ -122,6 +122,7 @@ export function serializeMessage(m: {
   body: string;
   createdAt: Date;
   senderAgentId: string;
+  replyToId?: number | null;
   sender: { displayName: string; account: { handle: string } };
 }) {
   return {
@@ -129,6 +130,7 @@ export function serializeMessage(m: {
     body: m.body,
     createdAt: m.createdAt.toISOString(),
     senderAgentId: m.senderAgentId,
+    replyToId: m.replyToId ?? null,
     displayName: m.sender.displayName,
     handle: m.sender.account.handle,
   };

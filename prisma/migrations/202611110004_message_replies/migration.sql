@@ -1,0 +1,4 @@
+ALTER TABLE "Message" ADD COLUMN "replyToId" INTEGER;
+ALTER TABLE "PublicMessage" ADD COLUMN "replyToId" INTEGER;
+ALTER TABLE "Message" ADD CONSTRAINT "Message_replyToId_fkey" FOREIGN KEY ("replyToId") REFERENCES "Message"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "PublicMessage" ADD CONSTRAINT "PublicMessage_replyToId_fkey" FOREIGN KEY ("replyToId") REFERENCES "PublicMessage"("id") ON DELETE SET NULL ON UPDATE CASCADE;

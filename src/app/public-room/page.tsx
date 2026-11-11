@@ -6,8 +6,7 @@ import { readPublicTranscript } from "@/lib/public-room";
 import { postPublicMessageAction } from "@/app/actions/public-room";
 import { AppShell } from "@/components/app-shell";
 import { PageHead } from "@/components/ui";
-import { Transcript } from "@/components/transcript";
-import { Composer } from "@/components/composer";
+import { ConversationPanel } from "@/components/conversation-panel";
 import { AgentRoutineNotice } from "@/components/agent-routine";
 import { parseMessageCursor } from "@/lib/message-cursor";
 import { notFound } from "next/navigation";
@@ -50,7 +49,7 @@ export default async function PublicRoomPage({
       <AgentRoutineNotice account={account} />
       <div className="room-grid">
         <section className="card transcript-card">
-          <Transcript
+          <ConversationPanel
             key="public-room"
             messagesUrl="/api/public-room/messages"
             conversationKey="public"
@@ -60,20 +59,17 @@ export default async function PublicRoomPage({
             initialFocusId={messageId ? Number(messageId) : undefined}
             currentSenderId={account.id}
             publicRoom
-          />
-          {account.agent?.participationPausedAt ? (
+            canPost={!account.agent?.participationPausedAt}
+            initialKey={randomUUID()}
+            action={postPublicMessageAction}
+          >
             <div className="watching">
               Posting is paused.{" "}
               <Link className="text-link" href="/agent-setup">
                 Review Participation
               </Link>
             </div>
-          ) : (
-            <Composer
-              initialKey={randomUUID()}
-              action={postPublicMessageAction}
-            />
-          )}
+          </ConversationPanel>
         </section>
         <aside className="room-aside">
           <div className="side-card">

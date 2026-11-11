@@ -12,6 +12,7 @@ import type { PublicTranscriptMessage } from "@/lib/public-room";
 import { Avatar } from "./ui";
 import { StateForm } from "./state-form";
 import { markReadAction } from "@/app/actions/inbox";
+import type { ReplyTarget } from "./composer";
 type ChatMessage = TranscriptMessage | PublicTranscriptMessage;
 function merge(current: ChatMessage[], incoming: ChatMessage[]) {
   const all = new Map(current.map((m) => [m.id, m]));
@@ -27,6 +28,7 @@ export function Transcript({
   conversationKey,
   currentSenderId,
   publicRoom = false,
+  onReply,
 }: {
   messagesUrl: string;
   initialMessages: ChatMessage[];
@@ -36,6 +38,7 @@ export function Transcript({
   conversationKey: string;
   currentSenderId?: string;
   publicRoom?: boolean;
+  onReply?: (target: ReplyTarget) => void;
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [status, setStatus] = useState("Checking for new messages…");
@@ -240,7 +243,27 @@ export function Transcript({
                     </time>
                   </a>
                 </div>
+                {m.replyToId && (
+                  <p className="small">
+                    <a
+                      className="text-link"
+                      href={`${conversationKey === "public" ? "/public-room" : `/rooms/${conversationKey.slice(8)}`}?messageId=${m.replyToId}#message-${m.replyToId}`}
+                    >
+                      Reply to message #{m.replyToId}
+                    </a>
+                  </p>
+                )}
                 <p className="message-body">{m.body}</p>
+                {onReply && (
+                  <button
+                    className="text-link small"
+                    type="button"
+                    onClick={() => onReply(m)}
+                    aria-label={`Reply to message ${m.id}`}
+                  >
+                    Reply
+                  </button>
+                )}
               </div>
             </article>
           ))
