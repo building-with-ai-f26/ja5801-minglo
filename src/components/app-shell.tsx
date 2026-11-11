@@ -5,19 +5,63 @@ import {
   BookOpen,
   LogOut,
   LockKeyhole,
-  Sprout,
-  ChevronRight,
+  ChevronDown,
   Search,
   Users,
   Repeat2,
   MessageCircle,
   Mail,
   Settings,
+  type LucideIcon,
 } from "lucide-react";
 import { Brand, Avatar, WorkspaceFooter } from "./ui";
+import { ThemeToggle } from "./theme-toggle";
 import { logoutAction } from "@/app/actions/account";
 import type { CurrentAccount } from "@/lib/session";
 import { ActivityTracker } from "./activity-tracker";
+
+type Destination =
+  | "dashboard"
+  | "profile"
+  | "guide"
+  | "discover"
+  | "public-room"
+  | "agent-setup"
+  | "conversations"
+  | "inbox"
+  | "settings";
+type NavItem = {
+  key: Destination;
+  href: string;
+  label: string;
+  icon: LucideIcon;
+};
+function Navigation({
+  items,
+  active,
+  label,
+}: {
+  items: NavItem[];
+  active: Destination;
+  label: string;
+}) {
+  return (
+    <nav className="side-nav" aria-label={label}>
+      {items.map(({ key, href, label, icon: Icon }) => (
+        <Link
+          key={key}
+          className={active === key ? "active" : ""}
+          aria-current={active === key ? "page" : undefined}
+          href={href}
+        >
+          <Icon size={19} />
+          <span>{label}</span>
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 export function AppShell({
   account,
   active = "dashboard",
@@ -25,21 +69,70 @@ export function AppShell({
   children,
 }: {
   account: CurrentAccount;
-  active?:
-    | "dashboard"
-    | "profile"
-    | "guide"
-    | "discover"
-    | "public-room"
-    | "agent-setup"
-    | "conversations"
-    | "inbox"
-    | "settings";
+  active?: Destination;
   title?: string;
   children: React.ReactNode;
 }) {
   const name =
     account.agent?.displayName ?? account.owner?.displayName ?? account.handle;
+  const primary: NavItem[] = [
+    { key: "dashboard", href: "/dashboard", label: "Home", icon: LayoutGrid },
+    ...(account.agent
+      ? [
+          {
+            key: "conversations" as const,
+            href: "/conversations",
+            label: "Conversations",
+            icon: MessageCircle,
+          },
+        ]
+      : [
+          {
+            key: "profile" as const,
+            href: "/profile",
+            label: "My agents",
+            icon: Bot,
+          },
+        ]),
+    { key: "discover", href: "/discover", label: "Explore", icon: Search },
+    account.agent
+      ? { key: "profile", href: "/profile", label: "My profile", icon: Bot }
+      : { key: "inbox", href: "/inbox", label: "Inbox", icon: Mail },
+  ];
+  const secondary: NavItem[] = [
+    ...(account.agent
+      ? [{ key: "inbox" as const, href: "/inbox", label: "Inbox", icon: Mail }]
+      : []),
+    {
+      key: "public-room",
+      href: "/public-room",
+      label: "Welcome lounge",
+      icon: Users,
+    },
+    {
+      key: "agent-setup",
+      href: "/agent-setup",
+      label: "Participation",
+      icon: Repeat2,
+    },
+    {
+      key: "settings",
+      href: "/settings",
+      label: "Account settings",
+      icon: Settings,
+    },
+    { key: "guide", href: "/guide", label: "How it works", icon: BookOpen },
+  ];
+  const visibility =
+    active === "public-room"
+      ? "All signed-in accounts"
+      : ["agent-setup", "profile", "settings"].includes(active)
+        ? "Your account"
+        : active === "discover"
+          ? "Visible to signed-in accounts"
+          : ["conversations", "dashboard", "inbox"].includes(active)
+            ? "Your space"
+            : "Private by invitation";
   return (
     <div className="app-shell">
       <ActivityTracker />
@@ -48,97 +141,21 @@ export function AppShell({
       </a>
       <aside className="sidebar">
         <Brand />
-        <div>
-          <div className="nav-label">YOUR SPACE</div>
-          <nav className="side-nav" aria-label="Workspace">
-            <Link
-              className={active === "dashboard" ? "active" : ""}
-              href="/dashboard"
-            >
-              <LayoutGrid size={17} />
-              Home
-            </Link>
-            <Link
-              className={active === "discover" ? "active" : ""}
-              href="/discover"
-            >
-              <Search size={17} />
-              Explore
-            </Link>
-            {account.agent && (
-              <Link
-                className={active === "conversations" ? "active" : ""}
-                href="/conversations"
-              >
-                <MessageCircle size={17} />
-                Conversations
-              </Link>
-            )}
-            <Link
-              className={active === "profile" ? "active" : ""}
-              href="/profile"
-            >
-              <Bot size={17} />
-              {account.agent ? "My profile" : "My agents"}
-            </Link>
-            {!account.agent && (
-              <Link
-                className={active === "inbox" ? "active" : ""}
-                href="/inbox"
-              >
-                <Mail size={17} />
-                Inbox
-              </Link>
-            )}
-          </nav>
-          <div className="nav-label" style={{ marginTop: 22 }}>
-            MORE
-          </div>
-          <nav className="side-nav" aria-label="Help and settings">
-            <Link
-              className={active === "settings" ? "active" : ""}
-              href="/settings"
-            >
-              <Settings size={17} />
-              Account settings
-            </Link>
-            {account.agent && (
-              <Link
-                className={active === "inbox" ? "active" : ""}
-                href="/inbox"
-              >
-                <Mail size={17} />
-                Inbox
-              </Link>
-            )}
-            <Link
-              className={active === "public-room" ? "active" : ""}
-              href="/public-room"
-            >
-              <Users size={17} />
-              Public chat
-            </Link>
-            <Link
-              className={active === "agent-setup" ? "active" : ""}
-              href="/agent-setup"
-            >
-              <Repeat2 size={17} />
-              Participation
-            </Link>
-            <Link className={active === "guide" ? "active" : ""} href="/guide">
-              <BookOpen size={17} />
-              How it works
-            </Link>
-          </nav>
-        </div>
-        <div className="sidebar-note">
-          <Sprout size={24} />
-          <div>
-            Good conversations grow
-            <br />
-            one message at a time.
-          </div>
-        </div>
+        <Navigation items={primary} active={active} label="Workspace" />
+        <details className="secondary-nav">
+          <summary
+            className={
+              secondary.some((item) => item.key === active) ? "current" : ""
+            }
+          >
+            More <ChevronDown size={16} />
+          </summary>
+          <Navigation
+            items={secondary}
+            active={active}
+            label="Help and settings"
+          />
+        </details>
         <div className="sidebar-account">
           <Avatar name={name} size="tiny" />
           <div>
@@ -147,54 +164,32 @@ export function AppShell({
               {account.type === "OWNER" ? "Owner account" : "Agent account"}
             </span>
           </div>
-          <form action={logoutAction}>
-            <button
-              className="icon-button"
-              aria-label="Sign out"
-              title="Sign out"
-            >
-              <LogOut size={16} />
-            </button>
-          </form>
         </div>
       </aside>
       <div className="workspace">
         <header className="topbar">
           <div className="breadcrumb">
-            Your space <ChevronRight size={12} />
             <b>{title}</b>
           </div>
           <div className="topbar-right">
             <span className="private-label">
               {active === "public-room" ? (
-                <Users size={12} />
+                <Users size={14} />
               ) : (
-                <LockKeyhole size={12} />
+                <LockKeyhole size={14} />
               )}
-              {active === "public-room"
-                ? "All signed-in accounts"
-                : active === "agent-setup" ||
-                    active === "profile" ||
-                    active === "settings"
-                  ? "Your account"
-                  : active === "discover"
-                    ? "Visible to signed-in accounts"
-                    : active === "conversations" ||
-                        active === "dashboard" ||
-                        active === "inbox"
-                      ? "Your space"
-                      : "Private by invitation"}
+              {visibility}
             </span>
+            <ThemeToggle />
             <form action={logoutAction}>
               <button
                 className="icon-button"
                 aria-label="Sign out"
                 title="Sign out"
               >
-                <LogOut size={15} />
+                <LogOut size={18} />
               </button>
             </form>
-            <Avatar name={name} size="tiny" />
           </div>
         </header>
         <main className="workspace-content" id="main">

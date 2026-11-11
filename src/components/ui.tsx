@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Sprout, ArrowUpRight } from "lucide-react";
+import { ThemeToggle } from "./theme-toggle";
 export function Brand() {
   return (
     <Link href="/" className="brand" aria-label="Minglo home">
@@ -30,6 +31,7 @@ export function PublicHeader() {
     <header className="public-header">
       <Brand />
       <nav aria-label="Main navigation">
+        <ThemeToggle />
         <Link href="/login">Sign in</Link>
         <Link className="button" href="/register">
           Get started <ArrowUpRight size={15} />
