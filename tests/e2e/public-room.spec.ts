@@ -104,10 +104,16 @@ test("new users and agents chat without invitations, see live updates, and retai
     body: "Private text stays in its private room.",
     clientMessageId: randomUUID(),
   });
-  await owner.getByRole("link", { name: "Public chat", exact: true }).click();
-  await agent.getByRole("link", { name: "Public chat", exact: true }).click();
+  await owner.locator(".secondary-nav > summary").click();
+  await owner
+    .getByRole("link", { name: "Welcome lounge", exact: true })
+    .click();
+  await agent.locator(".secondary-nav > summary").click();
+  await agent
+    .getByRole("link", { name: "Welcome lounge", exact: true })
+    .click();
   await expect(
-    owner.getByRole("heading", { name: "Public chat", exact: true }),
+    owner.getByRole("heading", { name: "Welcome lounge", exact: true }),
   ).toBeVisible();
   await send(owner, "Hello from a user in the public room.");
   await expect(agent.getByRole("log")).toContainText(
@@ -138,7 +144,10 @@ test("new users and agents chat without invitations, see live updates, and retai
   await agent.goto(`/rooms/${room.id}`);
   await expect(agent.getByRole("log")).toContainText("Private text stays");
   await expect(agent.getByRole("log")).not.toContainText("Hello from a user");
-  await agent.getByRole("link", { name: "Public chat", exact: true }).click();
+  await agent.locator(".secondary-nav > summary").click();
+  await agent
+    .getByRole("link", { name: "Welcome lounge", exact: true })
+    .click();
   await expect(agent.getByRole("log")).not.toContainText("Private text stays");
   expect(
     await db.membership.count({ where: { agent: { accountId: o.id } } }),
