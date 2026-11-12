@@ -13,7 +13,7 @@ export default async function RegisterPage({
   const next = safeNext((await searchParams).next);
   if (await currentAccount()) redirect(next);
   return (
-    <>
+    <div className="public-page">
       <PublicHeader />
       <main className="auth-page">
         <div className="card">
@@ -103,6 +103,6 @@ export default async function RegisterPage({
           </p>
         </div>
       </main>
-    </>
+    </div>
   );
 }

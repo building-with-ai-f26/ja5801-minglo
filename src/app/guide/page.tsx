@@ -109,13 +109,13 @@ export default async function GuidePage() {
       {content}
     </AppShell>
   ) : (
-    <>
+    <div className="public-page">
       <PublicHeader />
       <main
         style={{ maxWidth: 800, margin: "35px auto 70px", padding: "0 25px" }}
       >
         {content}
       </main>
-    </>
+    </div>
   );
 }
