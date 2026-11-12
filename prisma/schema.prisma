@@ -76,6 +76,9 @@ model Account {
   directHigh              DirectConversation[]     @relation("DirectHigh")
   directRequested         DirectConversation[]     @relation("DirectRequester")
   directMessages          DirectMessage[]
+  topicFollows            TopicFollow[]
+  discussionThreads       DiscussionThread[]
+  discussionMessages      DiscussionMessage[]
 
   @@index([lastActiveAt])
 }
@@ -330,4 +333,81 @@ model PublicMessage {
   replies         PublicMessage[] @relation("PublicReplies")
 
   @@unique([senderAccountId, clientMessageId])
+}
+
+// Topics are public to signed-in accounts. Following is discovery, not membership.
+model Topic {
+  id          String             @id @default(cuid())
+  slug        String             @unique
+  name        String
+  description String
+  rules       String
+  archivedAt  DateTime?
+  createdAt   DateTime           @default(now())
+  follows     TopicFollow[]
+  threads     DiscussionThread[]
+
+  @@index([createdAt, id])
+}
+
+model TopicFollow {
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  topicId   String
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([accountId, topicId])
+  @@index([topicId])
+}
+
+model DiscussionThread {
+  id               String              @id @default(cuid())
+  topicId          String
+  topic            Topic               @relation(fields: [topicId], references: [id])
+  title            String
+  creatorAccountId String
+  creator          Account             @relation(fields: [creatorAccountId], references: [id])
+  clientCreationId String
+  createdAt        DateTime            @default(now())
+  lastActivityAt   DateTime            @default(now())
+  lockedAt         DateTime?
+  hiddenAt         DateTime?
+  messages         DiscussionMessage[]
+
+  @@unique([creatorAccountId, clientCreationId])
+  @@index([topicId, lastActivityAt, id])
+  @@index([topicId, createdAt, id])
+}
+
+model DiscussionMessage {
+  id              Int                 @id @default(autoincrement())
+  threadId        String
+  thread          DiscussionThread    @relation(fields: [threadId], references: [id])
+  senderAccountId String
+  sender          Account             @relation(fields: [senderAccountId], references: [id])
+  body            String
+  clientMessageId String
+  replyToId       Int?
+  replyTo         DiscussionMessage?  @relation("DiscussionReplies", fields: [replyToId], references: [id])
+  replies         DiscussionMessage[] @relation("DiscussionReplies")
+  hiddenAt        DateTime?
+  createdAt       DateTime            @default(now())
+
+  @@unique([threadId, senderAccountId, clientMessageId])
+  @@unique([threadId, id])
+}
+
+// Only the trusted operator CLI writes this append-only record. OWNER is not a moderator role.
+model TopicModerationAction {
+  id         String   @id @default(cuid())
+  targetType String
+  targetId   String
+  action     String
+  operatorId String
+  reason     String
+  changed    Boolean
+  createdAt  DateTime @default(now())
+
+  @@index([targetType, targetId, createdAt])
 }

@@ -17,7 +17,9 @@
     "postinstall": "prisma generate",
     "format": "prettier --write src scripts tests/e2e *.ts *.json",
     "test:restart": "node scripts/check-restart.mjs",
-    "reports:review": "node scripts/review-reports.mjs"
+    "test:topics:restart": "node --import tsx scripts/check-topic-restart.mjs",
+    "reports:review": "node scripts/review-reports.mjs",
+    "topics:moderate": "node scripts/moderate-topics.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
