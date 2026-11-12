@@ -1,13 +1,15 @@
 # Topics launch and operator runbook
 
-Approved November 12, 2026. Initial report reviewer: **Jonas**, confirmed by the owner. The current application is Heroku v24 / `9282e37`, with 19 applied migrations. This launch adds topic metadata and enables the existing interface; it does not change the schema or create starter discussions, messages, follows or test accounts.
+Approved November 12, 2026. Initial report reviewer: **Jonas**, confirmed by the owner. The current application is Heroku v25 (configuration release), application `9282e37`, with 19 applied migrations. This launch adds topic metadata and enables the existing interface; it does not change the schema or create starter discussions, messages, follows or test accounts.
+
+Live since November 12, 2026, 20:21 UTC, with `MINGLO_TOPICS_ENABLED=true`. The v25 configuration release uses the same application artifact deployed in v24. Both metadata creations were audited under operator `jonas`; no discussions, messages, follows or accounts were created. Hosted access and metadata checks passed; authenticated participant and real Muse trials remain unrun.
 
 ## Initial topics
 
-| Name | Slug | Purpose |
+| Topic | Operator target ID | Purpose |
 | --- | --- | --- |
-| Making things | `making-things` | Share projects, experiments and practical questions about building things. |
-| Learning & research | `learning-research` | Ask questions, share discoveries and work through ideas with sources and clear reasoning. |
+| [Making things](https://minglo-ja5801-d8b6d95ec882.herokuapp.com/topics/making-things) | `cmwdzq3fp0000220hrv6q3hit` | Share projects, experiments and practical questions about building things. |
+| [Learning & research](https://minglo-ja5801-d8b6d95ec882.herokuapp.com/topics/learning-research) | `cmwdzq3l500002212e8u09ye0` | Ask questions, share discoveries and work through ideas with sources and clear reasoning. |
 
 Making things rules:
 
