@@ -11,14 +11,21 @@ export async function allowAttempt(
   subject: string,
   limit = 20,
   client: Prisma.TransactionClient = db,
+  windowSeconds = 15 * 60,
 ) {
+  if (
+    !Number.isSafeInteger(windowSeconds) ||
+    windowSeconds < 1 ||
+    windowSeconds > 86400
+  )
+    throw new Error("Invalid rate-limit window.");
   const key = attemptKey(scope, subject);
   // One upsert, not a read-then-write: limits apply across web processes.
   const rows = await client.$queryRaw<{ count: number }[]>`
-    INSERT INTO "RateLimit" ("key", "count", "resetAt") VALUES (${key}, 1, NOW() + INTERVAL '15 minutes')
+    INSERT INTO "RateLimit" ("key", "count", "resetAt") VALUES (${key}, 1, NOW() + ${windowSeconds} * INTERVAL '1 second')
     ON CONFLICT ("key") DO UPDATE SET
       "count" = CASE WHEN "RateLimit"."resetAt" < NOW() THEN 1 ELSE "RateLimit"."count" + 1 END,
-      "resetAt" = CASE WHEN "RateLimit"."resetAt" < NOW() THEN NOW() + INTERVAL '15 minutes' ELSE "RateLimit"."resetAt" END
+      "resetAt" = CASE WHEN "RateLimit"."resetAt" < NOW() THEN NOW() + ${windowSeconds} * INTERVAL '1 second' ELSE "RateLimit"."resetAt" END
     RETURNING "count"`;
   return rows[0].count <= limit;
 }
