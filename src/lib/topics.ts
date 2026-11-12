@@ -7,6 +7,7 @@ import { parseMessageCursor } from "./message-cursor";
 import { recordActivity } from "./activity";
 import { allowAttempt } from "./rate-limit";
 import { PUBLIC_POST_LIMIT, lockPublicWrites } from "./public-post-policy";
+import { recordDiscussionAttention } from "./discussion-attention";
 
 const THREADS_PER_DAY = 5;
 const PAGE_SIZE = 20;
@@ -38,6 +39,7 @@ function serializeMessage(m: MessageRow) {
     replyToId: m.hiddenAt ? null : m.replyToId,
   };
 }
+export type DiscussionTranscriptMessage = ReturnType<typeof serializeMessage>;
 const creationSchema = z.object({
   title: z.string().trim().min(1, "Add a discussion title.").max(100),
   body: messageSchema.shape.body,
@@ -167,6 +169,16 @@ export async function createDiscussion(
       },
     });
     await recordActivity(accountId, { client: tx, force: true });
+    const opening = await tx.discussionMessage.findFirstOrThrow({
+      where: { threadId: thread.id },
+      select: { id: true },
+    });
+    await recordDiscussionAttention(tx, {
+      actorAccountId: accountId,
+      threadId: thread.id,
+      messageId: opening.id,
+      body,
+    });
     return { id: thread.id, topicId };
   });
 }
@@ -234,7 +246,13 @@ export async function postDiscussionMessage(
       data: { lastActivityAt: message.createdAt },
     });
     await recordActivity(accountId, { client: tx, force: true });
-    // S6 supplies attention/read/report integration, never legacy room hydration.
+    await recordDiscussionAttention(tx, {
+      actorAccountId: accountId,
+      threadId,
+      messageId: message.id,
+      body,
+      replyToId,
+    });
     return serializeMessage(message);
   });
 }
@@ -485,7 +503,15 @@ export async function readDiscussion(
   topicId: string,
   threadId: string,
   params = new URLSearchParams(),
+  visibleIds: number[] = [],
 ) {
+  if (
+    visibleIds.length > 202 ||
+    visibleIds.some(
+      (id) => !Number.isSafeInteger(id) || id < 1 || id > 2147483647,
+    )
+  )
+    throw new MessageError("Invalid visible message identifiers.", 400);
   const parsed = parseMessageCursor(params);
   if (!parsed) throw new MessageError("Invalid message cursor.", 400);
   if (
@@ -571,8 +597,74 @@ export async function readDiscussion(
       thread,
       opening: opening ? serializeMessage(opening) : null,
       messages: messages.map(serializeMessage),
+      revalidatedMessages: (
+        await tx.discussionMessage.findMany({
+          where: { threadId, id: { in: visibleIds } },
+          include: messageInclude,
+        })
+      ).map(serializeMessage),
       hasOlder,
       hasMore,
     };
+  });
+}
+
+export type DiscussionView = NonNullable<
+  Awaited<ReturnType<typeof readDiscussion>>
+>;
+
+// Shared by preferences, explicit acknowledgment and reporting. Public reads
+// still require a real account and current visibility. Lock order matches S5.
+export async function lockReadableDiscussion(
+  tx: Prisma.TransactionClient,
+  threadId: string,
+  accountId: string,
+) {
+  await requireReader(tx, accountId);
+  const located = await tx.discussionThread.findUnique({
+    where: { id: threadId },
+    select: { topicId: true },
+  });
+  if (!located) throw new MessageError("Discussion unavailable.", 404);
+  await tx.$queryRaw`SELECT "id" FROM "Topic" WHERE "id" = ${located.topicId} FOR SHARE`;
+  await tx.$queryRaw`SELECT "id" FROM "DiscussionThread" WHERE "id" = ${threadId} FOR SHARE`;
+  const thread = await tx.discussionThread.findFirst({
+    where: { id: threadId, hiddenAt: null },
+    include: { topic: { select: { slug: true } } },
+  });
+  if (!thread) throw new MessageError("Discussion unavailable.", 404);
+  return thread;
+}
+
+export async function markDiscussionRead(
+  accountId: string,
+  threadId: string,
+  lastMessageId: number,
+) {
+  return db.$transaction(async (tx) => {
+    await lockReadableDiscussion(tx, threadId, accountId);
+    if (
+      !Number.isInteger(lastMessageId) ||
+      lastMessageId < 1 ||
+      lastMessageId > 2147483647 ||
+      !(await tx.discussionMessage.findFirst({
+        where: { id: lastMessageId, threadId },
+        select: { id: true },
+      }))
+    )
+      throw new MessageError("Conversation or message unavailable.", 404);
+    const conversationKey = `discussion:${threadId}`;
+    await tx.$executeRaw`INSERT INTO "ReadPosition" ("accountId", "conversationKey", "lastMessageId")
+      VALUES (${accountId}, ${conversationKey}, ${lastMessageId}) ON CONFLICT ("accountId", "conversationKey")
+      DO UPDATE SET "lastMessageId" = GREATEST("ReadPosition"."lastMessageId", EXCLUDED."lastMessageId"), "updatedAt" = NOW()`;
+    await tx.attentionItem.updateMany({
+      where: {
+        recipientAccountId: accountId,
+        conversationKey,
+        messageId: { lte: lastMessageId },
+        readAt: null,
+      },
+      data: { readAt: new Date() },
+    });
   });
 }

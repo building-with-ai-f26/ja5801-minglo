@@ -2,6 +2,8 @@ import { db } from "./db";
 import { readableRooms } from "./rooms";
 import { lockDirectConversation } from "./direct-messages";
 import { parseConversationKey } from "./conversation-key";
+import { lockReadableDiscussion } from "./topics";
+import { topicsEnabled } from "./topic-launch";
 
 export async function setConversationPreference(
   accountId: string,
@@ -28,6 +30,10 @@ export async function setConversationPreference(
     }
     if (target.kind === "direct") {
       await lockDirectConversation(tx, target.id, accountId);
+      allowed = true;
+    }
+    if (target.kind === "discussion" && topicsEnabled()) {
+      await lockReadableDiscussion(tx, target.id, accountId);
       allowed = true;
     }
     if (!allowed) throw new Error("Conversation unavailable.");

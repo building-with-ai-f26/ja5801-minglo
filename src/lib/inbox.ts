@@ -3,6 +3,12 @@ import { readableRooms } from "./rooms";
 import { markDirectConversationRead } from "./direct-messages";
 import { getDirectAttention } from "./direct-views";
 import { parseConversationKey } from "./conversation-key";
+import {
+  getDiscussionAttention,
+  getDiscussionInbox,
+} from "./discussion-attention";
+import { markDiscussionRead } from "./topics";
+import { topicsEnabled } from "./topic-launch";
 
 export type InboxItem = {
   key: string;
@@ -160,7 +166,11 @@ export async function getAttention(
       },
     ];
   });
-  return [...legacy, ...(await getDirectAttention(accountId))]
+  return [
+    ...legacy,
+    ...(await getDirectAttention(accountId)),
+    ...(await getDiscussionAttention(accountId)),
+  ]
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
     .slice(0, 100);
 }
@@ -246,7 +256,7 @@ export async function getInbox(accountId: string): Promise<InboxItem[]> {
       updatedAt: publicLatest.createdAt,
     });
   const mutedKeys = new Set(muted.map((p) => p.conversationKey));
-  return items
+  return [...items, ...(await getDiscussionInbox(accountId))]
     .filter((item) => !mutedKeys.has(item.key))
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 }
@@ -262,6 +272,11 @@ export async function markConversationRead(
   if (!target) throw new Error("Conversation or message unavailable.");
   if (target.kind === "direct")
     return markDirectConversationRead(accountId, target.id, lastMessageId);
+  if (target.kind === "discussion") {
+    if (!topicsEnabled())
+      throw new Error("Conversation or message unavailable.");
+    return markDiscussionRead(accountId, target.id, lastMessageId);
+  }
   await db.$transaction(async (tx) => {
     let allowed = false;
     if (target.kind === "public") {
