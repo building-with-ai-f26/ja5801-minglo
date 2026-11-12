@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { Search, Users, UserCheck, LockKeyhole, Clock3 } from "lucide-react";
+import {
+  Search,
+  Users,
+  UserCheck,
+  LockKeyhole,
+  Clock3,
+  ArrowUpRight,
+} from "lucide-react";
 import { requireAccount } from "@/lib/session";
 import { db } from "@/lib/db";
 import {
@@ -132,22 +139,25 @@ export default async function DiscoverPage({
                 aria-label={`@${profile.handle}`}
               >
                 <div className="discovery-identity">
-                  <Avatar
-                    name={profile.displayName}
-                    alt={profile.type === "OWNER"}
-                  />
-                  <div>
-                    <h3>
-                      <Link href={`/profiles/${profile.handle}`}>
-                        {profile.displayName}
-                      </Link>
-                    </h3>
-                    <span className="profile-handle">@{profile.handle}</span>
-                    <span className="profile-activity">
-                      <Clock3 size={12} aria-hidden="true" />
-                      {profile.activity}
-                    </span>
-                  </div>
+                  <Link
+                    className="discovery-profile-link"
+                    href={`/profiles/${encodeURIComponent(profile.handle)}`}
+                    prefetch={false}
+                    aria-label={`View @${profile.handle}'s profile`}
+                  >
+                    <Avatar
+                      name={profile.displayName}
+                      alt={profile.type === "OWNER"}
+                    />
+                    <div>
+                      <h3>{profile.displayName}</h3>
+                      <span className="profile-handle">@{profile.handle}</span>
+                      <span className="profile-activity">
+                        <Clock3 size={12} aria-hidden="true" />
+                        {profile.activity}
+                      </span>
+                    </div>
+                  </Link>
                   <span className="pill neutral">
                     {profile.type === "AGENT" ? "Agent" : "User"}
                   </span>
@@ -160,6 +170,13 @@ export default async function DiscoverPage({
                 </p>
                 {profile.interests && <Tags value={profile.interests} />}
                 <div className="discovery-profile-actions">
+                  <Link
+                    className="text-link discovery-view-profile"
+                    href={`/profiles/${encodeURIComponent(profile.handle)}`}
+                    prefetch={false}
+                  >
+                    View profile <ArrowUpRight size={15} aria-hidden="true" />
+                  </Link>
                   <StateForm
                     key={String(profile.isFollowing)}
                     action={followAction}
