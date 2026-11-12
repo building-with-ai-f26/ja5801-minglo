@@ -1,6 +1,6 @@
 # Topic discussions — domain and interface
 
-S5 provides the domain and trusted moderation commands. S6 adds the gated Topics interface, read endpoint, attention, explicit read state and reporting. Profile/Home continuity remains S7 work. No production topics, posts or follows are seeded.
+S5 provides the domain and trusted moderation commands. S6 adds the gated Topics interface, read endpoint, attention, explicit read state and reporting. S7 supplies profile/Home continuity. On November 12, the approved S8 launch created two production topics through audited operator commands; no discussions, posts, follows or accounts were seeded. See [TOPICS_LAUNCH.md](TOPICS_LAUNCH.md) for the live targets and moderation runbook.
 
 ## Records and migration
 
@@ -23,7 +23,7 @@ Use `src/lib/topics.ts`. Every operation requires a real current account; HTTP c
 | `listDiscussions(accountId, topicId, options)` | `{sort?: 'recent' \| 'newest', cursor?}`; at most 20 threads and `next`. Includes safe opening projection, visible reply count and public author identity. Cursor is scoped to topic/sort and fences new activity. |
 | `readDiscussion(accountId, topicId, threadId, params?)` | Default recent 50; before: 50, after: 200, around: 25 before and 25 from the target. `opening` is returned separately even when outside the window. Carries `hasOlder`/`hasMore`, archive/lock status and tombstones. Wrong topic, missing or hidden thread returns null; invalid cursor is 400. |
 | `postDiscussionMessage(accountId, topicId, threadId, input)` | Existing `{body, clientMessageId, replyToId?}` format. Session account authorship, same-thread visible parent, retry equality. Returns a safe message projection. |
-| `setDiscussionFollow(accountId, topicId, threadId, boolean)` | Sets only `subscribed` on the viewer's `discussion:<id>` preference, preserving mute/archive fields. Hidden/unavailable discussion denied. Attention delivery is not wired until S6. |
+| `setDiscussionFollow(accountId, topicId, threadId, boolean)` | Sets only `subscribed` on the viewer's `discussion:<id>` preference, preserving mute/archive fields. Hidden/unavailable discussion denied. S6 wires attention delivery separately from topic following. |
 
 Errors use the existing `MessageError.status`: invalid input 400, unknown account 401, paused/locked/archived write 403, unavailable discussion 404, retry mismatch 409, quota 429. Reads and follows are allowed while posting is paused. A retry never re-subscribes a creator who subsequently unfollowed. Successful retries do not consume another quota slot.
 
@@ -89,13 +89,13 @@ Reverse commands are `unlock-thread`, `unhide-thread`, `unhide-message` and `una
 
 `tests/e2e/topic-discussions.spec.ts` exercises concurrency/retries, atomic quota rollback, role attribution, same-thread and database guards, pause/lock/archive, hidden projections/evidence, follow isolation, bounded concurrent pagination and the operator boundary. Use only a disposable `_test` database. The S5 execution log in `MINGLO_SOCIAL_PLAN.md` records the actual checks/results. These are application-domain checks, not proof of an external agent's autonomous return.
 
-After the production build, run `TEST_DATABASE_URL=..._test npm run test:topics:restart` (optional `TOPIC_RESTART_PORT`, default 3105). It creates disposable topic records, starts/stops only its own production server twice, and compares message IDs/body evidence, hidden state, thread lock, follows, preferences and audit. It refuses a non-test database and an occupied port. It does not reset a database or exercise a topic HTTP interface, which remains unimplemented until S6.
+After the production build, run `TEST_DATABASE_URL=..._test npm run test:topics:restart` (optional `TOPIC_RESTART_PORT`, default 3105). It creates disposable topic records, starts/stops only its own production server twice, and compares message IDs/body evidence, hidden state, thread lock, follows, preferences and audit. It refuses a non-test database and an occupied port. It does not reset a database; S6 browser tests separately exercise the topic HTTP interface.
 
 ## S6 interface and integration
 
 S6 extends this backend with `/topics`, `/topics/[slug]`, `/topics/[slug]/new` and `/topics/[slug]/discussions/[id]`. Explore has a Topics view; Public chat retains its own history and gains Browse topics. Topic creation/archiving stays with trusted operators. No production topics are seeded by the application.
 
-`MINGLO_TOPICS_ENABLED=true` enables the interface. It defaults off, including in `.env.example`, until S8 reviews initial topics and moderation responsibility. With it off, Topics pages/read APIs return unavailable, entry links are absent, shared read/preference/report actions reject discussion keys, and topic attention/unread projections return no entries. S5's trusted domain operations remain available for operator/local checks. S7's contributions and navigation must honor `topicsEnabled()` too.
+`MINGLO_TOPICS_ENABLED=true` enables the interface. It defaults off, including in `.env.example`. The approved S8 initial trial enables it in production; see [TOPICS_LAUNCH.md](TOPICS_LAUNCH.md) for the decision and controls. With it off, Topics pages/read APIs return unavailable, entry links are absent, shared read/preference/report actions reject discussion keys, and topic attention/unread projections return no entries. S5's trusted domain operations remain available for operator/local checks. S7's contributions and navigation must honor `topicsEnabled()` too.
 
 The authenticated GET `/api/topics/[slug]/discussions/[id]/messages` uses the same before/after/recent/around window contract. It has private/no-store cache headers and no JSON mutation endpoint. Mutations use authenticated Server Actions with Next's Origin/Host protection, per-operation domain checks and session-derived actors. Sign-in continuation allows only the explicit internal topic routes.
 
