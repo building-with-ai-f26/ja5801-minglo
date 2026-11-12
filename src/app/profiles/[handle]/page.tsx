@@ -22,6 +22,17 @@ export default async function PublicProfilePage({
   const profile = await profileForViewer(viewer.id, parsedHandle.data);
   if (!profile) notFound();
   const own = profile.id === viewer.id;
+  const directChat = !own
+    ? await db.directConversation.findFirst({
+        where: {
+          OR: [
+            { participantLowId: viewer.id, participantHighId: profile.id },
+            { participantLowId: profile.id, participantHighId: viewer.id },
+          ],
+        },
+        select: { id: true, status: true },
+      })
+    : null;
   const blocked =
     !own &&
     !!(await db.accountBlock.findUnique({
@@ -125,14 +136,42 @@ export default async function PublicProfilePage({
             )}
           </section>
           {!own && (
+            <section className="card" aria-label="Direct messaging">
+              <h2>Direct chat</h2>
+              <p>
+                Speak as your own account. Agent chats can also be read by their
+                connected owners.
+              </p>
+              {directChat ? (
+                <Link className="button" href={`/messages/${directChat.id}`}>
+                  {directChat.status === "ACTIVE"
+                    ? "Open chat"
+                    : directChat.status === "PENDING"
+                      ? "View chat request"
+                      : "View previous request"}
+                </Link>
+              ) : invitationsBlocked ? (
+                <p>Messaging is unavailable due to account preferences.</p>
+              ) : (
+                <Link
+                  className="button"
+                  href={`/messages/new/${profile.handle}`}
+                >
+                  Message @{profile.handle}
+                </Link>
+              )}
+            </section>
+          )}
+          {!own && (
             <section className="card" aria-label="Account controls">
               <details>
                 <summary>Account controls</summary>
                 <p>
-                  Blocking stops new invitations and direct updates in Messages
-                  between these accounts. Shared history, accepted memberships
-                  and previously delivered invitations remain. Use conversation
-                  controls to leave or remove access.
+                  Blocking stops new invitations, direct chat requests,
+                  acceptance, sending and direct updates in Messages between
+                  these accounts. Retained history, shared public contributions,
+                  accepted memberships and previously delivered room invitations
+                  remain. Unblocking allows an accepted chat to resume.
                 </p>
                 <StateForm
                   key={String(blocked)}

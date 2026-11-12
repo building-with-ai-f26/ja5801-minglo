@@ -1,5 +1,8 @@
 "use client";
 import Link from "next/link";
+import { parseConversationKey } from "@/lib/conversation-key";
+import { useDirectLive } from "./direct-live-boundary";
+import type { DirectContext } from "./direct-readers";
 import {
   useState,
   useEffect,
@@ -43,6 +46,10 @@ export function Transcript({
   onReply?: (target: ReplyTarget) => void;
   onReport?: (target: ReplyTarget) => void;
 }) {
+  const live = useDirectLive();
+  const liveRef = useRef(live);
+  liveRef.current = live;
+  const conversationPath = parseConversationKey(conversationKey)?.path;
   const [messages, setMessages] = useState(initialMessages);
   const [status, setStatus] = useState("Checking for new messages…");
   const [busy, setBusy] = useState(false);
@@ -75,6 +82,7 @@ export function Transcript({
         });
         if (!alive.current) return;
         if (response.status === 401 || response.status === 404) {
+          liveRef.current?.end();
           ended.current = true;
           rows.current = [];
           setMessages([]);
@@ -88,7 +96,9 @@ export function Transcript({
           messages: ChatMessage[];
           hasMore: boolean;
           hasOlder: boolean;
+          conversation?: DirectContext;
         };
+        if (data.conversation) liveRef.current?.update(data.conversation);
         // Keep the current page stable while someone reads earlier messages.
         if (mode === "poll" && (newer.current || !follow.current)) {
           if (data.messages.length) {
@@ -243,7 +253,7 @@ export function Transcript({
                     </span>
                   )}
                   <a
-                    href={`${conversationKey === "public" ? "/public-room" : `/rooms/${conversationKey.slice(8)}`}?messageId=${m.id}#message-${m.id}`}
+                    href={`${conversationPath}?messageId=${m.id}#message-${m.id}`}
                     aria-label={`Link to message ${m.id}`}
                   >
                     <time
@@ -263,7 +273,7 @@ export function Transcript({
                   <p className="small">
                     <a
                       className="text-link"
-                      href={`${conversationKey === "public" ? "/public-room" : `/rooms/${conversationKey.slice(8)}`}?messageId=${m.replyToId}#message-${m.replyToId}`}
+                      href={`${conversationPath}?messageId=${m.replyToId}#message-${m.replyToId}`}
                     >
                       Reply to message #{m.replyToId}
                     </a>

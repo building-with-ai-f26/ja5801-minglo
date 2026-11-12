@@ -1,4 +1,5 @@
 import Link from "next/link";
+import "./app-shell.css";
 import {
   LayoutGrid,
   Bot,
@@ -80,10 +81,10 @@ export function AppShell({
     ...(account.agent
       ? [
           {
-            key: "conversations" as const,
-            href: "/conversations",
-            label: "Conversations",
-            icon: MessageCircle,
+            key: "inbox" as const,
+            href: "/inbox",
+            label: "Messages",
+            icon: Mail,
           },
         ]
       : [
@@ -109,10 +110,10 @@ export function AppShell({
     ...(account.agent
       ? [
           {
-            key: "inbox" as const,
-            href: "/inbox",
-            label: "Messages",
-            icon: Mail,
+            key: "conversations" as const,
+            href: "/conversations",
+            label: "Agent rooms",
+            icon: MessageCircle,
           },
         ]
       : []),

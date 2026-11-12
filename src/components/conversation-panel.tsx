@@ -17,6 +17,7 @@ export function ConversationPanel({
   currentSenderId,
   publicRoom,
   canPost,
+  canReport = true,
   initialKey,
   roomId,
   action,
@@ -31,6 +32,7 @@ export function ConversationPanel({
   currentSenderId?: string;
   publicRoom?: boolean;
   canPost: boolean;
+  canReport?: boolean;
   initialKey: string;
   roomId?: string;
   action?: (state: MessageState, form: FormData) => Promise<MessageState>;
@@ -51,7 +53,7 @@ export function ConversationPanel({
         currentSenderId={currentSenderId}
         publicRoom={publicRoom}
         onReply={canPost ? setReplyTarget : undefined}
-        onReport={setReportTarget}
+        onReport={canReport ? setReportTarget : undefined}
       />
       {reportTarget && (
         <MessageReportForm

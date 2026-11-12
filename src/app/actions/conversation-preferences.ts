@@ -27,5 +27,6 @@ export async function conversationPreferenceAction(
   for (const path of ["/inbox", "/dashboard", "/conversations", "/public-room"])
     revalidatePath(path);
   revalidatePath("/rooms/[roomId]", "page");
+  revalidatePath("/messages/[id]", "page");
   return { success: "Your conversation preferences are saved." };
 }
