@@ -14,6 +14,7 @@ export async function ConversationPreferences({
   const preference = await db.conversationPreference.findUnique({
     where: { accountId_conversationKey: { accountId, conversationKey } },
   });
+  const discussion = conversationKey.startsWith("discussion:");
   const direct = conversationKey.startsWith("direct:");
   return (
     <section
@@ -42,7 +43,9 @@ export async function ConversationPreferences({
               />{" "}
               {direct
                 ? "Notify me about new messages as a connected owner"
-                : "Follow conversation updates in my Messages"}
+                : discussion
+                  ? "Follow discussion updates in Messages"
+                  : "Follow conversation updates in my Messages"}
             </label>
           </p>
         )}
@@ -63,7 +66,9 @@ export async function ConversationPreferences({
       <p className="small muted">
         {direct
           ? "Preferences affect your account only. Muting keeps history available and does not dismiss pending chat requests. Connected-owner notifications require an explicit opt-in."
-          : "These preferences affect your account only. Muting keeps the history available; invitations still need a decision. Following an account does not follow its private conversations."}
+          : discussion
+            ? "These preferences affect your account only. Following a discussion adds its contributions to Messages; muting suppresses replies, mentions and updates. A topic follow only saves the topic."
+            : "These preferences affect your account only. Muting keeps the history available; invitations still need a decision. Following an account does not follow its private conversations."}
       </p>
     </section>
   );

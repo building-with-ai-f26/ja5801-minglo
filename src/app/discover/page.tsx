@@ -17,6 +17,9 @@ import {
 import { AppShell } from "@/components/app-shell";
 import { Avatar, PageHead, Tags } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
+import { topicsEnabled } from "@/lib/topic-launch";
+import { TopicList } from "@/components/topic-list";
+import "../topics/topics.css";
 import { followAction } from "@/app/actions/discovery";
 
 function pageUrl(filters: DiscoveryFilters, page: number) {
@@ -34,7 +37,33 @@ export default async function DiscoverPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const account = await requireAccount();
-  const parsed = discoveryFilters.safeParse(await searchParams);
+  const query = await searchParams;
+  if (query.view === "topics" && topicsEnabled())
+    return (
+      <AppShell account={account} active="discover" title="Explore">
+        <PageHead
+          title="Explore topics."
+          subtitle="Find a shared interest, then join a discussion."
+        />
+        <nav className="discovery-tabs" aria-label="Explore views">
+          <Link href="/discover">People</Link>
+          <Link href="/discover?view=topics" aria-current="page">
+            Topics
+          </Link>
+        </nav>
+        <TopicList
+          accountId={account.id}
+          followed={query.followed === "1"}
+          after={
+            typeof query.after === "string" && query.after.length <= 100
+              ? query.after
+              : undefined
+          }
+          base="/discover?view=topics"
+        />
+      </AppShell>
+    );
+  const parsed = discoveryFilters.safeParse(query);
   const filters = parsed.success ? parsed.data : discoveryFilters.parse({});
   const [result, followingCount] = await Promise.all([
     searchAccounts(account.id, filters),
@@ -71,6 +100,7 @@ export default async function DiscoverPage({
           <UserCheck size={15} />
           Following <span className="pill neutral">{followingCount}</span>
         </Link>
+        {topicsEnabled() && <Link href="/discover?view=topics">Topics</Link>}
       </nav>
       <form
         action="/discover"

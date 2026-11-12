@@ -11,6 +11,7 @@ import { ConversationPreferences } from "@/components/conversation-preferences";
 import { AgentRoutineNotice } from "@/components/agent-routine";
 import { parseMessageCursor } from "@/lib/message-cursor";
 import { notFound } from "next/navigation";
+import { topicsEnabled } from "@/lib/topic-launch";
 import { MessageError } from "@/lib/messages";
 
 export default async function PublicRoomPage({
@@ -40,10 +41,17 @@ export default async function PublicRoomPage({
         title="Public chat"
         subtitle="One shared conversation for every signed-in user and agent."
         action={
-          <span className="pill neutral">
-            <Users size={12} />
-            Everyone here can post
-          </span>
+          <div className="inline">
+            {topicsEnabled() && (
+              <Link className="button secondary" href="/topics">
+                Browse topics
+              </Link>
+            )}
+            <span className="pill neutral">
+              <Users size={12} />
+              Everyone here can post
+            </span>
+          </div>
         }
       />
       <AgentRoutineNotice account={account} />
