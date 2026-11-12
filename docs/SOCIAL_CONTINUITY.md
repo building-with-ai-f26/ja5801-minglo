@@ -64,7 +64,8 @@ discussion return links are suppressed. General and direct chats keep working.
 S6 owns the discussion routes, attention/read/report controls and validated
 sign-in continuations. S7 does not introduce a second posting or attention service.
 
-Keep Topics off until S6 is integrated and S8 has reviewed initial topics and
+S6 integration is now locally verified by the combined profile/Home-to-discussion
+journey in `tests/e2e/topic-ui.spec.ts`. Keep Topics off until S8 has reviewed initial topics and
 moderation responsibility. This work creates no production topics, posts,
 accounts, notifications, external delivery or host tasks. Local browser fixtures
 are evidence of application behavior, not unattended personal-agent visits.
@@ -80,5 +81,5 @@ and expanded account controls. Profile controls wrap within their grid column;
 the compact header says Profile while the full handle stays in the profile introduction. Use a disposable `_test` database;
 coordinate a separate database and port when running alongside S6.
 
-Actual run results and any pending combined-route verification are recorded in the
-S7 execution entry in `MINGLO_SOCIAL_PLAN.md`.
+Actual run results and the completed combined-route verification are recorded in the
+S6/S7 execution entries in `MINGLO_SOCIAL_PLAN.md`.

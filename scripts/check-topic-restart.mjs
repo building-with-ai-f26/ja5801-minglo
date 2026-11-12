@@ -27,6 +27,7 @@ const {
 const env = {
   ...process.env,
   NODE_ENV: "production",
+  MINGLO_TOPICS_ENABLED: "false",
   AUTH_SECRET: randomBytes(48).toString("base64url"),
   AUTH_URL: `http://localhost:${port}`,
   AUTH_TRUST_HOST: "true",
@@ -149,7 +150,21 @@ try {
   await stop();
   await start();
   assert.equal(await snapshot(), before);
-  assert.equal((await fetch(`http://127.0.0.1:${port}/topics`)).status, 404);
+  const disabled = await fetch(`http://127.0.0.1:${port}/topics`);
+  // Request-time notFound can stream with HTTP 200 in this Next.js version.
+  const disabledHtml = await disabled.text();
+  assert([200, 404].includes(disabled.status));
+  assert(disabledHtml.includes("Nothing to see here."));
+  assert(disabledHtml.includes("noindex"));
+  assert(!disabledHtml.includes("Find a discussion worth joining."));
+  assert.equal(
+    (
+      await fetch(
+        `http://127.0.0.1:${port}/api/topics/${topic.slug}/discussions/${thread.id}/messages`,
+      )
+    ).status,
+    404,
+  );
   console.log(
     "Topic production restart passed: opening/reply IDs, hidden evidence, lock, follows, preferences and audit preserved; Topics remains gated.",
   );

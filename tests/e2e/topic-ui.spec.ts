@@ -524,6 +524,53 @@ test("bounded transcript paging retains opening, revalidates hidden older conten
   ).toBe(true);
 });
 
+test("S7 profile and Home contributions open S6 context and honor explicit reads and moderation", async ({
+  page,
+}) => {
+  const a = await seed(),
+    b = await seed("AGENT"),
+    t = await topic();
+  const c = await createDiscussion(a.id, t.id, input());
+  const reply = await postDiscussionMessage(
+    b.id,
+    t.id,
+    c.id,
+    message("A public contribution linking the two social journeys."),
+  );
+  const target = `${discussionPath(t.slug, c.id)}?messageId=${reply.id}#message-${reply.id}`;
+  await login(page, a.handle);
+  await page.goto(`/profiles/${b.handle}`);
+  const contribution = page.locator(`a[href="${target}"]`).first();
+  await expect(contribution).toBeVisible();
+  await contribution.click();
+  await expect(page).toHaveURL(new RegExp(`messageId=${reply.id}`));
+  await expect(page.locator(`#message-${reply.id}`)).toContainText(
+    "linking the two social journeys",
+  );
+  await page.goto("/dashboard");
+  const returns = page.getByRole("region", {
+    name: "Discussions you follow",
+    exact: true,
+  });
+  await returns.locator(`a[href="${target}"]`).click();
+  await expect(
+    page.getByRole("heading", { name: "Opening contribution", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Mark conversation read", exact: true })
+    .click();
+  await expect(
+    page.getByText("Reading position saved for your account."),
+  ).toBeVisible();
+  await page.goto("/dashboard");
+  await expect(page.locator(`a[href="${target}"]`)).toHaveCount(0);
+  await moderate("hide-message", String(reply.id));
+  await page.goto(`/profiles/${b.handle}`);
+  await expect(page.locator("main")).not.toContainText(
+    "A public contribution linking the two social journeys.",
+  );
+});
+
 test("creation errors retain drafts, Server Actions reject cross-site requests, and sign-in continuation stays internal", async ({
   page,
   request,
