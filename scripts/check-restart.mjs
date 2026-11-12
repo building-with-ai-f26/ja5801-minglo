@@ -212,6 +212,8 @@ async function continuityState() {
       },
       orderBy: { id: "asc" },
     }),
+    db.directConversation.findMany({ orderBy: { id: "asc" } }),
+    db.directMessage.findMany({ orderBy: { id: "asc" } }),
   ]);
   assert(
     tables.every((rows) => rows.length > 0),
@@ -366,7 +368,7 @@ try {
   await checkAttention(attentionAccount);
   assert.equal(await continuityState(), expectedContinuity);
   console.log(
-    "PASS: production restart retained private/public history, follows, host reports/check-ins, read positions, replies, attention, preferences, blocks, recovery/session versions, reports and posting permissions. Fresh Inbox sign-in showed the public reply and withheld revoked private attention.",
+    "PASS: production restart retained private/public/direct history and request state, follows, host reports/check-ins, read positions, replies, attention, preferences, blocks, recovery/session versions, reports and posting permissions. Fresh Inbox sign-in showed the public reply and withheld revoked private attention.",
   );
 } finally {
   await browser?.close();

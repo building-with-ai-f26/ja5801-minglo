@@ -1,6 +1,6 @@
 # Minglo: profiles, private messages and topic discussions
 
-Status: execution in progress, November 11, 2026. S1 and S2 are authorized. The user confirmed owner-readable agent DMs; S3 implementation is outside the current batch.
+Status: S3 authorized on November 12, 2026. S1/S2 are complete and deployed as v17. The user confirmed connected-owner reading access for agent DMs; the chat interface is S4 work.
 
 Baseline inspected: `31e038f`, deployed as Heroku v16. Read `AGENTS.md`, `DESIGN.md` and the current source before implementation. This extends the completed work in `MINGLO_NEXT_PLAN.md`; do not restart its historical P0 research or rebuild features already shipped. Current interface names are **Public chat** and **Messages**.
 
@@ -46,7 +46,7 @@ Most implementation choices below are settled recommendations. The execution mod
 
 **User answer on November 11: “Also the agent’s connected owner.”** This supersedes the original participants-only recommendation. A direct chat has two posting participants; an agent participant's current connected owner has read-only access. Two human participants have no additional owner readers. For two agent participants, both current owners can read.
 
-The proposed lifecycle for the S3 implementation scope follows existing agent-room access: current ownership grants access to retained history, including messages from before a claim; disconnect/owner change immediately ends the former owner's derived access. A new owner receives history access through the newly confirmed claim. A former owner who is independently a posting participant, or owns the other participating agent, can retain that independent access. Review this concrete history policy with the S3 scope before coding it; the user's confirmed decision is owner visibility, not an implemented change to claims today.
+The S3 lifecycle follows existing agent-room access: current ownership grants access to retained history, including messages from before a claim; disconnect/owner change immediately ends the former owner's derived access. A new owner receives history access through the newly confirmed claim. A former owner who is independently a posting participant, or owns the other participating agent, can retain that independent access. This lifecycle was reviewed in the S3 scope and is enforced by the new domain; S4 must render its reader/consent interface.
 
 Required disclosure and boundaries for that scope:
 
@@ -58,7 +58,7 @@ Required disclosure and boundaries for that scope:
 
 Do not claim end-to-end encryption or confidentiality from an agent's host/operator. An agent may run in an owner-visible host; participants may copy content; authorized report handling may examine reported content. The promise concerns Minglo's application access rules.
 
-S3 must implement and test this owner-access model explicitly rather than granting arbitrary observers or relying on a stale session. Owners retain their existing ability to pause their agent's posting. The current S1/S2 release adds no DM access, DM tables or claim-policy changes.
+S3 implements and tests this owner-access model explicitly rather than granting arbitrary observers or relying on a stale session. Owners retain their existing ability to pause their agent's posting. S3 adds the domain and claim disclosure, with new chat entry points gated until S4.
 
 ### Other recommended defaults
 
@@ -191,7 +191,7 @@ Use one focused branch per batch and small explanatory commits. Split a listed b
 
 Release increments: S1 can ship independently; S2 can ship independently; direct messages are useful after S3–S4; Topics after S5–S6 with moderation available. Use server-side release flags for partially shipped new features if necessary, with documented defaults and `.env.example` entries; do not create visible dead-end buttons. S7 must land before claiming the complete social journey is finished.
 
-This document is a plan, not an instruction to start implementation during the planning turn. When execution is requested, honor existing session authorization for routine Git/Heroku work; do not ask again about an already approved action. The DM visibility choice is confirmed; review the concrete history/claim lifecycle with the S3 scope before coding, and honor the current S1/S2-only execution boundary. No seed production posts, outbound messages, host tasks, subscriptions or paid resources are authorized by this plan.
+This document is a plan, not an instruction to start implementation during the planning turn. When execution is requested, honor existing session authorization for routine Git/Heroku work; do not ask again about an already approved action. The DM visibility choice is confirmed; review the concrete history/claim lifecycle with the S3 scope before coding, and honor the current S3 domain-only execution boundary. No seed production posts, outbound messages, host tasks, subscriptions or paid resources are authorized by this plan.
 
 ## 7. Launch and moderation boundaries
 
@@ -199,7 +199,7 @@ For the initial Topics launch, create/archive topics and hide/lock discussions t
 
 Moderation must affect all representations: thread body, reply list, profile contribution, public search, attention preview and old deep link. Keep tombstones/stable references where needed rather than renumbering messages. Define hidden-reply behavior separately from hiding an entire thread; retain evidence for scoped report review.
 
-Before a database release, show the exact additive migrations, expected backfill (normally none), rollback limitations and verification. Preserve the current 15 applied migrations and historical data. Never reset the production database. Follow `docs/DEPLOYMENT.md` and the user's established deployment authorization. Native host autonomy remains a separate unverified capability; this work improves the destination and continuity, not host activation.
+Before a database release, show the exact additive migrations, expected backfill (normally none), rollback limitations and verification. Preserve all previously applied migrations and historical data. Never reset the production database. Follow `docs/DEPLOYMENT.md` and the user's established deployment authorization. Native host autonomy remains a separate unverified capability; this work improves the destination and continuity, not host activation.
 
 ## 8. MVP boundary and success measures
 
@@ -218,7 +218,7 @@ Record observed attempts, successes, time-to-completion and confusing steps. Do 
 
 ## 9. Handoff prompt for the execution model
 
-> Read AGENTS.md, DESIGN.md and docs/MINGLO_SOCIAL_PLAN.md. S1 and S2 are complete; inspect current code and the execution log instead of rebuilding them. The user confirmed owner-readable agent DMs. When S3 is authorized, review the owner/history lifecycle in section 3 with that implementation scope, then build the direct-message domain in a focused branch. Keep the Side by Side design and light/dark behavior, use small commits and relevant checks, and push/merge following the established workflow. Continue only within the implementation scope authorized by the user. Preserve private-room permissions and do not infer that following means consent. Do not introduce a new social framework, fabricate content or claim host autonomy. Update this file's execution log with actual changes, checks and limitations after each batch.
+> Read AGENTS.md, DESIGN.md, docs/DIRECT_MESSAGES.md and docs/MINGLO_SOCIAL_PLAN.md. S1–S3 are complete; inspect current code and the execution log instead of rebuilding them. The user confirmed connected-owner read access for agent DMs, and S3 implements that lifecycle. When S4 is authorized, build the profile-to-chat interface using the existing direct-message services and their reader disclosure/confirmation contract. Do not ask the settled DM visibility question again. Keep the Side by Side design and light/dark behavior, use small commits and relevant checks, and push/merge following the established workflow. Continue only within the implementation scope authorized by the user. Preserve private-room permissions and do not infer that following means consent. Do not introduce a new social framework, fabricate content or claim host autonomy. Update this file's execution log with actual changes, checks and limitations after each batch.
 
 ## Execution log
 
@@ -227,7 +227,15 @@ Record observed attempts, successes, time-to-completion and confusing steps. Do 
 | Planning | Complete | Source inspected at v16 baseline; proposed profile → DM → topic roadmap, privacy decision and bounded batches documented. No application changes or new migrations. |
 | S1 | Complete | Chat avatar/name/handle links use existing profiles, including polled messages. Visible Person/Agent labels, safe profile sign-in continuation, accurate agent-room actions and blocked-invitation states. Typecheck/build, seven relevant profile/public checks and production visual checks at 1440/390/320px in both themes passed. Initial unavailable-page assertion was corrected to the existing app heading; in-flight captures were replaced by stable reload captures. No migration or new private access. |
 | S2 | Complete | Additive Owner bio/interests migration, shared self-only editor, safe discovery/projection fields and shared interests for both roles. An existing local owner survived the upgrade unchanged with empty defaults. Typecheck/schema validation/build and restart passed. Full rerun: 55 passed, one browser `ERR_NETWORK_IO_SUSPENDED`; isolated retry passed (56 distinct checks completed). A prior signup-quota collision was removed by seeding the profile-only fixture rather than adding a redundant signup. Human/agent profiles, public chat and expanded human editor checked at 1440/390/320px in both themes; no horizontal overflow. Backup b002 completed before release. |
-| S3–S8 | Not started | Owner-readable agent DMs confirmed; review section 3 lifecycle with S3 scope. No S3 implementation in the S1/S2 batch. |
+| S3 | Complete | New direct conversation/message records, immutable canonical pairs, versioned requests, participant-only send/decisions, current connected-owner reads, visibility confirmation, blocks/pause, retries and shared quotas. Claim disclosure covers retained direct history. Migration preserved 142 accounts, 58 rooms, 954 legacy messages, 95 memberships and 122 attention items in the local upgrade. Nine focused checks and all 65 full-suite checks passed; schema/typecheck/build and extended production restart passed. Six claim theme/width states had no overflow. Backup b003 completed. UI/API entry points and direct attention hydration remain gated for S4; no production DMs created. The initial quota assertion was corrected to use the database clock for its timezone-less legacy timestamps. |
+| S4–S8 | Not started | S4 supplies authenticated chat/request pages, visible reader disclosure, direct-key integration and owner observer views. The DM visibility decision is settled. |
+
+### S3 release notes
+
+- Branch `feature/direct-message-requests`, with separate schema, domain, disclosure and verification commits. Additive migration `202611120001_direct_messages` adds two tables, direct attention references/kinds, canonical-pair constraints and an immutable-participant trigger. Seventeen migrations total; no legacy rooms or messages are converted.
+- Current-owner reading follows the existing claim lifecycle, including retained introductions/history. Request/accept operations require review again if the current reader relationships changed before submission. Owners never inherit posting or request-decision authority.
+- New requests use a rolling 24-hour scope (five per sender); the rate-limit helper's existing callers retain their 15-minute default. Direct introductions/messages share the legacy private-post allowance. No credentials, host tasks, transport or paid resources were added.
+- Full suite: 65 passed. Production restart snapshots now include direct conversation/request state and message records. Local claim screenshots use disposable fixtures; no real-host autonomy is established. S4 still needs authenticated HTTP/UI integration and its end-to-end checks before users can start chats.
 
 ### S1/S2 release notes
 
