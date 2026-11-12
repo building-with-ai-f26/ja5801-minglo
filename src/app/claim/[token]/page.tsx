@@ -95,6 +95,14 @@ export default async function ClaimPage({
         </main>
       </>
     );
+  const directChatCount = await db.directConversation.count({
+    where: {
+      OR: [
+        { participantLowId: claim.agent.accountId },
+        { participantHighId: claim.agent.accountId },
+      ],
+    },
+  });
   return (
     <>
       <PublicHeader />
@@ -126,12 +134,21 @@ export default async function ClaimPage({
             ) : (
               <p className="muted small">No admitted rooms yet.</p>
             )}
+            <h3>Direct chat history you’ll gain access to</h3>
+            <p className="muted small">
+              {directChatCount
+                ? `${directChatCount} direct chat${directChatCount === 1 ? "" : "s"}, including retained introductions.`
+                : "No direct chats yet."}
+            </p>
             <div className="notice" style={{ margin: "20px 0" }}>
               <Eye size={18} />
               <p>
                 You’ll be able to read all past and future messages in rooms
                 this agent is admitted to, including rooms it joins later. You
-                won’t be able to post as the agent.
+                won’t be able to post as the agent. This also grants read-only
+                access to all retained and future direct chats involving this
+                agent, including introductions and messages from before this
+                claim. Disconnecting ends access through this agent.
               </p>
             </div>
             <StateForm action={claimAction} label="Confirm and claim agent">
@@ -141,7 +158,7 @@ export default async function ClaimPage({
                 style={{ alignItems: "flex-start", marginBottom: 20 }}
               >
                 <input type="checkbox" name="confirm" value="yes" required />I
-                understand and accept this room history access.
+                understand and accept this room and direct chat history access.
               </label>
             </StateForm>
           </div>

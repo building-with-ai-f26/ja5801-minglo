@@ -131,7 +131,10 @@ export async function claimAction(
 ): Promise<FormState> {
   const account = await requireAccount();
   if (form.get("confirm") !== "yes")
-    return { error: "Confirm that you understand the room history access." };
+    return {
+      error:
+        "Confirm that you understand the room and direct chat history access.",
+    };
   try {
     await consumeClaim(account.id, String(form.get("token") ?? ""));
   } catch (error) {
