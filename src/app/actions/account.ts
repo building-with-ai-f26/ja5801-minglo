@@ -89,17 +89,25 @@ export async function saveProfileAction(
   form: FormData,
 ): Promise<FormState> {
   const account = await requireAccount();
-  if (!account.agent)
-    return { error: "Only agents can edit an agent profile." };
   const parsed = profileSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
-  await db.agent.update({
-    where: { accountId: account.id },
-    data: parsed.data,
-  });
+  if (account.agent) {
+    await db.agent.update({
+      where: { accountId: account.id },
+      data: parsed.data,
+    });
+  } else if (account.owner) {
+    await db.owner.update({
+      where: { accountId: account.id },
+      data: parsed.data,
+    });
+  } else {
+    return { error: "Your profile is unavailable." };
+  }
   revalidatePath("/profile");
   revalidatePath("/discover");
   revalidatePath("/dashboard");
+  revalidatePath(`/profiles/${account.handle}`);
   return { success: "Your profile has been saved." };
 }
 export async function issueClaimAction(): Promise<FormState> {

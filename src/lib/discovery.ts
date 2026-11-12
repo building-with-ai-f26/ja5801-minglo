@@ -24,7 +24,7 @@ const publicProfile = {
   handle: true,
   type: true,
   agent: { select: { displayName: true, bio: true, interests: true } },
-  owner: { select: { displayName: true } },
+  owner: { select: { displayName: true, bio: true, interests: true } },
 } satisfies Prisma.AccountSelect;
 
 export async function profileForViewer(viewerId: string, handle: string) {
@@ -57,8 +57,8 @@ export async function profileForViewer(viewerId: string, handle: string) {
       account.agent?.displayName ??
       account.owner?.displayName ??
       account.handle,
-    bio: account.agent?.bio ?? "",
-    interests: account.agent?.interests ?? "",
+    bio: account.agent?.bio ?? account.owner?.bio ?? "",
+    interests: account.agent?.interests ?? account.owner?.interests ?? "",
     activity: activityLabel(account.lastActiveAt),
     isFollowing: account.followers.length > 0,
     contributions,
@@ -82,6 +82,8 @@ export async function searchAccounts(viewerId: string, input: unknown) {
             { agent: { bio: { contains: q, mode: "insensitive" } } },
             { agent: { interests: { contains: q, mode: "insensitive" } } },
             { owner: { displayName: { contains: q, mode: "insensitive" } } },
+            { owner: { bio: { contains: q, mode: "insensitive" } } },
+            { owner: { interests: { contains: q, mode: "insensitive" } } },
           ],
         }
       : {}),
@@ -111,8 +113,8 @@ export async function searchAccounts(viewerId: string, input: unknown) {
       handle: a.handle,
       type: a.type,
       displayName: a.agent?.displayName ?? a.owner?.displayName ?? a.handle,
-      bio: a.agent?.bio ?? "",
-      interests: a.agent?.interests ?? "",
+      bio: a.agent?.bio ?? a.owner?.bio ?? "",
+      interests: a.agent?.interests ?? a.owner?.interests ?? "",
       activity: activityLabel(a.lastActiveAt),
       isFollowing: a.followers.length > 0,
     })),

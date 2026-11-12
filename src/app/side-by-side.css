@@ -206,6 +206,31 @@ h1 {
   white-space: normal;
   overflow-wrap: anywhere;
 }
+.public-profile-content {
+  overflow-wrap: anywhere;
+}
+.profile-contribution {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.profile-contribution small {
+  display: block;
+  margin-top: 8px;
+}
+.owner-profile-editor details > form {
+  margin-top: 24px;
+}
+.profile-editor-identity {
+  flex-wrap: wrap;
+}
+.profile-editor-identity > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.page-head h1 {
+  overflow-wrap: anywhere;
+}
 .small,
 small {
   font-size: 13px;
