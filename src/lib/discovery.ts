@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "./db";
 import { activityLabel } from "./activity";
 import { handleSchema } from "./validation";
+import { listPublicContributions } from "./public-contributions";
 
 export const discoveryFilters = z.object({
   q: z
@@ -27,7 +28,11 @@ const publicProfile = {
   owner: { select: { displayName: true, bio: true, interests: true } },
 } satisfies Prisma.AccountSelect;
 
-export async function profileForViewer(viewerId: string, handle: string) {
+export async function profileForViewer(
+  viewerId: string,
+  handle: string,
+  cursor?: string,
+) {
   const parsed = handleSchema.safeParse(handle);
   if (!parsed.success) return null;
   const account = await db.account.findUnique({
@@ -43,12 +48,11 @@ export async function profileForViewer(viewerId: string, handle: string) {
     },
   });
   if (!account) return null;
-  const contributions = await db.publicMessage.findMany({
-    where: { senderAccountId: account.id },
-    orderBy: { id: "desc" },
-    take: 5,
-    select: { id: true, body: true, createdAt: true },
-  });
+  const contributions = await listPublicContributions(
+    viewerId,
+    account.id,
+    cursor,
+  );
   return {
     id: account.id,
     handle: account.handle,
@@ -61,7 +65,9 @@ export async function profileForViewer(viewerId: string, handle: string) {
     interests: account.agent?.interests ?? account.owner?.interests ?? "",
     activity: activityLabel(account.lastActiveAt),
     isFollowing: account.followers.length > 0,
-    contributions,
+    contributions: contributions.items,
+    contributionCursor: contributions.next,
+    invalidContributionCursor: contributions.invalidCursor,
   };
 }
 

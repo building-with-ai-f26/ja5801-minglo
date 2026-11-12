@@ -1,13 +1,11 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
-import { readableRooms } from "@/lib/rooms";
+import { getOwnerExchange } from "@/lib/owner-exchange";
 import { routineLabels } from "@/lib/agent-routine";
 import type { CurrentAccount } from "@/lib/session";
 import { Avatar } from "./ui";
 import { ParticipationControl } from "./participation-control";
 
 type ConnectedAgent = NonNullable<CurrentAccount["owner"]>["agents"][number];
-type Parent = { name: string; handle: string; body: string; role: string };
 const excerpt = (text: string) =>
   text.length > 440 ? text.slice(0, 440).trimEnd() + "…" : text;
 
@@ -19,116 +17,9 @@ export async function OwnerProgress({
   agents: ConnectedAgent[];
 }) {
   if (!agents.length) return null;
-  const [privateMessage, publicMessage] = await Promise.all([
-    db.message.findFirst({
-      where: {
-        senderAgentId: { in: agents.map((a) => a.id) },
-        room: readableRooms(accountId),
-      },
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      select: {
-        id: true,
-        senderAgentId: true,
-        roomId: true,
-        body: true,
-        createdAt: true,
-        replyToId: true,
-        room: { select: { title: true } },
-      },
-    }),
-    db.publicMessage.findFirst({
-      where: { senderAccountId: { in: agents.map((a) => a.accountId) } },
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      select: {
-        id: true,
-        senderAccountId: true,
-        body: true,
-        createdAt: true,
-        replyToId: true,
-      },
-    }),
-  ]);
-  const featured =
-    privateMessage &&
-    (!publicMessage || privateMessage.createdAt >= publicMessage.createdAt)
-      ? {
-          ...privateMessage,
-          source: "private" as const,
-          title: privateMessage.room.title,
-          agent: agents.find((a) => a.id === privateMessage.senderAgentId)!,
-          href:
-            "/rooms/" +
-            privateMessage.roomId +
-            "?messageId=" +
-            privateMessage.id +
-            "#message-" +
-            privateMessage.id,
-        }
-      : publicMessage
-        ? {
-            ...publicMessage,
-            source: "public" as const,
-            title: "Public chat",
-            agent: agents.find(
-              (a) => a.accountId === publicMessage.senderAccountId,
-            )!,
-            href:
-              "/public-room?messageId=" +
-              publicMessage.id +
-              "#message-" +
-              publicMessage.id,
-          }
-        : null;
-  let parent: Parent | null = null;
-  if (featured?.replyToId && featured.source === "private") {
-    // A reply reference alone never grants access, even if the stored reference is malformed.
-    const row = await db.message.findFirst({
-      where: {
-        id: featured.replyToId,
-        roomId: featured.roomId,
-        room: readableRooms(accountId),
-      },
-      select: {
-        body: true,
-        sender: {
-          select: { displayName: true, account: { select: { handle: true } } },
-        },
-      },
-    });
-    if (row)
-      parent = {
-        body: row.body,
-        name: row.sender.displayName,
-        handle: row.sender.account.handle,
-        role: "Agent",
-      };
-  } else if (featured?.replyToId) {
-    const row = await db.publicMessage.findUnique({
-      where: { id: featured.replyToId },
-      select: {
-        body: true,
-        sender: {
-          select: {
-            handle: true,
-            type: true,
-            agent: { select: { displayName: true } },
-            owner: { select: { displayName: true } },
-          },
-        },
-      },
-    });
-    if (row)
-      parent = {
-        body: row.body,
-        name:
-          row.sender.agent?.displayName ??
-          row.sender.owner?.displayName ??
-          row.sender.handle,
-        handle: row.sender.handle,
-        role: row.sender.type === "AGENT" ? "Agent" : "User",
-      };
-  }
-  const selected = featured?.agent ?? agents[0];
+  const featured = await getOwnerExchange(accountId);
+  const parent = featured?.parent ?? null;
+  const selected = agents.find((a) => a.id === featured?.agent.id) ?? agents[0];
   return (
     <section className="owner-home-grid" aria-label="Your agents’ activity">
       <div>
@@ -174,10 +65,7 @@ export async function OwnerProgress({
               <div>
                 <h3>{featured.title}</h3>
                 <p>
-                  {featured.source === "private"
-                    ? "Private conversation"
-                    : "Visible to all signed-in accounts"}{" "}
-                  ·{" "}
+                  {featured.visibility} ·{" "}
                   <time dateTime={featured.createdAt.toISOString()}>
                     {featured.createdAt.toLocaleString("en-US", {
                       month: "short",

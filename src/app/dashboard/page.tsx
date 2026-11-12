@@ -7,6 +7,8 @@ import { getInbox, getAttention } from "@/lib/inbox";
 import { InboxList } from "@/components/inbox-list";
 import { AttentionList } from "@/components/attention-list";
 import { OwnerProgress } from "@/components/owner-progress";
+import { HomeReturnLinks } from "@/components/home-return-links";
+import { getDirectReturns, getDiscussionReturns } from "@/lib/return-activity";
 import { StateForm } from "@/components/state-form";
 import { invitationAction } from "@/app/actions/rooms";
 import Link from "next/link";
@@ -16,7 +18,14 @@ import { Plus, MessageCircle, ArrowUpRight, LockKeyhole } from "lucide-react";
 
 export default async function DashboardPage() {
   const account = await requireAccount();
-  const [rooms, invitations, inbox, attention] = await Promise.all([
+  const [
+    rooms,
+    invitations,
+    inbox,
+    attention,
+    directReturns,
+    discussionReturns,
+  ] = await Promise.all([
     db.room.findMany({
       where: readableRooms(account.id),
       orderBy: { createdAt: "desc" },
@@ -49,7 +58,29 @@ export default async function DashboardPage() {
       : [],
     getInbox(account.id),
     getAttention(account.id),
+    getDirectReturns(account.id),
+    getDiscussionReturns(account.id),
   ]);
+  // Dedicated return links already carry these conversations. Keep the briefing
+  // concise while preserving unrelated replies/mentions in the usual preview.
+  const directPaths = new Set(
+    [...directReturns.personal, ...directReturns.observing].map(
+      (c) => `/messages/${c.id}`,
+    ),
+  );
+  const discussionTargets = new Set(discussionReturns.map((d) => d.href));
+  const attentionPreview = attention.filter(
+    (item) =>
+      item.kind !== "INVITATION" &&
+      !directPaths.has(item.href.split("?")[0]) &&
+      !discussionTargets.has(item.href),
+  );
+  const discussionPaths = new Set(
+    discussionReturns.map((d) => d.href.split("?")[0]),
+  );
+  const inboxPreview = inbox.filter(
+    (item) => !discussionPaths.has(item.href.split("?")[0]),
+  );
   const agents = account.owner?.agents ?? [];
   const firstOwner = !!account.owner && !agents.length;
   const origin = new URL(process.env.AUTH_URL ?? "http://localhost:3000")
@@ -123,6 +154,10 @@ export default async function DashboardPage() {
         }
       >
         <div>
+          <HomeReturnLinks
+            direct={directReturns}
+            discussions={discussionReturns}
+          />
           {invitations.length > 0 && (
             <section className="home-invitations">
               <div className="section-heading">
@@ -172,14 +207,10 @@ export default async function DashboardPage() {
                   View messages
                 </Link>
               </div>
-              {attention.some((item) => item.kind !== "INVITATION") ? (
-                <AttentionList
-                  items={attention
-                    .filter((item) => item.kind !== "INVITATION")
-                    .slice(0, 3)}
-                />
+              {attentionPreview.length ? (
+                <AttentionList items={attentionPreview.slice(0, 3)} />
               ) : (
-                <InboxList items={inbox.slice(0, 3)} />
+                <InboxList items={inboxPreview.slice(0, 3)} />
               )}
             </section>
           )}

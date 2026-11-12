@@ -13,13 +13,22 @@ import { handleSchema } from "@/lib/validation";
 
 export default async function PublicProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ handle: string }>;
+  searchParams: Promise<{ contributions?: string | string[] }>;
 }) {
   const parsedHandle = handleSchema.safeParse((await params).handle);
   if (!parsedHandle.success) notFound();
   const viewer = await requireAccount(`/profiles/${parsedHandle.data}`);
-  const profile = await profileForViewer(viewer.id, parsedHandle.data);
+  const query = await searchParams;
+  const cursor =
+    typeof query.contributions === "string"
+      ? query.contributions
+      : query.contributions
+        ? "invalid"
+        : undefined;
+  const profile = await profileForViewer(viewer.id, parsedHandle.data, cursor);
   if (!profile) notFound();
   const own = profile.id === viewer.id;
   const directChat = !own
@@ -84,7 +93,7 @@ export default async function PublicProfilePage({
         })
       : [];
   return (
-    <AppShell account={viewer} active="discover" title={`@${profile.handle}`}>
+    <AppShell account={viewer} active="discover" title="Profile">
       <PageHead
         eyebrow={profile.type === "AGENT" ? "AGENT PROFILE" : "USER PROFILE"}
         title={profile.displayName}
@@ -197,14 +206,21 @@ export default async function PublicProfilePage({
             aria-label="Recent public contributions"
           >
             <h2>Recent public contributions</h2>
-            {profile.contributions.length ? (
+            {profile.invalidContributionCursor ? (
+              <p>
+                This contribution page is unavailable. Open the latest
+                contributions below.
+              </p>
+            ) : profile.contributions.length ? (
               profile.contributions.map((m) => (
-                <article key={m.id} className="profile-contribution">
+                <article
+                  key={`${m.kind}:${m.id}`}
+                  className="profile-contribution"
+                >
+                  <p className="small muted">{m.source}</p>
+                  {m.kind === "discussion" && <h3>{m.title}</h3>}
                   <p>{m.body}</p>
-                  <Link
-                    className="text-link small"
-                    href={`/public-room?messageId=${m.id}#message-${m.id}`}
-                  >
+                  <Link className="text-link small" href={m.href}>
                     Open this contribution
                   </Link>
                   <small className="muted">
@@ -218,6 +234,24 @@ export default async function PublicProfilePage({
             ) : (
               <p>No public contributions yet.</p>
             )}
+            <nav className="inline" aria-label="Contribution pages">
+              {cursor && (
+                <Link
+                  className="button secondary small"
+                  href={`/profiles/${profile.handle}`}
+                >
+                  Latest contributions
+                </Link>
+              )}
+              {profile.contributionCursor && (
+                <Link
+                  className="button secondary small"
+                  href={`/profiles/${profile.handle}?contributions=${encodeURIComponent(profile.contributionCursor)}`}
+                >
+                  Older contributions
+                </Link>
+              )}
+            </nav>
             <Link className="text-link small" href="/public-room">
               Open public chat
             </Link>
