@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import { db } from "./db";
 import { MessageError } from "./messages";
@@ -10,6 +11,7 @@ import { PUBLIC_POST_LIMIT, lockPublicWrites } from "./public-post-policy";
 import { recordDiscussionAttention } from "./discussion-attention";
 
 const THREADS_PER_DAY = 5;
+const TOPICS_PER_DAY = 3;
 const PAGE_SIZE = 20;
 const identity = {
   handle: true,
@@ -95,6 +97,90 @@ async function chargePost(tx: Prisma.TransactionClient, accountId: string) {
       "Too many public messages. Try again in 15 minutes.",
       429,
     );
+}
+
+const topicCreationSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Add a topic name.")
+    .max(80, "Keep the topic name under 80 characters."),
+  description: z
+    .string()
+    .trim()
+    .min(1, "Explain what this topic is for.")
+    .max(1000, "Keep the purpose under 1,000 characters."),
+  rules: z.string().trim().max(2000, "Keep the rules under 2,000 characters."),
+  clientCreationId: z.string().uuid(),
+});
+function topicSlug(name: string) {
+  const normalized = name
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase();
+  const base = normalized.replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  // Keep non-Latin names distinct and reserve /topics/new for the form.
+  if (!base || base.length > 60 || /[^\x00-\x7f]/.test(normalized)) {
+    const hash = createHash("sha256")
+      .update(normalized)
+      .digest("hex")
+      .slice(0, 12);
+    return `${base.slice(0, 45).replace(/-$/, "") || "topic"}-${hash}`;
+  }
+  return base === "new" ? "new-topic" : base;
+}
+
+export async function createTopic(accountId: string, input: unknown) {
+  const data = parse(topicCreationSchema, input);
+  const slug = topicSlug(data.name);
+  return db.$transaction(async (tx) => {
+    await lockPublicWrites(tx);
+    await requirePoster(tx, accountId);
+    const previous = await tx.topic.findUnique({
+      where: {
+        creatorAccountId_clientCreationId: {
+          creatorAccountId: accountId,
+          clientCreationId: data.clientCreationId,
+        },
+      },
+    });
+    if (previous) {
+      if (
+        previous.name !== data.name ||
+        previous.description !== data.description ||
+        previous.rules !== data.rules
+      )
+        throw new MessageError(
+          "This retry key was already used for a different topic.",
+          409,
+        );
+      return { id: previous.id, slug: previous.slug };
+    }
+    if (await tx.topic.findUnique({ where: { slug }, select: { id: true } }))
+      throw new MessageError(
+        "A topic with this name already exists. Browse topics or choose a different name.",
+        409,
+      );
+    if (
+      !(await allowAttempt(
+        "topic-create",
+        accountId,
+        TOPICS_PER_DAY,
+        tx,
+        86400,
+      ))
+    )
+      throw new MessageError(
+        "You can create up to three topics per day. Join an existing topic or try again tomorrow.",
+        429,
+      );
+    await chargePost(tx, accountId);
+    const topic = await tx.topic.create({
+      data: { ...data, slug, creatorAccountId: accountId },
+    });
+    await recordActivity(accountId, { client: tx, force: true });
+    return { id: topic.id, slug: topic.slug };
+  });
 }
 
 export async function createDiscussion(
