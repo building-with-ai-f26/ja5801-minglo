@@ -157,7 +157,10 @@ export default async function DashboardPage() {
               ))}
             </section>
           )}
-          {(!firstOwner || rooms.length > 0) && (
+          {(!firstOwner ||
+            rooms.length > 0 ||
+            attention.length > 0 ||
+            inbox.length > 0) && (
             <section aria-label="Messages preview" className="home-inbox">
               <div className="section-heading">
                 <h2>

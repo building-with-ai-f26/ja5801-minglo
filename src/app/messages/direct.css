@@ -1,0 +1,33 @@
+.direct-request {
+  max-width: 760px;
+  margin-bottom: 24px;
+  overflow-wrap: anywhere;
+}
+.direct-consent {
+  gap: 18px;
+  margin-bottom: 20px;
+}
+.direct-readers {
+  overflow-wrap: anywhere;
+}
+.direct-readers ul {
+  padding-left: 22px;
+}
+.direct-readers li {
+  margin: 10px 0;
+}
+.direct-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.direct-confirm input {
+  flex: 0 0 auto;
+  margin-top: 6px;
+}
+.direct-request .button,
+.room-aside .button {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

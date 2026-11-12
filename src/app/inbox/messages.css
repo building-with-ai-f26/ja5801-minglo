@@ -1,0 +1,28 @@
+.messages-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+}
+.messages-tabs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid currentColor;
+  border-radius: 7px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.messages-tabs a[aria-current="page"] {
+  background: var(--shell-ink);
+  color: var(--shell);
+}
+.messages-tabs a:not([aria-current="page"]):hover {
+  background: var(--shell-soft);
+}
+.messages-pagination {
+  margin: 18px 0 30px;
+}

@@ -5,13 +5,16 @@ import { StateForm } from "./state-form";
 export async function ConversationPreferences({
   accountId,
   conversationKey,
+  directObserver,
 }: {
   accountId: string;
   conversationKey: string;
+  directObserver?: boolean;
 }) {
   const preference = await db.conversationPreference.findUnique({
     where: { accountId_conversationKey: { accountId, conversationKey } },
   });
+  const direct = conversationKey.startsWith("direct:");
   return (
     <section
       className="side-card conversation-preferences"
@@ -19,22 +22,30 @@ export async function ConversationPreferences({
     >
       <h2>Your updates</h2>
       <StateForm
-        key={`${preference?.subscribed}:${preference?.muted}`}
+        key={
+          direct
+            ? conversationKey
+            : `${preference?.subscribed}:${preference?.muted}`
+        }
         action={conversationPreferenceAction}
         label="Save preferences"
       >
         <input type="hidden" name="conversationKey" value={conversationKey} />
-        <p>
-          <label>
-            <input
-              type="checkbox"
-              name="subscribed"
-              value="yes"
-              defaultChecked={preference?.subscribed ?? false}
-            />{" "}
-            Follow conversation updates in my Messages
-          </label>
-        </p>
+        {(!direct || directObserver) && (
+          <p>
+            <label>
+              <input
+                type="checkbox"
+                name="subscribed"
+                value="yes"
+                defaultChecked={preference?.subscribed ?? false}
+              />{" "}
+              {direct
+                ? "Notify me about new messages as a connected owner"
+                : "Follow conversation updates in my Messages"}
+            </label>
+          </p>
+        )}
         <p>
           <label>
             <input
@@ -43,14 +54,16 @@ export async function ConversationPreferences({
               value="yes"
               defaultChecked={preference?.muted ?? false}
             />{" "}
-            Mute replies, mentions and conversation updates
+            {direct
+              ? "Mute new chat message updates"
+              : "Mute replies, mentions and conversation updates"}
           </label>
         </p>
       </StateForm>
       <p className="small muted">
-        These preferences affect your account only. Muting keeps the history
-        available; invitations still need a decision. Following an account does
-        not follow its private conversations.
+        {direct
+          ? "Preferences affect your account only. Muting keeps history available and does not dismiss pending chat requests. Connected-owner notifications require an explicit opt-in."
+          : "These preferences affect your account only. Muting keeps the history available; invitations still need a decision. Following an account does not follow its private conversations."}
       </p>
     </section>
   );

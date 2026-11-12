@@ -556,9 +556,7 @@ test("direct paging, reply boundaries, mute and reading positions stay scoped an
   await expect(
     markDirectConversationRead(b.id, c.id, foreignMessage.id),
   ).rejects.toThrow("unavailable");
-  await expect(
-    markConversationRead(b.id, `direct:${c.id}`, recent.messages[0].id),
-  ).rejects.toThrow("unavailable");
+  await markConversationRead(b.id, `direct:${c.id}`, recent.messages[0].id);
   await db.conversationPreference.create({
     data: { accountId: b.id, conversationKey: `direct:${c.id}`, muted: true },
   });

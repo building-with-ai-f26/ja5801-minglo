@@ -52,6 +52,9 @@ export const messageSchema = z.object({
 export function safeNext(value: unknown) {
   return typeof value === "string" &&
     (value === "/public-room" ||
+      /^\/inbox(?:\?view=(?:chats|requests|updates))?$/.test(value) ||
+      /^\/messages\/[a-z][a-z0-9]{24}(?:\?messageId=[1-9]\d*)?$/.test(value) ||
+      /^\/messages\/new\/[a-z0-9_]{3,30}$/.test(value) ||
       value === "/agent-setup" ||
       /^\/profiles\/[a-z0-9_]{3,30}$/.test(value) ||
       /^\/claim\/[A-Za-z0-9_-]{43}$/.test(value))

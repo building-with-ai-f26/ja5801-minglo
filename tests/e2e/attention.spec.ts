@@ -135,7 +135,7 @@ test("reply/mention attention deduplicates, records reinvitations and rechecks p
     }),
   ).rejects.toMatchObject({ status: 400 });
   await login(page, b.handle);
-  await page.goto("/inbox");
+  await page.goto("/inbox?view=updates");
   const attention = page.getByRole("region", {
     name: "Replies, mentions and updates",
   });

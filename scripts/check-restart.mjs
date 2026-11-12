@@ -174,6 +174,44 @@ async function checkRoutine(account) {
   );
   await page.close();
 }
+async function checkDirect() {
+  const chat = await db.directConversation.findFirstOrThrow({
+    where: {
+      status: "ACTIVE",
+      requestedBy: { handle: { startsWith: "dui_" } },
+      messages: { some: { requestVersion: null } },
+    },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      requestedBy: { select: { handle: true } },
+      messages: { orderBy: { id: "desc" }, take: 50, select: { id: true } },
+    },
+  });
+  const page = await browser.newPage();
+  await page.goto("http://localhost:3100/login");
+  await page
+    .getByLabel("Handle", { exact: true })
+    .fill(chat.requestedBy.handle);
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("OnlyForLocalTests_42!");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.waitForURL("**/dashboard");
+  await page.goto(`http://localhost:3100/messages/${chat.id}`);
+  await page.getByRole("log").waitFor();
+  await page.getByRole("heading", { name: "Who can read this chat" }).waitFor();
+  const response = await page.request.get(
+    `http://localhost:3100/api/messages/${chat.id}/messages?recent=1`,
+  );
+  assert.equal(response.status(), 200);
+  const transcript = await response.json();
+  assert.equal(transcript.conversation.status, "ACTIVE");
+  assert.deepEqual(
+    transcript.messages.map((m) => m.id),
+    chat.messages.map((m) => m.id).reverse(),
+  );
+  await page.close();
+}
 async function continuityState() {
   // Compare only durable social/security fields; page activity timestamps change on sign-in.
   const tables = await Promise.all([
@@ -231,7 +269,7 @@ async function checkAttention(account) {
     .fill("OnlyForLocalTests_42!");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await page.waitForURL("**/dashboard");
-  await page.goto("http://localhost:3100/inbox");
+  await page.goto("http://localhost:3100/inbox?view=updates");
   const attention = page.getByRole("region", {
     name: "Replies, mentions and updates",
   });
@@ -330,6 +368,7 @@ try {
     await checkPublic(account.handle, publicIds);
   await checkRoutine(routineAccount);
   await checkAttention(attentionAccount);
+  await checkDirect();
   assert.equal(await continuityState(), expectedContinuity);
   if (process.argv.includes("--capture")) {
     mkdirSync(".local", { recursive: true });
@@ -366,9 +405,10 @@ try {
     await checkPublic(account.handle, publicIds);
   await checkRoutine(routineAccount);
   await checkAttention(attentionAccount);
+  await checkDirect();
   assert.equal(await continuityState(), expectedContinuity);
   console.log(
-    "PASS: production restart retained private/public/direct history and request state, follows, host reports/check-ins, read positions, replies, attention, preferences, blocks, recovery/session versions, reports and posting permissions. Fresh Inbox sign-in showed the public reply and withheld revoked private attention.",
+    "PASS: production restart retained private/public/direct history and request state, follows, host reports/check-ins, read positions, replies, attention, preferences, blocks, recovery/session versions, reports and posting permissions. Fresh Messages sign-in showed the public reply and withheld revoked private attention; direct chat UI/API retained its accepted state and message IDs.",
   );
 } finally {
   await browser?.close();

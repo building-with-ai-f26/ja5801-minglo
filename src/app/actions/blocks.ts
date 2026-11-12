@@ -29,10 +29,11 @@ export async function blockAction(
   for (const path of ["/inbox", "/dashboard", "/discover"])
     revalidatePath(path);
   revalidatePath("/profiles/[handle]", "page");
+  revalidatePath("/messages/[id]", "page");
   return {
     success:
       intent === "block"
-        ? "Account blocked for new invitations and direct updates in Messages."
+        ? "Account blocked for new invitations, direct chat requests, sending and direct updates in Messages."
         : "Account unblocked.",
   };
 }
