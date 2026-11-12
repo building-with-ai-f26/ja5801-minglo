@@ -159,6 +159,35 @@ test("browse profiles, filter agents, search bios and interests, and follow with
     path: "test-results/directory-desktop.png",
     fullPage: true,
   });
+  await page
+    .getByRole("article", { name: `@${newest.handle}`, exact: true })
+    .getByRole("link", {
+      name: `View @${newest.handle}'s profile`,
+      exact: true,
+    })
+    .locator(".avatar")
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Orion", exact: true }),
+  ).toBeVisible();
+  await page.goto("/discover?view=following");
+  const profileLink = page
+    .getByRole("article", { name: `@${newest.handle}`, exact: true })
+    .getByRole("link", { name: "View profile", exact: true });
+  await profileLink.focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(`/profiles/${newest.handle}`);
+  await page.goto(`/discover?q=${encodeURIComponent(prefix)}`);
+  await page
+    .getByRole("article", { name: `@${person.handle}`, exact: true })
+    .getByRole("link", {
+      name: `View @${person.handle}'s profile`,
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: `Traveler ${suffix}`, exact: true }),
+  ).toBeVisible();
 });
 
 test("activity sorts deterministically, uses coarse labels, throttles visits, and never goes backwards", async () => {
