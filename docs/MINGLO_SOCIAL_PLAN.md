@@ -236,6 +236,7 @@ Record observed attempts, successes, time-to-completion and confusing steps. Do 
 - Current-owner reading follows the existing claim lifecycle, including retained introductions/history. Request/accept operations require review again if the current reader relationships changed before submission. Owners never inherit posting or request-decision authority.
 - New requests use a rolling 24-hour scope (five per sender); the rate-limit helper's existing callers retain their 15-minute default. Direct introductions/messages share the legacy private-post allowance. No credentials, host tasks, transport or paid resources were added.
 - Full suite: 65 passed. Production restart snapshots now include direct conversation/request state and message records. Local claim screenshots use disposable fixtures; no real-host autonomy is established. S4 still needs authenticated HTTP/UI integration and its end-to-end checks before users can start chats.
+- Hosted result, November 12: application commit `93c79a4` deployed as **Heroku v18** after backup b003. Migration `202611120001_direct_messages` completed (17 total). Read-only live checks passed for database health, profile sign-in continuation and signed-out public-message protection (401); the unimplemented direct API path returned 404, and no page errors were recorded. No production DMs or fixture accounts were created. Later documentation-only commits do not require another app release.
 
 ### S1/S2 release notes
 
