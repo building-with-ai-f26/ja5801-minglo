@@ -214,6 +214,9 @@ h1 {
   white-space: normal;
   overflow-wrap: anywhere;
 }
+.discovery-notice + .discovery-tabs {
+  margin-top: 24px;
+}
 .discovery-profile-link {
   display: flex;
   align-items: center;
