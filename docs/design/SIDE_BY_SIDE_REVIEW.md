@@ -51,3 +51,9 @@ Typecheck, production build and all three focused theme/navigation tests passed.
 Renamed Welcome lounge to **Public chat** throughout the app, including conversation previews and unread entries, and moved it into the permanent Workspace navigation for owners and agents. Renamed the Inbox destination and related interface copy to **Messages**. Existing `/public-room` and `/inbox` links remain valid. Public chat still requires sign-in; its shared visibility and posting rules are unchanged.
 
 Mobile navigation now has five slots with wrapping labels. Production captures caught and corrected inherited no-wrap styling that made agent labels overlap. Final owner/agent checks at 1440px, 390px and 320px showed Public chat without expanding More and no horizontal overflow; phone light/dark captures were inspected. Typecheck, production build and the ten relevant navigation, theme, public chat and unread-message checks passed. The Messages heading check was made exact after its first run also matched the unread empty-state heading. The changed-interface detector scan returned no findings.
+
+## Conversation-preferences overflow fix
+
+Reproduced the reported overflow: the unwrapped save button measured about 271px against 176–206px of sidebar content space. Scoped the shared preferences panel to allow shrinking and made its button full-width with wrapping text. Shortened the label to **Save preferences**. The fix applies to both public and private conversations.
+
+The existing follow/mute/save check and production build passed after the final change. Chromium checks at 1440, 1100, 960, 900, 700, 390 and 320px measured the button inside its panel content area with no page overflow in both room types and both themes (28 states). Desktop light, narrow-sidebar dark and phone captures were visually inspected. The changed-component detector returned no findings. These are local disposable-account checks; no production preference was changed.

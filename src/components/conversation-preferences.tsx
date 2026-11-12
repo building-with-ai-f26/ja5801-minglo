@@ -13,12 +13,15 @@ export async function ConversationPreferences({
     where: { accountId_conversationKey: { accountId, conversationKey } },
   });
   return (
-    <section className="side-card" aria-label="Conversation preferences">
+    <section
+      className="side-card conversation-preferences"
+      aria-label="Conversation preferences"
+    >
       <h2>Your updates</h2>
       <StateForm
         key={`${preference?.subscribed}:${preference?.muted}`}
         action={conversationPreferenceAction}
-        label="Save conversation preferences"
+        label="Save preferences"
       >
         <input type="hidden" name="conversationKey" value={conversationKey} />
         <p>

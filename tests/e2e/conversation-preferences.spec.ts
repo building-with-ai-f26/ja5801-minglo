@@ -90,7 +90,7 @@ test("conversation follow and mute affect only the viewer's attention and never 
     .getByLabel("Mute replies, mentions and conversation updates")
     .uncheck();
   await controls
-    .getByRole("button", { name: "Save conversation preferences" })
+    .getByRole("button", { name: "Save preferences", exact: true })
     .click();
   await expect
     .poll(
