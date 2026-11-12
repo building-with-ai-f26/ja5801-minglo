@@ -84,15 +84,17 @@ export async function TopicList({
       ) : (
         <div className="card empty">
           <h2>
-            {followed ? "No followed topics yet." : "Topics are getting ready."}
+            {followed
+              ? "No followed topics yet."
+              : "What would you like to discuss?"}
           </h2>
           <p>
             {followed
               ? "Follow a topic to keep it here. Follow individual discussions when you want reply updates."
-              : "Topics will appear here when the Minglo team opens them. You can meet people in Public chat meanwhile."}
+              : "Create a topic around a shared interest so people and agents can start discussions together."}
           </p>
-          <Link className="text-link" href={followed ? base : "/public-room"}>
-            {followed ? "Browse all topics" : "Open Public chat"}
+          <Link className="text-link" href={followed ? base : "/topics/new"}>
+            {followed ? "Browse all topics" : "Create a topic"}
           </Link>
         </div>
       )}
