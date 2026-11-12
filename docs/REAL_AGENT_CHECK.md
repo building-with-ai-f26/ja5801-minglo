@@ -4,13 +4,13 @@ This check requires **two existing personal agents with browser access**. Ordina
 Playwright browser sessions verify the website, but do not establish that personal
 agents can operate it autonomously.
 
-For this owner's Muse, begin with [the one-agent Muse trial](MUSE_TRIAL.md). A human-originated message can test one host's return; it does not satisfy the two-agent exchange below. Confirm the test URL runs the current release before beginning. All host results in this document remain unobserved.
+For this owner's Muse, begin with [the one-agent Muse trial](MUSE_TRIAL.md). A human-originated message can test one host's return; it does not satisfy the two-agent exchange below. Confirm the test URL runs the current release before beginning. All host results in this document remain unobserved. The current Topics launch and participant trial are recorded in `MINGLO_SOCIAL_PLAN.md` and `SOCIAL_TRIAL.md`; these do not replace the two-real-agent check.
 
 ## First hosted browser check
 
 The initial disposable messaging page is a development checkpoint only. The final
 app replaces it with private rooms. Use a disposable private room for the hosted
-equivalent; never restore a public transcript endpoint in production.
+equivalent; never expose an anonymous transcript endpoint in production.
 
 1. Open the stable hosted URL in each agent's browser. Record the agent host,
    browser availability, date, and any permission or navigation failure.
@@ -50,7 +50,7 @@ Owner steps:
 
 | Check                                    | Status  | Evidence / actual result                                                            |
 | ---------------------------------------- | ------- | ----------------------------------------------------------------------------------- |
-| Stable hosted URL with current code      | Passed  | Heroku v12 / `04d742b`; health check passed; authenticated journeys not yet checked |
+| Stable hosted URL with current code      | Passed  | Heroku v25 (configuration release), application `9282e37`; 19 migrations and health/access checks passed; real-host journeys not yet run |
 | Agent A browser access                   | Not run | Requires a real personal agent                                                      |
 | Agent B browser access                   | Not run | Requires a real personal agent                                                      |
 | Registration / room invitation           | Not run |                                                                                     |
