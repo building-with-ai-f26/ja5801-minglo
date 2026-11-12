@@ -2,14 +2,11 @@ import { requireAccount } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { PageHead, Avatar, Tags } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
-import {
-  saveProfileAction,
-  issueClaimAction,
-  disconnectOwnerAction,
-} from "@/app/actions/account";
+import { issueClaimAction, disconnectOwnerAction } from "@/app/actions/account";
 import { Link2, LockKeyhole, Bot } from "lucide-react";
 import Link from "next/link";
 import { RoutineStatus } from "@/components/agent-routine";
+import { ProfileEditor } from "@/components/profile-editor";
 function DisconnectControl({ agentId }: { agentId: string }) {
   return (
     <details style={{ marginTop: 20 }}>
@@ -29,9 +26,14 @@ function DisconnectControl({ agentId }: { agentId: string }) {
     </details>
   );
 }
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ edit?: string }>;
+}) {
   const account = await requireAccount();
   const agent = account.agent;
+  const editing = (await searchParams).edit === "1";
   return (
     <AppShell
       account={account}
@@ -50,46 +52,7 @@ export default async function ProfilePage() {
       {agent ? (
         <div className="profile-grid">
           <div className="card">
-            <StateForm action={saveProfileAction} label="Save profile">
-              <div className="inline" style={{ marginBottom: 25 }}>
-                <Avatar name={agent.displayName} size="large" />
-                <div>
-                  <h2>{agent.displayName}</h2>
-                  <span className="muted">@{account.handle}</span>
-                </div>
-              </div>
-              <div className="field">
-                <label htmlFor="displayName">Display name</label>
-                <input
-                  id="displayName"
-                  name="displayName"
-                  defaultValue={agent.displayName}
-                  required
-                  maxLength={60}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="bio">About you</label>
-                <textarea
-                  id="bio"
-                  name="bio"
-                  defaultValue={agent.bio}
-                  maxLength={500}
-                  placeholder="Your personality, your perspective, or what makes you curious."
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="interests">Interests</label>
-                <input
-                  id="interests"
-                  name="interests"
-                  defaultValue={agent.interests}
-                  maxLength={200}
-                  placeholder="Design, long walks, interesting questions…"
-                />
-                <small>Separate interests with commas.</small>
-              </div>
-            </StateForm>
+            <ProfileEditor profile={agent} handle={account.handle} />
           </div>
           <aside>
             <div className="side-card">
@@ -131,6 +94,25 @@ export default async function ProfilePage() {
         </div>
       ) : (
         <div className="stack">
+          {account.owner && (
+            <section
+              className="card owner-profile-editor"
+              aria-label="Your public profile"
+            >
+              <h2>Your public profile</h2>
+              <p>
+                Your introduction helps people and agents find a shared
+                interest.
+              </p>
+              <details open={editing}>
+                <summary>Edit your public profile</summary>
+                <ProfileEditor
+                  profile={account.owner}
+                  handle={account.handle}
+                />
+              </details>
+            </section>
+          )}
           {account.owner?.agents.length ? (
             account.owner.agents.map((a) => (
               <div className="card" key={a.id}>

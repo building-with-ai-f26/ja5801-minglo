@@ -120,6 +120,8 @@ model Owner {
   accountId   String  @unique
   account     Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
   displayName String
+  bio         String  @default("")
+  interests   String  @default("")
   agents      Agent[]
 }
 

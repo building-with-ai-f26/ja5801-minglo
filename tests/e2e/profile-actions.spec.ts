@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { db } from "../../src/lib/db";
 import { createRoom, readTranscript } from "../../src/lib/rooms";
 import { closeRoom } from "../../src/lib/room-controls";
-import { profileForViewer } from "../../src/lib/discovery";
+import { profileForViewer, searchAccounts } from "../../src/lib/discovery";
 import { postMessage } from "../../src/lib/messages";
 import { postPublicMessage } from "../../src/lib/public-room";
 import { login, password } from "./helpers";
@@ -13,6 +13,130 @@ import { setBlocked } from "../../src/lib/blocks";
 
 test.afterAll(async () => {
   await db.$disconnect();
+});
+
+test("human profiles save only the signed-in identity and expose searchable, escaped public fields", async ({
+  page,
+}) => {
+  const suffix = Date.now().toString(36);
+  const handle = `human_profile_${suffix}`;
+  const passwordHash = await hash(password);
+  const target = await db.account.create({
+    data: {
+      handle: `human_target_${suffix}`,
+      type: "AGENT",
+      passwordHash,
+      agent: {
+        create: { displayName: "Protected agent", interests: "Gardening" },
+      },
+    },
+    include: { agent: true },
+  });
+  const other = await db.account.create({
+    data: {
+      handle: `human_other_${suffix}`,
+      type: "OWNER",
+      passwordHash,
+      owner: { create: { displayName: "Unchanged person" } },
+    },
+    include: { owner: true },
+  });
+  expect(other.owner).toMatchObject({ bio: "", interests: "" });
+  const account = await db.account.create({
+    data: {
+      handle,
+      type: "OWNER",
+      passwordHash,
+      owner: { create: { displayName: "Human reader" } },
+    },
+  });
+  await login(page, handle);
+  await page.goto(`/profiles/${handle}`);
+  await expect(
+    page.getByText("No introduction added yet.", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Edit profile", exact: true }).click();
+  await expect(page.getByLabel("About you", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "No agents claimed yet.", exact: true }),
+  ).toBeVisible();
+  const bio = `<script>window.profileInjected=true</script> I study plants_${suffix}.`;
+  await page
+    .getByLabel("Display name", { exact: true })
+    .fill("A gardening person");
+  await page.getByLabel("About you", { exact: true }).fill(bio);
+  await page
+    .getByLabel("Interests", { exact: true })
+    .fill(`Gardening, soil_${suffix}`);
+  await page.locator(".owner-profile-editor form").evaluate(
+    (form, ids) => {
+      for (const [name, value] of Object.entries(ids)) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.append(input);
+      }
+    },
+    { accountId: target.id, ownerId: other.owner!.id, type: "AGENT" },
+  );
+  await page.getByRole("button", { name: "Save profile", exact: true }).click();
+  await expect(page.getByRole("status")).toContainText("saved");
+  expect(
+    await db.owner.findUniqueOrThrow({ where: { accountId: account.id } }),
+  ).toMatchObject({
+    displayName: "A gardening person",
+    bio,
+    interests: `Gardening, soil_${suffix}`,
+  });
+  expect(
+    await db.agent.findUniqueOrThrow({ where: { accountId: target.id } }),
+  ).toMatchObject({
+    displayName: "Protected agent",
+    bio: "",
+    interests: "Gardening",
+  });
+  expect(
+    await db.owner.findUniqueOrThrow({ where: { accountId: other.id } }),
+  ).toMatchObject({ displayName: "Unchanged person", bio: "", interests: "" });
+  for (const q of [`plants_${suffix}`, `soil_${suffix}`])
+    expect(
+      (await searchAccounts(target.id, { q, type: "OWNER" })).accounts.map(
+        (a) => a.id,
+      ),
+    ).toContain(account.id);
+  const projection = await profileForViewer(target.id, handle);
+  expect(JSON.stringify(projection)).not.toMatch(
+    /passwordHash|ownerId|sessionVersion|agents|recovery/,
+  );
+  await page.goto(`/profiles/${handle}`);
+  await expect(
+    page.getByRole("region", { name: "Public profile", exact: true }),
+  ).toContainText(bio);
+  expect(
+    await page.evaluate(() => window.hasOwnProperty("profileInjected")),
+  ).toBe(false);
+  await page.setViewportSize({ width: 320, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.goto(`/profiles/${target.handle}`);
+  await expect(
+    page.getByText("Shared interests: Gardening", { exact: true }),
+  ).toBeVisible();
+  await page.goto("/profile?edit=1");
+  await page
+    .getByLabel("About you", { exact: true })
+    .evaluate((el) => el.removeAttribute("maxlength"));
+  await page.getByLabel("About you", { exact: true }).fill("x".repeat(501));
+  await page.getByRole("button", { name: "Save profile", exact: true }).click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  expect(
+    (await db.owner.findUniqueOrThrow({ where: { accountId: account.id } }))
+      .bio,
+  ).toBe(bio);
 });
 test("profiles show safe public context and carry a target into an authorized invitation", async ({
   page,

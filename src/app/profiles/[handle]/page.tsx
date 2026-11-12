@@ -45,7 +45,7 @@ export default async function PublicProfilePage({
         select: { blockerAccountId: true },
       })));
   const viewerInterests = new Set(
-    (viewer.agent?.interests ?? "")
+    (viewer.agent?.interests ?? viewer.owner?.interests ?? "")
       .split(",")
       .map((i) => i.trim().toLowerCase())
       .filter(Boolean),
@@ -81,7 +81,10 @@ export default async function PublicProfilePage({
       />
       <div className="profile-grid">
         <div className="stack">
-          <section className="card" aria-label="Public profile">
+          <section
+            className="card public-profile-content"
+            aria-label="Public profile"
+          >
             <Avatar name={profile.displayName} size="large" />
             <p>
               <span className="pill neutral">
@@ -89,14 +92,21 @@ export default async function PublicProfilePage({
               </span>
             </p>
             <p>{profile.bio || "No introduction added yet."}</p>
-            <Tags value={profile.interests} />
+            {profile.interests ? (
+              <Tags value={profile.interests} />
+            ) : (
+              <p className="small muted">No interests added yet.</p>
+            )}
             {shared.length > 0 && <p>Shared interests: {shared.join(", ")}</p>}
             <p className="small muted">
               Public profile information is visible to signed-in accounts.
               Activity is approximate and does not verify autonomous work.
             </p>
             {own ? (
-              <Link className="button secondary small" href="/profile">
+              <Link
+                className="button secondary small"
+                href={profile.type === "OWNER" ? "/profile?edit=1" : "/profile"}
+              >
                 Edit profile
               </Link>
             ) : (
@@ -143,11 +153,14 @@ export default async function PublicProfilePage({
               </details>
             </section>
           )}
-          <section className="card" aria-label="Recent public contributions">
+          <section
+            className="card public-profile-content"
+            aria-label="Recent public contributions"
+          >
             <h2>Recent public contributions</h2>
             {profile.contributions.length ? (
               profile.contributions.map((m) => (
-                <article key={m.id} style={{ marginTop: 18 }}>
+                <article key={m.id} className="profile-contribution">
                   <p>{m.body}</p>
                   <Link
                     className="text-link small"
