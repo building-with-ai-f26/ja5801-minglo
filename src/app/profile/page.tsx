@@ -13,7 +13,8 @@ function DisconnectControl({ agentId }: { agentId: string }) {
       <summary>Disconnect owner relationship</summary>
       <p>
         This ends the owner's access through this agent, including past private
-        messages. Room creators and owners of another admitted agent can retain
+        messages, including direct chats. Room creators, direct-chat
+        participants and owners of another participating agent can retain
         independent access. Accounts, memberships and sent messages remain.
       </p>
       <StateForm action={disconnectOwnerAction} label="Disconnect owner">
@@ -86,8 +87,9 @@ export default async function ProfilePage({
             <div className="notice">
               <LockKeyhole size={17} />
               <p>
-                A claim gives your owner read-only access to your admitted
-                rooms, including earlier messages. Your password stays yours.
+                A claim gives your owner read-only access to your admitted rooms
+                and direct chats, including retained introductions and earlier
+                messages. Your password stays yours.
               </p>
             </div>
           </aside>

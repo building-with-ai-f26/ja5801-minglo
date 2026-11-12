@@ -39,6 +39,15 @@ enum AttentionKind {
   MENTION
   INVITATION
   CONVERSATION_UPDATE
+  DIRECT_REQUEST
+  DIRECT_MESSAGE
+}
+
+enum DirectRequestStatus {
+  PENDING
+  ACTIVE
+  DECLINED
+  CANCELLED
 }
 
 model Account {
@@ -63,6 +72,10 @@ model Account {
   blockedBy               AccountBlock[]           @relation("AccountBlocked")
   recoveryCodes           RecoveryCode[]
   reports                 MessageReport[]
+  directLow               DirectConversation[]     @relation("DirectLow")
+  directHigh              DirectConversation[]     @relation("DirectHigh")
+  directRequested         DirectConversation[]     @relation("DirectRequester")
+  directMessages          DirectMessage[]
 
   @@index([lastActiveAt])
 }
@@ -214,23 +227,66 @@ model Message {
 }
 
 model AttentionItem {
-  id                 String        @id @default(cuid())
-  recipientAccountId String
-  recipient          Account       @relation("AttentionRecipient", fields: [recipientAccountId], references: [id], onDelete: Cascade)
-  actorAccountId     String
-  actor              Account       @relation("AttentionActor", fields: [actorAccountId], references: [id], onDelete: Cascade)
-  kind               AttentionKind
-  conversationKey    String
-  sourceKey          String
-  messageId          Int?
-  membershipId       String?
-  membership         Membership?   @relation(fields: [membershipId], references: [id], onDelete: Cascade)
-  readAt             DateTime?
-  createdAt          DateTime      @default(now())
+  id                   String              @id @default(cuid())
+  recipientAccountId   String
+  recipient            Account             @relation("AttentionRecipient", fields: [recipientAccountId], references: [id], onDelete: Cascade)
+  actorAccountId       String
+  actor                Account             @relation("AttentionActor", fields: [actorAccountId], references: [id], onDelete: Cascade)
+  kind                 AttentionKind
+  conversationKey      String
+  sourceKey            String
+  messageId            Int?
+  membershipId         String?
+  membership           Membership?         @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  directConversationId String?
+  directConversation   DirectConversation? @relation(fields: [directConversationId], references: [id], onDelete: Cascade)
+  requestVersion       Int?
+  readAt               DateTime?
+  createdAt            DateTime            @default(now())
 
   @@unique([recipientAccountId, sourceKey])
   @@index([recipientAccountId, readAt, createdAt])
   @@index([membershipId])
+  @@index([directConversationId])
+}
+
+model DirectConversation {
+  id                   String              @id @default(cuid())
+  participantLowId     String
+  participantLow       Account             @relation("DirectLow", fields: [participantLowId], references: [id])
+  participantHighId    String
+  participantHigh      Account             @relation("DirectHigh", fields: [participantHighId], references: [id])
+  requestedByAccountId String
+  requestedBy          Account             @relation("DirectRequester", fields: [requestedByAccountId], references: [id])
+  status               DirectRequestStatus @default(PENDING)
+  requestVersion       Int                 @default(1)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  messages             DirectMessage[]
+  attentionItems       AttentionItem[]
+
+  @@unique([participantLowId, participantHighId])
+  @@index([participantHighId])
+  @@index([updatedAt, id])
+}
+
+model DirectMessage {
+  id              Int                @id @default(autoincrement())
+  conversationId  String
+  conversation    DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderAccountId String
+  sender          Account            @relation(fields: [senderAccountId], references: [id])
+  body            String
+  clientMessageId String
+  requestVersion  Int?
+  replyToId       Int?
+  replyTo         DirectMessage?     @relation("DirectReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies         DirectMessage[]    @relation("DirectReplies")
+  createdAt       DateTime           @default(now())
+
+  @@unique([conversationId, senderAccountId, clientMessageId])
+  @@unique([conversationId, requestVersion])
+  @@index([conversationId, id])
 }
 
 model ConversationPreference {

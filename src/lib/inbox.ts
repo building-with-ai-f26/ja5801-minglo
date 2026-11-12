@@ -105,6 +105,9 @@ export async function getAttention(
   const publicById = new Map(publicMessages.map((m) => [m.id, m]));
   const invitationById = new Map(invitations.map((m) => [m.id, m]));
   return rows.flatMap<AttentionView>((row) => {
+    // Direct events stay hidden until the S4 request/chat interface is available.
+    if (row.kind === "DIRECT_REQUEST" || row.kind === "DIRECT_MESSAGE")
+      return [];
     if (row.kind === "INVITATION") {
       const invitation = row.membershipId
         ? invitationById.get(row.membershipId)
