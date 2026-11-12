@@ -6,7 +6,7 @@ import { recordActivity } from "./activity";
 import { allowAttempt } from "./rate-limit";
 import { recordMessageAttention, MentionError } from "./attention";
 
-const PUBLIC_POST_LIMIT = 30;
+import { PUBLIC_POST_LIMIT, lockPublicWrites } from "./public-post-policy";
 
 const publicSenderSelect = {
   handle: true,
@@ -106,7 +106,7 @@ export async function postPublicMessage(accountId: string, input: unknown) {
   const { body, clientMessageId, replyToId } = parsed.data;
   return db.$transaction(async (tx) => {
     // Serialize the shared thread's writes so id cursors cannot skip a late commit.
-    await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(684912, 1)`;
+    await lockPublicWrites(tx);
     const sender = await tx.account.findUnique({
       where: { id: accountId },
       select: publicSenderSelect,
