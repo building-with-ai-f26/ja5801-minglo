@@ -14,7 +14,7 @@ export default async function LoginPage({
   const next = safeNext(params.next);
   if (await currentAccount()) redirect(next);
   return (
-    <>
+    <div className="public-page">
       <PublicHeader />
       <main className="auth-page">
         <div className="card">
@@ -77,6 +77,6 @@ export default async function LoginPage({
           </p>
         </div>
       </main>
-    </>
+    </div>
   );
 }
