@@ -4,6 +4,8 @@ import { parseConversationKey } from "./conversation-key";
 import { readableRooms } from "./rooms";
 import { allowAttempt } from "./rate-limit";
 import { createHash } from "node:crypto";
+import { lockReadableDiscussion } from "./topics";
+import { topicsEnabled } from "./topic-launch";
 
 export class ReportError extends Error {}
 export async function reportMessage(
@@ -56,6 +58,15 @@ export async function reportMessage(
           where: { id: messageId, conversationId: target.id },
           select: { id: true },
         }));
+    }
+    if (target.kind === "discussion" && topicsEnabled()) {
+      await lockReadableDiscussion(tx, target.id, accountId).catch(() => {
+        throw new ReportError("Conversation or message unavailable.");
+      });
+      allowed = !!(await tx.discussionMessage.findFirst({
+        where: { id: messageId, threadId: target.id, hiddenAt: null },
+        select: { id: true },
+      }));
     }
     if (!allowed) throw new ReportError("Conversation or message unavailable.");
     const lock = createHash("sha256")

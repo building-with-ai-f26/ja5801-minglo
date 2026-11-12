@@ -1,6 +1,6 @@
-# Topic discussions — S5 backend
+# Topic discussions — domain and interface
 
-S5 adds the domain and trusted moderation commands. It does **not** add Topics navigation, HTTP endpoints, pages, attention hydration, reporting integration or profile contributions. Those remain S6/S7 work. No production topics, posts or follows are seeded.
+S5 provides the domain and trusted moderation commands. S6 adds the gated Topics interface, read endpoint, attention, explicit read state and reporting. Profile/Home continuity remains S7 work. No production topics, posts or follows are seeded.
 
 ## Records and migration
 
@@ -90,3 +90,26 @@ Reverse commands are `unlock-thread`, `unhide-thread`, `unhide-message` and `una
 `tests/e2e/topic-discussions.spec.ts` exercises concurrency/retries, atomic quota rollback, role attribution, same-thread and database guards, pause/lock/archive, hidden projections/evidence, follow isolation, bounded concurrent pagination and the operator boundary. Use only a disposable `_test` database. The S5 execution log in `MINGLO_SOCIAL_PLAN.md` records the actual checks/results. These are application-domain checks, not proof of an external agent's autonomous return.
 
 After the production build, run `TEST_DATABASE_URL=..._test npm run test:topics:restart` (optional `TOPIC_RESTART_PORT`, default 3105). It creates disposable topic records, starts/stops only its own production server twice, and compares message IDs/body evidence, hidden state, thread lock, follows, preferences and audit. It refuses a non-test database and an occupied port. It does not reset a database or exercise a topic HTTP interface, which remains unimplemented until S6.
+
+## S6 interface and integration
+
+S6 extends this backend with `/topics`, `/topics/[slug]`, `/topics/[slug]/new` and `/topics/[slug]/discussions/[id]`. Explore has a Topics view; Public chat retains its own history and gains Browse topics. Topic creation/archiving stays with trusted operators. No production topics are seeded by the application.
+
+`MINGLO_TOPICS_ENABLED=true` enables the interface. It defaults off, including in `.env.example`, until S8 reviews initial topics and moderation responsibility. With it off, Topics pages/read APIs return unavailable, entry links are absent, shared read/preference/report actions reject discussion keys, and topic attention/unread projections return no entries. S5's trusted domain operations remain available for operator/local checks. S7's contributions and navigation must honor `topicsEnabled()` too.
+
+The authenticated GET `/api/topics/[slug]/discussions/[id]/messages` uses the same before/after/recent/around window contract. It has private/no-store cache headers and no JSON mutation endpoint. Mutations use authenticated Server Actions with Next's Origin/Host protection, per-operation domain checks and session-derived actors. Sign-in continuation allows only the explicit internal topic routes.
+
+Polling revalidates up to 200 currently retained message IDs, plus at most two selected reply/report context IDs, and always refreshes the opening and thread state. This removes moderated cached text and context previews even while viewing earlier replies. The browser window stays bounded to 200 chronological messages with the opening retained separately. Visible tabs check every three seconds; already viewed content is not a claim of secrecy or immediate external revocation. A hidden thread/session loss clears the live discussion; lock/archive/pause makes it read-only. Operator audit reasons are not exposed as public notice copy.
+
+Discussion attention uses existing REPLY, MENTION and CONVERSATION_UPDATE kinds with `discussion:<id>` keys and `discussion-message:<threadId>:<messageId>` source keys. Creation, the opening, the creator subscription and any opening mentions commit together; replies and their attention also commit together. One recipient gets one source item, with reply before mention before subscription. Topic follows never subscribe to all its threads. Mute and bilateral blocks suppress attention at creation and hydration. Public history remains available under account blocks.
+
+`getDiscussionAttention()` and `getDiscussionInbox()` in `src/lib/discussion-attention.ts` feed the shared `getAttention()`/`getInbox()` functions. Hydration reads only DiscussionMessage and compares both source ID and discussion key; hidden threads/messages disappear from previews. Unread discussion lists are bounded to 30 followed, unmuted discussions. Explicit read acknowledgment uses a monotonic cursor on the current account, including readable tombstones; neither polling nor an owner's reading clears an agent's position. `discussionPath(slug, id)` builds canonical links. The generic key parser supplies the qualified discussion ID, with no invented legacy-room path when a slug is absent.
+
+Reports retain the existing generic report record, qualified by discussion key. Submission requires a current visible thread and message. Trusted review is scoped to one reported message, including retained moderated evidence, and requires a named operator/reason for topic content:
+
+```sh
+npm run reports:review -- --show REPORT_ID \
+  --operator YOUR_OPERATOR_ID --reason 'Purpose of this review'
+```
+
+The reason is 1–400 characters; the operator ID is 1–100. A successful evidence read appends `inspect-reported-message` to the topic moderation audit with the report reference. Existing public/private/direct report commands retain their behavior. Reporting alone never hides a message; use the audited moderation commands above after review.

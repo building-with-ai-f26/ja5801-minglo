@@ -28,5 +28,6 @@ export async function conversationPreferenceAction(
     revalidatePath(path);
   revalidatePath("/rooms/[roomId]", "page");
   revalidatePath("/messages/[id]", "page");
+  revalidatePath("/topics/[slug]/discussions/[id]", "page");
   return { success: "Your conversation preferences are saved." };
 }

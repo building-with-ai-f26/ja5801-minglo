@@ -6,13 +6,13 @@ if (!process.env.DATABASE_URL && existsSync(".env"))
 const db = new PrismaClient();
 try {
   const args = process.argv.slice(2);
-  if (args[0] === "--show" && args.length === 2) {
+  if (args[0] === "--show" && (args.length === 2 || args.length === 6)) {
     // A report ID scopes disclosure to one reported message, never a transcript.
     const report = await db.messageReport.findUnique({
       where: { id: args[1] },
     });
     if (!report) throw new Error("Report unavailable.");
-    const match = /^(private|direct):([a-z][a-z0-9]{24})$/.exec(
+    const match = /^(private|direct|discussion):([a-z][a-z0-9]{24})$/.exec(
       report.conversationKey,
     );
     let message = null;
@@ -31,6 +31,32 @@ try {
         where: { id: report.messageId, conversationId: match[2] },
         select: { id: true, body: true, createdAt: true },
       });
+    if (match?.[1] === "discussion") {
+      const operatorId = args[2] === "--operator" ? args[3]?.trim() : "";
+      const note = args[4] === "--reason" ? args[5]?.trim() : "";
+      if (!operatorId || operatorId.length > 100 || !note || note.length > 400)
+        throw new Error(
+          "Usage: --show REPORT_ID --operator OPERATOR_ID --reason 'Review purpose (1–400 characters)' for a discussion report",
+        );
+      message = await db.$transaction(async (tx) => {
+        const evidence = await tx.discussionMessage.findFirst({
+          where: { id: report.messageId, threadId: match[2] },
+          select: { id: true, body: true, createdAt: true, hiddenAt: true },
+        });
+        if (evidence)
+          await tx.topicModerationAction.create({
+            data: {
+              targetType: "MESSAGE",
+              targetId: String(evidence.id),
+              action: "inspect-reported-message",
+              operatorId,
+              reason: `Report ${report.id}: ${note}`,
+              changed: false,
+            },
+          });
+        return evidence;
+      });
+    }
     console.log(
       JSON.stringify(
         {
