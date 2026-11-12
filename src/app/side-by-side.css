@@ -169,6 +169,14 @@ h1 {
 .side-card {
   padding: 26px;
 }
+.conversation-preferences {
+  min-width: 0;
+}
+.conversation-preferences .button {
+  width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .small,
 small {
   font-size: 13px;

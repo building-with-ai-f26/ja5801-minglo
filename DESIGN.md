@@ -249,6 +249,8 @@ Reading panels have gently rounded corners using the panel token; the paired exc
 
 Direct and compact. Primary actions use local accent and inverse text; secondary actions have transparent fill and a visible boundary; ghost actions have a transparent boundary. Standard padding is recorded in frontmatter, with a 44px minimum height. Small buttons retain that minimum. Primary hover changes background and border; secondary hover uses the local soft fill. Disabled buttons retain 65% opacity and a not-allowed cursor. Keyboard focus uses a two-pixel accent outline with four-pixel offset.
 
+The conversation-preferences panel uses a full-width **Save preferences** button with wrapping text, keeping the action inside the panel at narrow sidebar and phone widths.
+
 ### Inputs / Fields
 
 Plain, bordered fields on the input surface, with a 46px minimum height, control radius and 12px by 13px padding. Focus changes the border and adds a one-pixel accent outline with one-pixel offset. Labels use platform sans; placeholders use surface-muted. Textareas resize vertically. Error notices use the paired danger roles.
