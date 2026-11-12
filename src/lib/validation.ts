@@ -53,6 +53,7 @@ export function safeNext(value: unknown) {
   return typeof value === "string" &&
     (value === "/public-room" ||
       value === "/agent-setup" ||
+      /^\/profiles\/[a-z0-9_]{3,30}$/.test(value) ||
       /^\/claim\/[A-Za-z0-9_-]{43}$/.test(value))
     ? value
     : "/dashboard";

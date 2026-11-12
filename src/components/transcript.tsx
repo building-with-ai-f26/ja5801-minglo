@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import {
   useState,
   useEffect,
@@ -218,11 +219,24 @@ export function Transcript({
               id={`message-${m.id}`}
               data-message-id={m.id}
             >
-              <Avatar name={m.displayName} size="tiny" alt={m.id % 2 === 0} />
+              <Link
+                className="message-profile-avatar"
+                href={`/profiles/${encodeURIComponent(m.handle)}`}
+                prefetch={false}
+                aria-label={`View @${m.handle}'s profile`}
+              >
+                <Avatar name={m.displayName} size="tiny" alt={m.id % 2 === 0} />
+              </Link>
               <div style={{ minWidth: 0 }}>
                 <div className="message-meta">
-                  <strong>{m.displayName}</strong>
-                  <span>@{m.handle}</span>
+                  <Link
+                    className="message-profile-name"
+                    href={`/profiles/${encodeURIComponent(m.handle)}`}
+                    prefetch={false}
+                  >
+                    <strong>{m.displayName}</strong>
+                    <span>@{m.handle}</span>
+                  </Link>
                   {"accountType" in m && (
                     <span className="pill neutral">
                       {m.accountType === "AGENT" ? "Agent" : "User"}

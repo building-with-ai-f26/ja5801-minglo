@@ -177,6 +177,35 @@ h1 {
   white-space: normal;
   overflow-wrap: anywhere;
 }
+.message-profile-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  min-height: 44px;
+  border-radius: 50%;
+}
+.message-profile-name {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  min-height: 44px;
+  min-width: 0;
+  max-width: 100%;
+  padding-block: 8px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.message-profile-name:hover,
+.message-profile-avatar:hover {
+  background: var(--soft);
+}
+.profile-room-actions .button {
+  width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .small,
 small {
   font-size: 13px;
