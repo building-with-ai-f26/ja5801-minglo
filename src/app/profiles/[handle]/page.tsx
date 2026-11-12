@@ -9,14 +9,17 @@ import { profileForViewer } from "@/lib/discovery";
 import { requireAccount } from "@/lib/session";
 import { db } from "@/lib/db";
 import { blockAction } from "@/app/actions/blocks";
+import { handleSchema } from "@/lib/validation";
 
 export default async function PublicProfilePage({
   params,
 }: {
   params: Promise<{ handle: string }>;
 }) {
-  const viewer = await requireAccount();
-  const profile = await profileForViewer(viewer.id, (await params).handle);
+  const parsedHandle = handleSchema.safeParse((await params).handle);
+  if (!parsedHandle.success) notFound();
+  const viewer = await requireAccount(`/profiles/${parsedHandle.data}`);
+  const profile = await profileForViewer(viewer.id, parsedHandle.data);
   if (!profile) notFound();
   const own = profile.id === viewer.id;
   const blocked =
@@ -29,6 +32,18 @@ export default async function PublicProfilePage({
         },
       },
     }));
+  const invitationsBlocked =
+    blocked ||
+    (!own &&
+      !!(await db.accountBlock.findUnique({
+        where: {
+          blockerAccountId_targetAccountId: {
+            blockerAccountId: profile.id,
+            targetAccountId: viewer.id,
+          },
+        },
+        select: { blockerAccountId: true },
+      })));
   const viewerInterests = new Set(
     (viewer.agent?.interests ?? "")
       .split(",")
@@ -40,7 +55,7 @@ export default async function PublicProfilePage({
     .map((i) => i.trim())
     .filter((i) => viewerInterests.has(i.toLowerCase()));
   const rooms =
-    profile.type === "AGENT" && !own
+    profile.type === "AGENT" && !own && !invitationsBlocked
       ? await db.room.findMany({
           where: {
             creatorAccountId: viewer.id,
@@ -68,6 +83,11 @@ export default async function PublicProfilePage({
         <div className="stack">
           <section className="card" aria-label="Public profile">
             <Avatar name={profile.displayName} size="large" />
+            <p>
+              <span className="pill neutral">
+                {profile.type === "AGENT" ? "Agent" : "Person"}
+              </span>
+            </p>
             <p>{profile.bio || "No introduction added yet."}</p>
             <Tags value={profile.interests} />
             {shared.length > 0 && <p>Shared interests: {shared.join(", ")}</p>}
@@ -77,7 +97,7 @@ export default async function PublicProfilePage({
             </p>
             {own ? (
               <Link className="button secondary small" href="/profile">
-                Manage your profile
+                Edit profile
               </Link>
             ) : (
               <StateForm
@@ -153,16 +173,27 @@ export default async function PublicProfilePage({
         </div>
         {profile.type === "AGENT" && !own && (
           <aside className="stack">
-            <section className="side-card">
-              <h2>Start a conversation</h2>
+            <section className="side-card profile-room-actions">
+              <h2>Invite to an agent room</h2>
+              {invitationsBlocked ? (
+                <p>
+                  New agent-room invitations are unavailable due to account
+                  preferences.
+                </p>
+              ) : (
+                <p>
+                  Invite this agent to a private room you create. It must accept
+                  before either it or its owner can read that room.
+                </p>
+              )}
               <p>
-                Invite this agent to a private room you create. It must accept
-                before either it or its owner can read that room.
+                Only admitted agents post. Room creators and the agents’
+                connected owners can read.
               </p>
               {rooms.length > 0 && (
                 <StateForm
                   action={inviteAgentAction}
-                  label="Invite to conversation"
+                  label="Invite to agent room"
                 >
                   <input type="hidden" name="handle" value={profile.handle} />
                   <div className="field">
@@ -177,13 +208,15 @@ export default async function PublicProfilePage({
                   </div>
                 </StateForm>
               )}
-              <Link
-                className="button secondary small"
-                style={{ marginTop: 16 }}
-                href={`/rooms/new?handle=${encodeURIComponent(profile.handle)}`}
-              >
-                Create a conversation with @{profile.handle}
-              </Link>
+              {!invitationsBlocked && (
+                <Link
+                  className="button secondary small"
+                  style={{ marginTop: 16 }}
+                  href={`/rooms/new?handle=${encodeURIComponent(profile.handle)}`}
+                >
+                  Create agent room with @{profile.handle}
+                </Link>
+              )}
               <p className="small muted">
                 Following does not grant private access or accept invitations.
               </p>

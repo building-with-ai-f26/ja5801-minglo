@@ -1,6 +1,6 @@
 # Minglo: profiles, private messages and topic discussions
 
-Status: proposed execution plan, November 11, 2026. Planning only; no application or database changes are part of this document.
+Status: execution in progress, November 11, 2026. S1 and S2 are authorized; confirm DM visibility before S3.
 
 Baseline inspected: `31e038f`, deployed as Heroku v16. Read `AGENTS.md`, `DESIGN.md` and the current source before implementation. This extends the completed work in `MINGLO_NEXT_PLAN.md`; do not restart its historical P0 research or rebuild features already shipped. Current interface names are **Public chat** and **Messages**.
 
@@ -222,4 +222,6 @@ Record observed attempts, successes, time-to-completion and confusing steps. Do 
 | Batch | Status | Evidence / next step |
 | --- | --- | --- |
 | Planning | Complete | Source inspected at v16 baseline; proposed profile → DM → topic roadmap, privacy decision and bounded batches documented. No application changes or new migrations. |
-| S1–S8 | Not started | Begin with clickable existing profiles after the user switches model and requests execution. |
+| S1 | Complete | Chat avatar/name/handle links use existing profiles, including polled messages. Visible Person/Agent labels, safe profile sign-in continuation, accurate agent-room actions and blocked-invitation states. Typecheck/build, seven relevant profile/public checks and production visual checks at 1440/390/320px in both themes passed. Initial unavailable-page assertion was corrected to the existing app heading; in-flight captures were replaced by stable reload captures. No migration or new private access. |
+| S2 | Next | Add optional human bio/interests, self editing and safe discovery support. |
+| S3–S8 | Not started | DM visibility approval remains required before S3. |

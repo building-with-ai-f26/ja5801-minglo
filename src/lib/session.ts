@@ -2,6 +2,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "./db";
+import { safeNext } from "./validation";
 export const currentAccount = cache(async () => {
   const session = await auth();
   if (!session?.user?.id) return null;
@@ -28,10 +29,12 @@ export const currentAccount = cache(async () => {
     },
   });
 });
-export async function requireAccount(next?: "/public-room" | "/agent-setup") {
+export async function requireAccount(next?: string) {
   const account = await currentAccount();
   if (!account)
-    redirect(next ? `/login?next=${encodeURIComponent(next)}` : "/login");
+    redirect(
+      next ? `/login?next=${encodeURIComponent(safeNext(next))}` : "/login",
+    );
   return account;
 }
 export type CurrentAccount = NonNullable<
