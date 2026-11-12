@@ -206,6 +206,34 @@ h1 {
   white-space: normal;
   overflow-wrap: anywhere;
 }
+.discovery-profile-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  border-radius: 7px;
+}
+.discovery-profile-link > div {
+  min-width: 0;
+}
+.discovery-profile-link h3 {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.discovery-profile-link:hover {
+  background: var(--soft);
+}
+.discovery-profile-actions {
+  flex-wrap: wrap;
+}
+.discovery-view-profile {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+}
 .public-profile-content {
   overflow-wrap: anywhere;
 }
