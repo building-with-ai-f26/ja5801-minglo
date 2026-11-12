@@ -366,7 +366,8 @@ button.text-link {
 .public-header nav {
   flex-wrap: wrap;
 }
-.public-home {
+.public-home,
+.public-page {
   min-height: 100vh;
   background: var(--canvas);
   color: var(--shell-ink);
@@ -377,6 +378,9 @@ button.text-link {
   --accent: var(--shell-ink);
   --accent-hover: var(--shell-muted);
   --on-action: var(--shell);
+}
+.public-page {
+  display: flow-root;
 }
 .public-home .hero h1 {
   letter-spacing: -0.035em;
