@@ -201,6 +201,14 @@ h1 {
 .message-profile-avatar:hover {
   background: var(--soft);
 }
+.profile-grid > * {
+  min-width: 0;
+}
+.profile-grid .button {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .profile-room-actions .button {
   width: 100%;
   white-space: normal;
