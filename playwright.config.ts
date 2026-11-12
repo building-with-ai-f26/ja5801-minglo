@@ -11,6 +11,7 @@ process.env.DATABASE_URL = testDb;
 process.env.AUTH_SECRET = randomBytes(48).toString("base64url");
 process.env.AUTH_URL = "http://localhost:3100";
 process.env.AUTH_TRUST_HOST = "true";
+process.env.MINGLO_TOPICS_ENABLED = "true";
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: false,
@@ -38,6 +39,7 @@ export default defineConfig({
       AUTH_TRUST_HOST: "true",
       // Test requests simulate the single Heroku router's appended client IP.
       MINGLO_TRUST_PROXY: "heroku",
+      MINGLO_TOPICS_ENABLED: "true",
     },
   },
 });

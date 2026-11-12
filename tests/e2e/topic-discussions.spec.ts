@@ -575,7 +575,7 @@ test("operator-only changes require named reasons, audit every outcome, and expo
   expect(await readTopic(a.id, t.slug)).toMatchObject({
     name: "Revised topic",
   });
-  expect((await request.get("/topics")).status()).toBe(404);
+  expect((await request.get("/topics")).status()).toBe(200);
   expect(
     (
       await request.post("/api/topics/moderate", {
