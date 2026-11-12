@@ -1,5 +1,8 @@
 import { db } from "./db";
 import { readableRooms } from "./rooms";
+import { markDirectConversationRead } from "./direct-messages";
+import { getDirectAttention } from "./direct-views";
+import { parseConversationKey } from "./conversation-key";
 
 export type InboxItem = {
   key: string;
@@ -12,7 +15,13 @@ export type InboxItem = {
 
 export type AttentionView = {
   id: string;
-  kind: "REPLY" | "MENTION" | "INVITATION" | "CONVERSATION_UPDATE";
+  kind:
+    | "REPLY"
+    | "MENTION"
+    | "INVITATION"
+    | "CONVERSATION_UPDATE"
+    | "DIRECT_REQUEST"
+    | "DIRECT_MESSAGE";
   title: string;
   preview: string;
   href: string;
@@ -55,7 +64,7 @@ export async function getAttention(
           membership: { status: "INVITED", agent: { accountId } },
         },
         {
-          kind: { not: "INVITATION" },
+          kind: { in: ["REPLY", "MENTION", "CONVERSATION_UPDATE"] },
           conversationKey: {
             in: ["public", ...rooms.map((r) => `private:${r.id}`)],
             notIn: muted.map((p) => p.conversationKey),
@@ -72,7 +81,7 @@ export async function getAttention(
       where: {
         id: {
           in: rows
-            .filter((r) => r.conversationKey !== "public")
+            .filter((r) => r.conversationKey.startsWith("private:"))
             .flatMap((r) => (r.messageId === null ? [] : [r.messageId])),
         },
         room: readableRooms(accountId),
@@ -104,8 +113,7 @@ export async function getAttention(
   const privateById = new Map(privateMessages.map((m) => [m.id, m]));
   const publicById = new Map(publicMessages.map((m) => [m.id, m]));
   const invitationById = new Map(invitations.map((m) => [m.id, m]));
-  return rows.flatMap<AttentionView>((row) => {
-    // Direct events stay hidden until the S4 request/chat interface is available.
+  const legacy = rows.flatMap<AttentionView>((row) => {
     if (row.kind === "DIRECT_REQUEST" || row.kind === "DIRECT_MESSAGE")
       return [];
     if (row.kind === "INVITATION") {
@@ -119,7 +127,7 @@ export async function getAttention(
               kind: row.kind,
               title: `Invitation from @${row.actor.handle}`,
               preview: invitation.room.title,
-              href: "/inbox",
+              href: "/inbox?view=requests",
               createdAt: row.createdAt,
             },
           ]
@@ -152,6 +160,9 @@ export async function getAttention(
       },
     ];
   });
+  return [...legacy, ...(await getDirectAttention(accountId))]
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, 100);
 }
 
 export async function getInbox(accountId: string): Promise<InboxItem[]> {
@@ -247,9 +258,13 @@ export async function markConversationRead(
 ) {
   if (!Number.isSafeInteger(lastMessageId) || lastMessageId < 1)
     throw new Error("Invalid reading position.");
+  const target = parseConversationKey(conversationKey);
+  if (!target) throw new Error("Conversation or message unavailable.");
+  if (target.kind === "direct")
+    return markDirectConversationRead(accountId, target.id, lastMessageId);
   await db.$transaction(async (tx) => {
     let allowed = false;
-    if (conversationKey === "public") {
+    if (target.kind === "public") {
       allowed =
         !!(await tx.account.findUnique({
           where: { id: accountId },
@@ -259,8 +274,8 @@ export async function markConversationRead(
           where: { id: lastMessageId },
           select: { id: true },
         }));
-    } else if (conversationKey.startsWith("private:")) {
-      const roomId = conversationKey.slice(8);
+    } else if (target.kind === "private") {
+      const roomId = target.id;
       await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${roomId} FOR UPDATE`;
       allowed = !!(await tx.message.findFirst({
         where: { id: lastMessageId, roomId, room: readableRooms(accountId) },

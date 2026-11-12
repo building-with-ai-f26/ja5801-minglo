@@ -39,7 +39,7 @@ const identitySelect = {
 type Identity = Prisma.AccountGetPayload<{ select: typeof identitySelect }>;
 type Tx = Prisma.TransactionClient;
 // Callers must derive accountId from their authenticated session, never a form.
-// S3 intentionally exposes no HTTP endpoints; S4 supplies the authenticated UI/API.
+// HTTP and Server Action callers authenticate independently before invoking these services.
 export class DirectMessageError extends Error {
   constructor(
     message: string,
@@ -137,6 +137,8 @@ function summary(
     createdAt: conversation.createdAt.toISOString(),
     updatedAt: conversation.updatedAt.toISOString(),
     isParticipant: people.some((p) => p.id === accountId),
+    postingPaused: !!people.find((p) => p.id === accountId)?.agent
+      ?.participationPausedAt,
     ...visibility(people),
   };
 }
@@ -173,7 +175,7 @@ async function lockPair(tx: Tx, first: string, second: string) {
   people.sort((a, b) => pair.indexOf(a.id) - pair.indexOf(b.id));
   return { pair, people };
 }
-async function lockConversation(
+export async function lockDirectConversation(
   tx: Tx,
   conversationId: string,
   accountId: string,
@@ -230,39 +232,55 @@ async function attention(
   actorId: string,
   messageId: number,
   request: boolean,
+  people: Identity[],
 ) {
   const recipientAccountId =
     c.participantLowId === actorId ? c.participantHighId : c.participantLowId;
   const key = `direct:${c.id}`;
+  const ownerIds = visibility(people)
+    .readers.filter((r) => r.role === "owner" && r.id !== actorId)
+    .map((r) => r.id);
+  const preferences = await tx.conversationPreference.findMany({
+    where: {
+      conversationKey: key,
+      accountId: { in: [recipientAccountId, ...ownerIds] },
+    },
+  });
+  const recipients = new Set<string>();
   if (
-    !request &&
-    (
-      await tx.conversationPreference.findUnique({
-        where: {
-          accountId_conversationKey: {
-            accountId: recipientAccountId,
-            conversationKey: key,
-          },
-        },
-      })
-    )?.muted
+    request ||
+    !preferences.find((p) => p.accountId === recipientAccountId)?.muted
   )
-    return;
+    recipients.add(recipientAccountId);
+  if (!request)
+    for (const p of preferences)
+      if (ownerIds.includes(p.accountId) && p.subscribed && !p.muted)
+        recipients.add(p.accountId);
+  const blocks = await tx.accountBlock.findMany({
+    where: {
+      OR: [
+        { blockerAccountId: actorId, targetAccountId: { in: [...recipients] } },
+        { targetAccountId: actorId, blockerAccountId: { in: [...recipients] } },
+      ],
+    },
+  });
+  for (const b of blocks)
+    recipients.delete(
+      b.blockerAccountId === actorId ? b.targetAccountId : b.blockerAccountId,
+    );
   await tx.attentionItem.createMany({
-    data: [
-      {
-        recipientAccountId,
-        actorAccountId: actorId,
-        kind: request ? "DIRECT_REQUEST" : "DIRECT_MESSAGE",
-        conversationKey: key,
-        directConversationId: c.id,
-        requestVersion: request ? c.requestVersion : null,
-        messageId,
-        sourceKey: request
-          ? `direct-request:${c.id}:${c.requestVersion}`
-          : `direct-message:${c.id}:${messageId}`,
-      },
-    ],
+    data: [...recipients].map((recipientAccountId) => ({
+      recipientAccountId,
+      actorAccountId: actorId,
+      kind: request ? ("DIRECT_REQUEST" as const) : ("DIRECT_MESSAGE" as const),
+      conversationKey: key,
+      directConversationId: c.id,
+      requestVersion: request ? c.requestVersion : null,
+      messageId,
+      sourceKey: request
+        ? `direct-request:${c.id}:${c.requestVersion}`
+        : `direct-message:${c.id}:${messageId}`,
+    })),
     skipDuplicates: true,
   });
 }
@@ -373,7 +391,7 @@ export async function requestDirectConversation(
         requestVersion: c.requestVersion,
       },
     });
-    await attention(tx, c, accountId, message.id, true);
+    await attention(tx, c, accountId, message.id, true, people);
     await recordActivity(accountId, { client: tx, force: true });
     return summary(c, people, accountId);
   });
@@ -387,7 +405,7 @@ export async function respondToDirectRequest(
   if (!parsed.success) fail("Choose a valid request decision and version.");
   const data = parsed.data;
   return db.$transaction(async (tx) => {
-    const { conversation: c, people } = await lockConversation(
+    const { conversation: c, people } = await lockDirectConversation(
       tx,
       conversationId,
       accountId,
@@ -464,7 +482,7 @@ export async function postDirectMessage(
   if (!parsed.success) fail(parsed.error.issues[0].message);
   const data = parsed.data;
   return db.$transaction(async (tx) => {
-    const { conversation: c, people } = await lockConversation(
+    const { conversation: c, people } = await lockDirectConversation(
       tx,
       conversationId,
       accountId,
@@ -519,7 +537,7 @@ export async function postDirectMessage(
       where: { id: conversationId },
       data: { updatedAt: new Date() },
     });
-    await attention(tx, c, accountId, message.id, false);
+    await attention(tx, c, accountId, message.id, false, people);
     await recordActivity(accountId, { client: tx, force: true });
     return serialize(message);
   });
@@ -533,11 +551,30 @@ export async function readDirectTranscript(
   if (!cursor) fail("Invalid message cursor.");
   try {
     return await db.$transaction(async (tx) => {
-      const { conversation, people } = await lockConversation(
+      const { conversation, people } = await lockDirectConversation(
         tx,
         conversationId,
         accountId,
       );
+      const messagingBlocked = !!(await tx.accountBlock.findFirst({
+        where: {
+          OR: [
+            {
+              blockerAccountId: conversation.participantLowId,
+              targetAccountId: conversation.participantHighId,
+            },
+            {
+              blockerAccountId: conversation.participantHighId,
+              targetAccountId: conversation.participantLowId,
+            },
+          ],
+        },
+        select: { blockerAccountId: true },
+      }));
+      const context = {
+        ...summary(conversation, people, accountId),
+        messagingBlocked,
+      };
       const { after, options } = cursor;
       const base = { conversationId };
       if (options.around !== undefined) {
@@ -563,7 +600,7 @@ export async function readDirectTranscript(
           }),
         ]);
         return {
-          conversation: summary(conversation, people, accountId),
+          conversation: context,
           messages: [
             ...before.slice(0, 25).reverse(),
             ...newer.slice(0, 25),
@@ -587,7 +624,7 @@ export async function readDirectTranscript(
         include: { sender: { select: senderSelect } },
       });
       return {
-        conversation: summary(conversation, people, accountId),
+        conversation: context,
         messages: (backwards
           ? rows.slice(0, 50).reverse()
           : rows.slice(0, 200)
@@ -610,7 +647,7 @@ export async function markDirectConversationRead(
   if (!Number.isSafeInteger(lastMessageId) || lastMessageId < 1)
     fail("Invalid reading position.");
   await db.$transaction(async (tx) => {
-    await lockConversation(tx, conversationId, accountId);
+    await lockDirectConversation(tx, conversationId, accountId);
     if (
       !(await tx.directMessage.findFirst({
         where: { id: lastMessageId, conversationId },

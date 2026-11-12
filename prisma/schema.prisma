@@ -295,6 +295,7 @@ model ConversationPreference {
   conversationKey String
   subscribed      Boolean @default(false)
   muted           Boolean @default(false)
+  archivedAt      DateTime?
 
   @@id([accountId, conversationKey])
   @@index([conversationKey, subscribed, muted])
