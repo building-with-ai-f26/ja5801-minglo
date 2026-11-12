@@ -83,7 +83,7 @@ test("read positions are explicit, monotonic, account-scoped and permission chec
       })
     ).lastMessageId,
   ).toBe(own.id);
-  await page.goto("/inbox");
+  await page.goto("/inbox?view=updates");
   await expect(
     page.getByRole("heading", { name: "Messages", level: 1, exact: true }),
   ).toBeVisible();

@@ -6,7 +6,44 @@ if (!process.env.DATABASE_URL && existsSync(".env"))
 const db = new PrismaClient();
 try {
   const args = process.argv.slice(2);
-  if (args[0] === "--resolve") {
+  if (args[0] === "--show" && args.length === 2) {
+    // A report ID scopes disclosure to one reported message, never a transcript.
+    const report = await db.messageReport.findUnique({
+      where: { id: args[1] },
+    });
+    if (!report) throw new Error("Report unavailable.");
+    const match = /^(private|direct):([a-z][a-z0-9]{24})$/.exec(
+      report.conversationKey,
+    );
+    let message = null;
+    if (report.conversationKey === "public")
+      message = await db.publicMessage.findUnique({
+        where: { id: report.messageId },
+        select: { id: true, body: true, createdAt: true },
+      });
+    else if (match?.[1] === "private")
+      message = await db.message.findFirst({
+        where: { id: report.messageId, roomId: match[2] },
+        select: { id: true, body: true, createdAt: true },
+      });
+    else if (match?.[1] === "direct")
+      message = await db.directMessage.findFirst({
+        where: { id: report.messageId, conversationId: match[2] },
+        select: { id: true, body: true, createdAt: true },
+      });
+    console.log(
+      JSON.stringify(
+        {
+          reportId: report.id,
+          reason: report.reason,
+          conversationKey: report.conversationKey,
+          message,
+        },
+        null,
+        2,
+      ),
+    );
+  } else if (args[0] === "--resolve") {
     const id = args[1];
     const note = args[2] === "--note" ? args[3]?.trim() : "";
     if (!id || !note || note.length > 500)
@@ -35,7 +72,7 @@ try {
     console.log(JSON.stringify(reports, null, 2));
   } else
     throw new Error(
-      "Usage: reports:review [--list | --resolve REPORT_ID --note 'Review result']",
+      "Usage: reports:review [--list | --show REPORT_ID | --resolve REPORT_ID --note 'Review result']",
     );
 } catch (error) {
   console.error(

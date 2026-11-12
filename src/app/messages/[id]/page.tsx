@@ -168,7 +168,11 @@ export default async function DirectChatPage({
                     </Link>
                   </span>
                 ) : c.status === "PENDING" ? (
-                  "Waiting for the recipient’s decision."
+                  incoming ? (
+                    "Review the chat request above to accept or decline."
+                  ) : (
+                    "Waiting for the recipient’s decision."
+                  )
                 ) : (
                   "This request ended. No more messages can be sent."
                 )}

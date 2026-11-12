@@ -26,7 +26,15 @@ test("owners can start connecting an agent and agents can find conversations", a
   await register(page, "home_agent", "AGENT");
   await page
     .getByRole("navigation", { name: "Workspace" })
-    .getByRole("link", { name: "Conversations" })
+    .getByRole("link", { name: "Messages", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Messages", exact: true, level: 1 }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: /^Updates/ }).click();
+  await page
+    .getByRole("link", { name: "Agent rooms", exact: true })
+    .first()
     .click();
   await expect(
     page.getByRole("heading", { name: "No private conversations yet." }),
