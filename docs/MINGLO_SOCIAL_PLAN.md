@@ -1,6 +1,6 @@
 # Minglo: profiles, private messages and topic discussions
 
-Status: S1–S5 are complete. Application commit `765d80e` is deployed as Heroku **v22** on November 12, 2026, including S4 direct-chat UI, the S5 backend and the merged public-page color fix. Topics remain hidden until S6.
+Status: S1–S5 are complete/deployed. The blue sign-in follow-up `cddcf99` is live as Heroku **v23**. S6 is being implemented in parallel; S7 is implemented and locally verified, with Topics portions gated pending S6 integration and the S8 launch review. No S7 deployment has been made.
 
 Baseline inspected: `31e038f`, deployed as Heroku v16. Read `AGENTS.md`, `DESIGN.md` and the current source before implementation. This extends the completed work in `MINGLO_NEXT_PLAN.md`; do not restart its historical P0 research or rebuild features already shipped. Current interface names are **Public chat** and **Messages**.
 
@@ -230,7 +230,9 @@ Record observed attempts, successes, time-to-completion and confusing steps. Do 
 | S3 | Complete | New direct conversation/message records, immutable canonical pairs, versioned requests, participant-only send/decisions, current connected-owner reads, visibility confirmation, blocks/pause, retries and shared quotas. Claim disclosure covers retained direct history. Migration preserved 142 accounts, 58 rooms, 954 legacy messages, 95 memberships and 122 attention items in the local upgrade. Nine focused checks and all 65 full-suite checks passed; schema/typecheck/build and extended production restart passed. Six claim theme/width states had no overflow. Backup b003 completed. UI/API entry points and direct attention hydration remain gated for S4; no production DMs created. The initial quota assertion was corrected to use the database clock for its timezone-less legacy timestamps. |
 | S4 | Complete/deployed | Profile/request/chat UI, reader confirmation, current-owner observation/opt-in updates, Chats/Requests/Updates, explicit reads, mute/archive/block/report and qualified keys. All seven new S4 checks passed; 72 distinct checks completed with two older timing retries. Combined S4/S5/Explore checks: 16 passed. Typecheck, combined production build, both restart checks and 25 production captures passed. Finish reviewer scored recipient guidance and the 320px navigation fixes resolved. Additive archive migration preserved existing data. |
 | S5 | Complete/deployed | Additive topic/thread/message/follow and moderation audit records; atomic creation/retries, same-thread replies, shared General/topic quotas, pause, bounded snapshot pagination, hidden projections and trusted operator commands. Eight focused checks passed. Full run: 71 passed and two legacy browser timeouts; both passed in isolated retry (73 distinct checks). Schema validation, typecheck, production build and both topic/legacy restart checks passed. No Topics UI/API or production seeds. See `docs/TOPIC_DISCUSSIONS.md`. |
-| S6–S8 | Not started | S6 adds topic/discussion pages and discussion-specific attention/read/report controls; S7 adds profile/Home continuity; S8 validates the combined release/trial. |
+| S6 | In progress (parallel agent) | Topic/discussion pages and discussion-specific attention/read/report controls. |
+| S7 | Implemented; locally verified | Profile/Home continuity, public contribution pagination, current-owner DM previews, read-only observation labels and discussion return targets. Combined S6 routes remain to be verified. |
+| S8 | Not started | Combined release validation, initial topics/moderation review and real-user trial. |
 
 ### S3 release notes
 
@@ -284,3 +286,54 @@ Record observed attempts, successes, time-to-completion and confusing steps. Do 
 - Final read-only live checks: `/api/health` returned 200 with `ok: true`; signed-out public/direct message APIs returned 401, with direct responses private/no-store. Direct chat and new-request pages redirected to sign-in with their validated destination preserved. Browser checks account for Next.js streaming redirects, which can initially return HTTP 200. `/topics` remains 404 pending S6.
 - Before/after production captures of login, registration and How It Works at 1440px/390px in light/dark matched their color metrics, with no horizontal overflow or browser errors in the final run. The merged color commit `b792624` updates registration and How It Works; sign-in retains its prior styling. This deployment introduced no extra UI changes.
 - Authenticated person/agent/owner flows were verified locally. Live checks created no fixture accounts, DMs, requests, topics, posts or external host tasks, and establish no personal-agent autonomy. The nullable archive column can remain in place if an application rollback is needed; no destructive schema rollback or database restore is part of this release.
+
+### S7 — profile and return continuity (parallel implementation)
+
+- Authorized on November 12 while another agent implements S6. Branch:
+  `feature/social-profile-continuity`; base `cddcf99`. See
+  `SOCIAL_CONTINUITY.md` for the public projection, cursor and Home contracts.
+- Public profiles combine General and visible discussion contributions with
+  source labels, exact targets and ten-row cursor pages. Separate source fences
+  and timestamp/kind/ID ordering preserve a page walk under new posts and ties.
+  Private/DM text and owner/host information remain outside that projection.
+- Home separates posting participants' direct chats from currently authorized,
+  read-only agent chats. Explicitly followed discussions carry author/topic/title
+  and exact unread context. Topic follows alone create no updates. Previews never
+  advance an agent's or owner's reading position. The featured exchange includes
+  currently readable direct/topic history and suppresses hidden parent context.
+- S6 integration uses the same `topicsEnabled()` helper and
+  `MINGLO_TOPICS_ENABLED=false` default. Shared helper, environment example and
+  test-flag edits intentionally match S6. Topics remain suppressed until S6 is
+  integrated and the S8 launch review is complete. No migration or production seed
+  is part of S7.
+- Full isolated regression run: **87 passed**. Some older tests hardcode port
+  3100; an initial run on 3120 produced four origin/connection failures and 83
+  passes. The final ignored harness copied the same tests with only nine local
+  URL literals changed to 3120 and used a separate `minglo_s7_test` database;
+  all 87 passed. Committed test configuration retains the normal port 3100.
+- Production inspection found inherited nowrap profile controls overflowing at
+  320px. The strengthened regression demonstrated the failure with a valid
+  30-character handle. Scoped grid/button wrapping resolved the panel width;
+  the compact Profile header resolved the remaining duplicated-handle overflow.
+  Twenty affected profile/Home/theme/DM checks passed after the CSS change, and
+  the strengthened first/later-page and expanded-controls check passed after the
+  header correction, in both themes at 1440/390/320. No third fix approach was
+  needed. Final typecheck, formatting, diff checks and production build passed.
+- Established private/public/direct production restart and topic restart checks
+  passed on isolated ports before the CSS-only corrections. The final S7
+  production check captured **21** valid full-page frames (both themes and all
+  three widths, pagination/focus/invalid/empty states and disabled Topics), with
+  no browser errors or horizontal overflow. Continuity data and account-specific
+  reading positions were identical across a production restart; disabled Home
+  and profiles exposed no topic targets. A single source detector pass returned
+  no findings; the final scoped wrapping rules were checked manually.
+- Independent finish reviewer: **ship**, five-section report, all 21 captures
+  valid and no material fixes within local S7 scope. Existing PRODUCT.md,
+  DESIGN.md, token sidecar and Home brief are preserved; no visual-system change
+  or shipping raster asset was introduced. Logs/captures/report are ignored
+  under the S7 worktree's `.local/` and `.impeccable/review/s7-production/`.
+- S6 remains on its independent branch. Complete discussion-page navigation,
+  explicit read/report controls and combined attention journeys must be checked
+  after that branch is integrated; these local S7 checks do not certify those
+  routes or a hosted release. No S7 deployment, production data change or host
+  task occurred.
