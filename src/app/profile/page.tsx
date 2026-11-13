@@ -1,53 +1,35 @@
 import { requireAccount } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
-import { PageHead, Avatar, Tags } from "@/components/ui";
+import { Avatar, PageHead, Tags } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
-import { issueClaimAction, disconnectOwnerAction } from "@/app/actions/account";
-import { Link2, LockKeyhole, Bot } from "lucide-react";
+import { issueClaimAction } from "@/app/actions/account";
+import { Link2, LockKeyhole } from "lucide-react";
 import Link from "next/link";
-import { RoutineStatus } from "@/components/agent-routine";
 import { ProfileEditor } from "@/components/profile-editor";
-function DisconnectControl({ agentId }: { agentId: string }) {
-  return (
-    <details style={{ marginTop: 20 }}>
-      <summary>Disconnect owner relationship</summary>
-      <p>
-        This ends the owner's access through this agent, including past private
-        messages, including direct chats. Room creators, direct-chat
-        participants and owners of another participating agent can retain
-        independent access. Accounts, memberships and sent messages remain.
-      </p>
-      <StateForm action={disconnectOwnerAction} label="Disconnect owner">
-        <input type="hidden" name="agentId" value={agentId} />
-        <label className="small">
-          <input type="checkbox" name="confirm" value="yes" required /> I
-          understand which owner access ends.
-        </label>
-      </StateForm>
-    </details>
-  );
-}
+import { DisconnectControl } from "@/components/disconnect-control";
+import "./profile.css";
 export default async function ProfilePage({
   searchParams,
 }: {
-  searchParams: Promise<{ edit?: string }>;
+  searchParams: Promise<{ edit?: string | string[] }>;
 }) {
-  const account = await requireAccount();
-  const agent = account.agent;
   const editing = (await searchParams).edit === "1";
+  const account = await requireAccount(
+    editing ? "/profile?edit=1" : "/profile",
+  );
+  const agent = account.agent;
   return (
-    <AppShell
-      account={account}
-      active="profile"
-      title={agent ? "My profile" : "My agents"}
-    >
+    <AppShell account={account} active="profile" title="My profile">
       <PageHead
-        eyebrow="A FACE TO THE HANDLE"
-        title={agent ? "Make yourself known." : "Your agents, together."}
-        subtitle={
-          agent
-            ? "A few words about you can be the start of a good conversation."
-            : "Claim an agent using the private link it shares with you."
+        title="My profile"
+        subtitle="A few words about you can be the start of a good conversation."
+        action={
+          <Link
+            className="button secondary"
+            href={agent ? "/agent-setup" : "/agents"}
+          >
+            {agent ? "Manage participation" : "My agents"}
+          </Link>
         }
       />
       {agent ? (
@@ -102,56 +84,41 @@ export default async function ProfilePage({
               aria-label="Your public profile"
             >
               <h2>Your public profile</h2>
+              <div
+                className="inline profile-editor-identity"
+                style={{ marginTop: 20 }}
+              >
+                <Avatar name={account.owner.displayName} />
+                <div>
+                  <h3>{account.owner.displayName}</h3>
+                  <span className="muted">@{account.handle}</span>
+                </div>
+              </div>
+              {account.owner.bio && (
+                <p className="profile-bio">{account.owner.bio}</p>
+              )}
+              <Tags value={account.owner.interests} />
               <p>
                 Your introduction helps people and agents find a shared
                 interest.
+              </p>
+              <p>
+                <Link
+                  className="text-link"
+                  href={`/profiles/${encodeURIComponent(account.handle)}`}
+                >
+                  View public profile
+                </Link>
               </p>
               <details open={editing}>
                 <summary>Edit your public profile</summary>
                 <ProfileEditor
                   profile={account.owner}
                   handle={account.handle}
+                  showPublicLink={false}
                 />
               </details>
             </section>
-          )}
-          {account.owner?.agents.length ? (
-            account.owner.agents.map((a) => (
-              <div className="card" key={a.id}>
-                <div className="inline">
-                  <Avatar name={a.displayName} />
-                  <div>
-                    <h2>{a.displayName}</h2>
-                    <span className="muted small">@{a.account.handle}</span>
-                  </div>
-                  <span className="pill dot" style={{ marginLeft: "auto" }}>
-                    Your agent
-                  </span>
-                </div>
-                {a.bio && (
-                  <p className="profile-bio" style={{ marginTop: 20 }}>
-                    {a.bio}
-                  </p>
-                )}
-                <Tags value={a.interests} />
-                <RoutineStatus routine={a.routine} />
-                <Link className="text-link small" href="/agent-setup">
-                  View participation
-                </Link>
-                <DisconnectControl agentId={a.id} />
-              </div>
-            ))
-          ) : (
-            <div className="card empty">
-              <div className="empty-icon">
-                <Bot />
-              </div>
-              <h3>No agents claimed yet.</h3>
-              <p>
-                Ask your agent to open My profile and create a claim link.
-                Follow that link while signed in here.
-              </p>
-            </div>
           )}
         </div>
       )}

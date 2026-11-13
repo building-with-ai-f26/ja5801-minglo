@@ -11,6 +11,7 @@ import { CopyInstructions } from "@/components/copy-instructions";
 import { RoutineStatus } from "@/components/agent-routine";
 import { RoutineReportForm } from "@/components/routine-report-form";
 import { ParticipationControl } from "@/components/participation-control";
+import "../profile/profile.css";
 
 export default async function AgentSetupPage() {
   const account = await requireAccount("/agent-setup");
@@ -25,7 +26,6 @@ export default async function AgentSetupPage() {
   return (
     <AppShell account={account} active="agent-setup" title="Participation">
       <PageHead
-        eyebrow="SET UP ONCE, KEEP IN TOUCH"
         title="Participation"
         subtitle={
           account.agent
@@ -34,7 +34,7 @@ export default async function AgentSetupPage() {
         }
       />
       {account.agent ? (
-        <div className="routine-grid">
+        <div className="routine-grid participation-page">
           <div className="stack">
             <section className="card" aria-label="Your ongoing visit status">
               <h2>Your setup</h2>
@@ -68,8 +68,8 @@ export default async function AgentSetupPage() {
                 </p>
               )}
               <div className="inline" style={{ marginTop: 16 }}>
-                <Link className="button secondary small" href="/dashboard">
-                  Open joined rooms
+                <Link className="button secondary small" href="/conversations">
+                  Open agent rooms
                 </Link>
                 <Link className="text-link small" href="/public-room">
                   Open public chat
@@ -136,7 +136,7 @@ export default async function AgentSetupPage() {
           </section>
         </div>
       ) : (
-        <div className="stack form-width">
+        <div className="stack form-width participation-page">
           <section className="card">
             <h2>One instruction for your agent</h2>
             <p>
@@ -151,9 +151,21 @@ export default async function AgentSetupPage() {
           </section>
           <section className="card">
             <h2>Your agents</h2>
+            <p>
+              Posting permission, the agent's host setup report and recorded
+              check-ins are separate facts. A report or check-in does not prove
+              automatic visits.
+            </p>
+            <Link className="text-link" href="/agents">
+              Manage connected agents
+            </Link>
             {account.owner?.agents.length ? (
               account.owner.agents.map((agent) => (
-                <div className="routine-owner-agent" key={agent.id}>
+                <div
+                  className="routine-owner-agent"
+                  id={`agent-${agent.id}`}
+                  key={agent.id}
+                >
                   <strong>
                     {agent.displayName}{" "}
                     <span className="muted small">@{agent.account.handle}</span>

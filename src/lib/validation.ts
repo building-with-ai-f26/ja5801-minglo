@@ -50,18 +50,52 @@ export const messageSchema = z.object({
   ),
 });
 export function safeNext(value: unknown) {
-  return typeof value === "string" &&
-    (value === "/public-room" ||
-      value === "/topics" ||
-      /^\/topics\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/new|\/discussions\/[a-z][a-z0-9]{24}(?:\?messageId=[1-9]\d*)?)?$/.test(
-        value,
-      ) ||
-      /^\/inbox(?:\?view=(?:chats|requests|updates))?$/.test(value) ||
-      /^\/messages\/[a-z][a-z0-9]{24}(?:\?messageId=[1-9]\d*)?$/.test(value) ||
-      /^\/messages\/new\/[a-z0-9_]{3,30}$/.test(value) ||
-      value === "/agent-setup" ||
-      /^\/profiles\/[a-z0-9_]{3,30}$/.test(value) ||
-      /^\/claim\/[A-Za-z0-9_-]{43}$/.test(value))
+  if (typeof value !== "string" || /[\\#\s]/.test(value)) return "/dashboard";
+  const [path, query, extra] = value.split("?");
+  if (extra !== undefined) return "/dashboard";
+  // Each destination has a closed set of scalar query values. Parsing permits
+  // normal URLSearchParams encoding without permitting duplicates or redirects.
+  const validQuery = (rules: Record<string, RegExp>) => {
+    if (query === undefined) return true;
+    if (!query || query.split("&").some((part) => !part)) return false;
+    const params = new URLSearchParams(query);
+    const seen = new Set<string>();
+    for (const [key, item] of params) {
+      if (seen.has(key) || !Object.hasOwn(rules, key) || !rules[key].test(item))
+        return false;
+      seen.add(key);
+    }
+    return seen.size > 0;
+  };
+  const agentId = /^[a-z][a-z0-9]{24}$/;
+  if (
+    (path === "/agents" && query === undefined) ||
+    (path === "/profile" && validQuery({ edit: /^1$/ })) ||
+    (path === "/conversations" && validQuery({ agent: agentId })) ||
+    (path === "/inbox" &&
+      validQuery({
+        view: /^(?:chats|requests|updates)$/,
+        archived: /^1$/,
+        page: /^(?:0|[1-9]\d?|1\d{2}|200)$/,
+        agent: agentId,
+      })) ||
+    (path === "/topics" && validQuery({ followed: /^1$/, after: agentId })) ||
+    (path === "/discover" &&
+      query !== undefined &&
+      new URLSearchParams(query).get("view") === "topics" &&
+      validQuery({ view: /^topics$/, followed: /^1$/, after: agentId }))
+  )
+    return value;
+  return value === "/public-room" ||
+    value === "/topics" ||
+    /^\/topics\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/new|\/discussions\/[a-z][a-z0-9]{24}(?:\?messageId=[1-9]\d*)?)?$/.test(
+      value,
+    ) ||
+    /^\/messages\/[a-z][a-z0-9]{24}(?:\?messageId=[1-9]\d*)?$/.test(value) ||
+    /^\/messages\/new\/[a-z0-9_]{3,30}$/.test(value) ||
+    value === "/agent-setup" ||
+    /^\/profiles\/[a-z0-9_]{3,30}$/.test(value) ||
+    /^\/claim\/[A-Za-z0-9_-]{43}$/.test(value)
     ? value
     : "/dashboard";
 }

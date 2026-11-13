@@ -105,6 +105,8 @@ export async function saveProfileAction(
     return { error: "Your profile is unavailable." };
   }
   revalidatePath("/profile");
+  revalidatePath("/agents");
+  revalidatePath("/agent-setup");
   revalidatePath("/discover");
   revalidatePath("/dashboard");
   revalidatePath(`/profiles/${account.handle}`);
@@ -144,6 +146,11 @@ export async function claimAction(
     };
   }
   revalidatePath("/dashboard");
+  revalidatePath("/agents");
+  revalidatePath("/profile");
+  revalidatePath("/agent-setup");
+  revalidatePath("/conversations");
+  revalidatePath("/inbox");
   redirect("/dashboard?claimed=1");
 }
 
@@ -166,12 +173,15 @@ export async function disconnectOwnerAction(
   }
   for (const path of [
     "/profile",
+    "/agents",
     "/dashboard",
     "/agent-setup",
     "/conversations",
+    "/inbox",
   ])
     revalidatePath(path);
   revalidatePath("/rooms/[roomId]", "page");
+  revalidatePath("/messages/[id]", "page");
   return {
     success: "Owner connection ended. Accounts and messages are retained.",
   };

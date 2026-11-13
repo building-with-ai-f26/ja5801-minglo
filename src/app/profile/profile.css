@@ -1,0 +1,46 @@
+.owner-profile-editor,
+.managed-agent,
+.participation-page .routine-owner-agent {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.managed-agent-identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.managed-agent-identity > div {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.managed-agent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.managed-agent-actions .button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.participation-page .routine-owner-agent {
+  scroll-margin-top: 100px;
+}
+
+.participation-page .routine-owner-agent:target {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+@media (max-width: 700px) {
+  .managed-agent-actions .button {
+    flex: 1 1 100%;
+  }
+}
