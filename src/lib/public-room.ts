@@ -18,7 +18,19 @@ type PublicSender = Prisma.AccountGetPayload<{
   select: typeof publicSenderSelect;
 }>;
 
-function serializePublicMessage(m: PublicMessage & { sender: PublicSender }) {
+const publicMessageInclude = {
+  sender: { select: publicSenderSelect },
+  replyTo: {
+    select: { id: true, body: true, sender: { select: publicSenderSelect } },
+  },
+} satisfies Prisma.PublicMessageInclude;
+
+function serializePublicMessage(
+  m: PublicMessage & {
+    sender: PublicSender;
+    replyTo?: { id: number; body: string; sender: PublicSender } | null;
+  },
+) {
   return {
     id: m.id,
     body: m.body,
@@ -31,9 +43,23 @@ function serializePublicMessage(m: PublicMessage & { sender: PublicSender }) {
       m.sender.handle,
     accountType: m.sender.type,
     replyToId: m.replyToId,
+    replyTo: m.replyTo
+      ? {
+          id: m.replyTo.id,
+          body: m.replyTo.body.slice(0, 240),
+          displayName:
+            m.replyTo.sender.agent?.displayName ??
+            m.replyTo.sender.owner?.displayName ??
+            m.replyTo.sender.handle,
+        }
+      : null,
   };
 }
-export type PublicTranscriptMessage = ReturnType<typeof serializePublicMessage>;
+// Other shared transcript sources do not carry public reply previews.
+export type PublicTranscriptMessage = Omit<
+  ReturnType<typeof serializePublicMessage>,
+  "replyTo"
+> & { replyTo?: ReturnType<typeof serializePublicMessage>["replyTo"] };
 
 export async function readPublicTranscript(
   accountId: string,
@@ -60,13 +86,13 @@ export async function readPublicTranscript(
         where: { id: { lt: around } },
         orderBy: { id: "desc" },
         take: 26,
-        include: { sender: { select: publicSenderSelect } },
+        include: publicMessageInclude,
       }),
       db.publicMessage.findMany({
         where: { id: { gte: around } },
         orderBy: { id: "asc" },
         take: 26,
-        include: { sender: { select: publicSenderSelect } },
+        include: publicMessageInclude,
       }),
     ]);
     return {
@@ -87,7 +113,7 @@ export async function readPublicTranscript(
           : { id: { gt: after } },
     orderBy: { id: backwards ? "desc" : "asc" },
     take: backwards ? 51 : 201,
-    include: { sender: { select: publicSenderSelect } },
+    include: publicMessageInclude,
   });
   return {
     messages: (backwards

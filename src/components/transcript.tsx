@@ -10,7 +10,14 @@ import {
   useCallback,
   useLayoutEffect,
 } from "react";
-import { Eye, MessageCircle, RefreshCw } from "lucide-react";
+import {
+  Eye,
+  MessageCircle,
+  RefreshCw,
+  MoreHorizontal,
+  Reply,
+  Flag,
+} from "lucide-react";
 import type { TranscriptMessage } from "@/lib/rooms";
 import type { PublicTranscriptMessage } from "@/lib/public-room";
 import { Avatar } from "./ui";
@@ -18,6 +25,11 @@ import { StateForm } from "./state-form";
 import { markReadAction } from "@/app/actions/inbox";
 import type { ReplyTarget } from "./composer";
 type ChatMessage = TranscriptMessage | PublicTranscriptMessage;
+function senderId(message: ChatMessage) {
+  return "senderAccountId" in message
+    ? message.senderAccountId
+    : message.senderAgentId;
+}
 function merge(current: ChatMessage[], incoming: ChatMessage[]) {
   const all = new Map(current.map((m) => [m.id, m]));
   for (const m of incoming) all.set(m.id, m);
@@ -222,88 +234,202 @@ export function Transcript({
         }}
       >
         {messages.length ? (
-          messages.map((m) => (
-            <article
-              className={`message ${("senderAccountId" in m ? m.senderAccountId : m.senderAgentId) === currentSenderId ? "message-own" : ""}`}
-              key={m.id}
-              id={`message-${m.id}`}
-              data-message-id={m.id}
-            >
-              <Link
-                className="message-profile-avatar"
-                href={`/profiles/${encodeURIComponent(m.handle)}`}
-                prefetch={false}
-                aria-label={`View @${m.handle}'s profile`}
+          messages.map((m, index) => {
+            const previous = messages[index - 1];
+            const elapsed = previous
+              ? Date.parse(m.createdAt) - Date.parse(previous.createdAt)
+              : -1;
+            const continuation =
+              publicRoom &&
+              previous &&
+              senderId(previous) === senderId(m) &&
+              elapsed >= 0 &&
+              elapsed <= 5 * 60 * 1000 &&
+              previous.createdAt.slice(0, 10) === m.createdAt.slice(0, 10);
+            const replyPreview = "replyTo" in m ? m.replyTo : null;
+            const metadata = (
+              <div className="message-meta">
+                {!continuation && (
+                  <>
+                    <Link
+                      className="message-profile-name"
+                      href={`/profiles/${encodeURIComponent(m.handle)}`}
+                      prefetch={false}
+                    >
+                      <strong>{m.displayName}</strong>
+                      <span>@{m.handle}</span>
+                    </Link>
+                    {"accountType" in m && (
+                      <span className="pill neutral">
+                        {m.accountType === "AGENT" ? "Agent" : "User"}
+                      </span>
+                    )}
+                  </>
+                )}
+                <a
+                  href={`${conversationPath}?messageId=${m.id}#message-${m.id}`}
+                  aria-label={`Link to message ${m.id}`}
+                >
+                  <time
+                    dateTime={m.createdAt}
+                    title={new Date(m.createdAt).toUTCString()}
+                  >
+                    {new Date(m.createdAt).toLocaleTimeString("en-US", {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      timeZone: "UTC",
+                    })}{" "}
+                    UTC
+                  </time>
+                </a>
+              </div>
+            );
+            return (
+              <article
+                className={`message ${senderId(m) === currentSenderId ? "message-own" : ""} ${continuation ? "message-continuation" : ""}`}
+                key={m.id}
+                id={`message-${m.id}`}
+                data-message-id={m.id}
+                aria-label={
+                  publicRoom ? `Message from ${m.displayName}` : undefined
+                }
               >
-                <Avatar name={m.displayName} size="tiny" alt={m.id % 2 === 0} />
-              </Link>
-              <div style={{ minWidth: 0 }}>
-                <div className="message-meta">
+                {continuation ? (
+                  <span className="message-avatar-space" aria-hidden="true" />
+                ) : (
                   <Link
-                    className="message-profile-name"
+                    className="message-profile-avatar"
                     href={`/profiles/${encodeURIComponent(m.handle)}`}
                     prefetch={false}
+                    aria-label={`View @${m.handle}'s profile`}
                   >
-                    <strong>{m.displayName}</strong>
-                    <span>@{m.handle}</span>
+                    <Avatar
+                      name={m.displayName}
+                      size="tiny"
+                      alt={m.id % 2 === 0}
+                    />
                   </Link>
-                  {"accountType" in m && (
-                    <span className="pill neutral">
-                      {m.accountType === "AGENT" ? "Agent" : "User"}
-                    </span>
+                )}
+                <div className="message-content" style={{ minWidth: 0 }}>
+                  {publicRoom ? (
+                    <div className="public-message-heading">
+                      {metadata}
+                      {(onReply || onReport) && (
+                        <details
+                          className="public-message-actions"
+                          onKeyDown={(event) => {
+                            if (event.key === "Escape") {
+                              event.currentTarget.open = false;
+                              event.currentTarget
+                                .querySelector("summary")
+                                ?.focus();
+                              event.stopPropagation();
+                            }
+                          }}
+                          onBlur={(event) => {
+                            if (
+                              !event.currentTarget.contains(event.relatedTarget)
+                            )
+                              event.currentTarget.open = false;
+                          }}
+                        >
+                          <summary
+                            aria-label={`Actions for message ${m.id}`}
+                            title="Message actions"
+                          >
+                            <MoreHorizontal size={18} aria-hidden="true" />
+                          </summary>
+                          <div className="public-message-action-list">
+                            {onReply && (
+                              <button
+                                className="text-link small"
+                                type="button"
+                                aria-label={`Reply to message ${m.id}`}
+                                onClick={(event) => {
+                                  event.currentTarget
+                                    .closest("details")
+                                    ?.removeAttribute("open");
+                                  onReply(m);
+                                }}
+                              >
+                                <Reply size={15} aria-hidden="true" /> Reply
+                              </button>
+                            )}
+                            {onReport && (
+                              <button
+                                className="text-link small"
+                                type="button"
+                                aria-label={`Report message ${m.id}`}
+                                onClick={(event) => {
+                                  event.currentTarget
+                                    .closest("details")
+                                    ?.removeAttribute("open");
+                                  onReport(m);
+                                }}
+                              >
+                                <Flag size={15} aria-hidden="true" /> Report
+                              </button>
+                            )}
+                          </div>
+                        </details>
+                      )}
+                    </div>
+                  ) : (
+                    metadata
                   )}
-                  <a
-                    href={`${conversationPath}?messageId=${m.id}#message-${m.id}`}
-                    aria-label={`Link to message ${m.id}`}
-                  >
-                    <time
-                      dateTime={m.createdAt}
-                      title={new Date(m.createdAt).toUTCString()}
+                  {m.replyToId &&
+                    (publicRoom ? (
+                      <a
+                        className="public-message-quote"
+                        href={`${conversationPath}?messageId=${m.replyToId}#message-${m.replyToId}`}
+                        aria-label={`Reply to ${replyPreview?.displayName ?? "original message"}: ${replyPreview?.body ?? "Message unavailable"}`}
+                      >
+                        <Reply size={14} aria-hidden="true" />
+                        <span>
+                          <strong>
+                            {replyPreview?.displayName ?? "Original message"}
+                          </strong>
+                          <span className="public-message-quote-body">
+                            {replyPreview?.body ?? "Message unavailable"}
+                          </span>
+                        </span>
+                      </a>
+                    ) : (
+                      <p className="small">
+                        <a
+                          className="text-link"
+                          href={`${conversationPath}?messageId=${m.replyToId}#message-${m.replyToId}`}
+                        >
+                          Reply to message #{m.replyToId}
+                        </a>
+                      </p>
+                    ))}
+                  <p className="message-body">{m.body}</p>
+                  {!publicRoom && onReply && (
+                    <button
+                      className="text-link small"
+                      type="button"
+                      onClick={() => onReply(m)}
+                      aria-label={`Reply to message ${m.id}`}
                     >
-                      {new Date(m.createdAt).toLocaleTimeString("en-US", {
-                        hour: "numeric",
-                        minute: "2-digit",
-                        timeZone: "UTC",
-                      })}{" "}
-                      UTC
-                    </time>
-                  </a>
+                      Reply
+                    </button>
+                  )}
+                  {!publicRoom && onReport && (
+                    <button
+                      className="text-link small"
+                      type="button"
+                      onClick={() => onReport(m)}
+                      aria-label={`Report message ${m.id}`}
+                      style={{ marginLeft: 12 }}
+                    >
+                      Report
+                    </button>
+                  )}
                 </div>
-                {m.replyToId && (
-                  <p className="small">
-                    <a
-                      className="text-link"
-                      href={`${conversationPath}?messageId=${m.replyToId}#message-${m.replyToId}`}
-                    >
-                      Reply to message #{m.replyToId}
-                    </a>
-                  </p>
-                )}
-                <p className="message-body">{m.body}</p>
-                {onReply && (
-                  <button
-                    className="text-link small"
-                    type="button"
-                    onClick={() => onReply(m)}
-                    aria-label={`Reply to message ${m.id}`}
-                  >
-                    Reply
-                  </button>
-                )}
-                {onReport && (
-                  <button
-                    className="text-link small"
-                    type="button"
-                    onClick={() => onReport(m)}
-                    aria-label={`Report message ${m.id}`}
-                    style={{ marginLeft: 12 }}
-                  >
-                    Report
-                  </button>
-                )}
-              </div>
-            </article>
-          ))
+              </article>
+            );
+          })
         ) : (
           <div className="empty">
             <div className="empty-icon">

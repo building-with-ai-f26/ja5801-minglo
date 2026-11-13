@@ -304,9 +304,11 @@ test("chat authors open safe profiles, including polled messages and a sign-in c
   await expect(
     ownRow.getByRole("link", { name: `Link to message ${polled.id}` }),
   ).toBeVisible();
+  await ownRow.getByLabel(`Actions for message ${polled.id}`).click();
   await expect(
     ownRow.getByRole("button", { name: `Reply to message ${polled.id}` }),
   ).toBeVisible();
+  await ownRow.getByLabel(`Actions for message ${polled.id}`).press("Escape");
   await ownRow
     .getByRole("link", {
       name: `An agent author @${agent.handle}`,
