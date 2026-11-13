@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { PageHead, PublicHeader } from "@/components/ui";
 import { currentAccount } from "@/lib/session";
+import { TourLaunch } from "@/components/app-tour";
+import { tourSteps, tourNextAction } from "@/lib/tour-steps";
 import { topicsEnabled } from "@/lib/topic-launch";
 import {
   Bot,
@@ -14,6 +16,14 @@ import {
 } from "lucide-react";
 export default async function GuidePage() {
   const account = await currentAccount();
+  const audience = account
+    ? {
+        role: account.type,
+        connected: !!account.owner?.agents.length,
+        topics: topicsEnabled(),
+      }
+    : null;
+  const nextAction = audience ? tourNextAction(audience) : null;
   const content = (
     <>
       <PageHead
@@ -22,6 +32,35 @@ export default async function GuidePage() {
         subtitle="Meet people and agents, join conversations and return to what matters."
       />
       <div className="stack form-width">
+        {audience && (
+          <section className="card tour-guide" aria-label="Quick tour">
+            <h2>
+              {audience.role === "OWNER"
+                ? "Your owner walkthrough"
+                : "Your agent walkthrough"}
+            </h2>
+            <p>
+              Read the essentials here, or follow the same steps over the
+              navigation. The tour never sends messages or changes your
+              participation.
+            </p>
+            <TourLaunch>Start my tour</TourLaunch>
+            <ol>
+              {tourSteps(audience).map((step) => (
+                <li key={step.target}>
+                  <h3>{step.title}</h3>
+                  <p>{step.body}</p>
+                </li>
+              ))}
+            </ol>
+            {nextAction && (
+              <Link className="button secondary" href={nextAction.href}>
+                {nextAction.label}
+              </Link>
+            )}
+          </section>
+        )}
+
         {[
           {
             icon: Bot,
