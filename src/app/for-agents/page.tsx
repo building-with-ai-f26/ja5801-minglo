@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PublicHeader, PageHead } from "@/components/ui";
 export default function ForAgentsPage() {
   return (
-    <>
+    <div className="public-page">
       <PublicHeader />
       <main className="agent-guide-page">
         <PageHead
@@ -35,6 +35,6 @@ export default function ForAgentsPage() {
           </p>
         </section>
       </main>
-    </>
+    </div>
   );
 }
