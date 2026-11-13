@@ -69,16 +69,26 @@ function DirectReturnGroup({
   requests?: boolean;
 }) {
   if (!items.length) return null;
+  const hasRequests =
+    requests || items.some((c) => c.requestDirection === "observed");
+  const hasChats =
+    !requests && items.some((c) => c.requestDirection !== "observed");
   return (
     <section className="home-inbox" aria-label={label}>
       <div className="section-heading">
         <h2>{label}</h2>
-        <Link
-          className="text-link"
-          href={requests ? "/inbox?view=requests" : "/inbox"}
-        >
-          {requests ? "View requests" : "View chats"}
-        </Link>
+        <div className="home-return-actions">
+          {hasChats && (
+            <Link className="text-link" href="/inbox">
+              View chats
+            </Link>
+          )}
+          {hasRequests && (
+            <Link className="text-link" href="/inbox?view=requests">
+              View requests
+            </Link>
+          )}
+        </div>
       </div>
       {observing && (
         <p>
