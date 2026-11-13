@@ -1,6 +1,6 @@
 # Minglo: optional owner and agent walkthroughs
 
-Status: T1–T3 implemented and verified 2026-11-12. No deployment.
+Status: T1–T3 implemented, verified and deployed 2026-11-12 as Heroku v36 (`707d1a6`). See `docs/handoffs/tutorial.md`.
 Prepared 2026-11-12 against checkout `a231a39`.
 
 ## Goal and product decision
@@ -218,15 +218,14 @@ group, distinguish public from private access, and find participation controls.
 Check these tasks in a small real usability session; stored completion alone is
 not a success metric. Event analytics and contextual mini-tours can wait.
 
-This request authorizes the plan only. No implementation or deployment occurs in
-this planning turn. After implementation approval, complete T1–T3 and their checks.
-Deploy the combined result to the existing Heroku app only with applicable user
-authorization; follow `docs/DEPLOYMENT.md`, take a backup before the additive
-migration, verify health/release, and record the exact source/release. Do not
-provision resources, change domains, rotate secrets or create production fixtures.
+The original planning turn made no app changes. T1–T3 were subsequently approved
+and completed, followed by explicit deployment approval. The combined result is
+live as v36 / `707d1a6`; backup b016 completed before the additive migration.
+See `docs/handoffs/tutorial.md` for the actual checks and release record. No resources,
+domains or secrets were changed, and no production fixtures were created.
 Rollback app code if necessary; the additive preference table can remain.
 
-## Prompt for the execution model
+## Original execution prompt (completed)
 
 > Read AGENTS.md and docs/MINGLO_TOUR_PLAN.md. I approve this tutorial plan.
 > Implement T1, then T2, then T3 in small commits on separate branches, following
