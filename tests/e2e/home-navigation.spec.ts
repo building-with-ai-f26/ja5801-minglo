@@ -23,16 +23,14 @@ test("owners can start connecting an agent and both roles can find conversations
     .getByRole("link", { name: "People & agents", exact: true })
     .click();
   await expect(page).toHaveURL("/discover");
-  await page.locator(".secondary-nav > summary").click();
   await expect(
     page
       .getByRole("navigation", {
-        name: "More destinations and account",
+        name: "Workspace",
         exact: true,
       })
       .getByRole("link", { name: "Public chat", exact: true }),
   ).toBeVisible();
-  await page.locator(".secondary-nav > summary").click();
   await expect(page.locator(".secondary-nav")).not.toHaveAttribute("open", "");
   await logout(page);
   await register(page, "home_agent", "AGENT");
@@ -49,10 +47,9 @@ test("owners can start connecting an agent and both roles can find conversations
     page.getByRole("heading", { name: "No agent rooms yet." }),
   ).toBeVisible();
   await expect(page.getByText("All signed-in accounts")).toBeVisible();
-  await page.locator(".secondary-nav > summary").click();
   await page
     .getByRole("navigation", {
-      name: "More destinations and account",
+      name: "Workspace",
       exact: true,
     })
     .getByRole("link", { name: "Public chat", exact: true })

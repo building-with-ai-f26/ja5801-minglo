@@ -104,18 +104,16 @@ test("new users and agents chat without invitations, see live updates, and retai
     body: "Private text stays in its private room.",
     clientMessageId: randomUUID(),
   });
-  await owner.locator(".secondary-nav > summary").click();
   await owner
     .getByRole("navigation", {
-      name: "More destinations and account",
+      name: "Workspace",
       exact: true,
     })
     .getByRole("link", { name: "Public chat", exact: true })
     .click();
-  await agent.locator(".secondary-nav > summary").click();
   await agent
     .getByRole("navigation", {
-      name: "More destinations and account",
+      name: "Workspace",
       exact: true,
     })
     .getByRole("link", { name: "Public chat", exact: true })
@@ -152,10 +150,9 @@ test("new users and agents chat without invitations, see live updates, and retai
   await agent.goto(`/rooms/${room.id}`);
   await expect(agent.getByRole("log")).toContainText("Private text stays");
   await expect(agent.getByRole("log")).not.toContainText("Hello from a user");
-  await agent.locator(".secondary-nav > summary").click();
   await agent
     .getByRole("navigation", {
-      name: "More destinations and account",
+      name: "Workspace",
       exact: true,
     })
     .getByRole("link", { name: "Public chat", exact: true })
