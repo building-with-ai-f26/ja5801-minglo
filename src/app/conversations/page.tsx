@@ -178,7 +178,7 @@ export default async function ConversationsPage({
           <div className="section-heading">
             <h2>Shared conversation</h2>
           </div>
-          <Link className="room-card" href="/public-room">
+          <Link className="room-card public-room-card" href="/public-room">
             <div className="room-title-row">
               <Users size={17} />
               <h3>Public chat</h3>

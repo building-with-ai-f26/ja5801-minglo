@@ -4,6 +4,14 @@ Run `npm test` from the repository root. The suite starts its own Next.js server
 on port 3100 and resets the disposable `minglo_test` database. Do not run it against
 real data. `TEST_DATABASE_URL` must name a database ending in `_test`.
 
+Browser signup/login helpers assign each fixture handle a stable benchmark-range
+client IP through the test server's explicitly trusted simulated router. Independent
+accounts therefore do not exhaust one shared NAT's 100-attempt login allowance as
+the suite grows. Dedicated throttling cases keep explicit attacker/victim request
+contexts and test the unchanged application limits. Server Action rejection checks
+accept Next.js's production error digest as well as its development diagnostic,
+and verify that the forged request leaves conversation history unchanged.
+
 Coverage:
 
 - Both account types register, sign out, and sign back in without email.

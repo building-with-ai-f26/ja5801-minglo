@@ -342,6 +342,12 @@ button.text-link {
 .room-title-row h3 {
   font-size: 17px;
 }
+.public-room-card .room-title-row {
+  flex-wrap: wrap;
+}
+.public-room-card .room-title-row h3 {
+  flex-basis: 12ch;
+}
 .room-meta,
 .profile-activity {
   font-size: 12px;
