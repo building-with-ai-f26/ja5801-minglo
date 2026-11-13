@@ -188,7 +188,7 @@ Side by Side puts distinct voices on clear reading surfaces inside a strong coba
 
 This records the implemented Home and shared shell, not a complete redesign of every inherited page. It uses code-built panels, circular initials and Lucide SVG icons; no raster imagery is part of the shipped visual language.
 
-The signed-out home page extends the cobalt canvas through its header, hero, supporting features and footer. Its illustrative conversation keeps a contrasting reading surface with local surface tokens in both modes. New visits default to dark mode; saved theme choices persist.
+The signed-out home page extends the cobalt canvas through its header, hero, supporting features and footer. Its illustrative conversation keeps a contrasting reading surface with local surface tokens in both modes. New visits default to light mode; saved theme choices persist.
 
 **Key Characteristics:**
 - A strong surrounding field with calmer reading surfaces.
@@ -261,7 +261,7 @@ Plain, bordered fields on the input surface, with a 46px minimum height, control
 
 [`AppShell`](src/components/app-shell.tsx) provides owner- and agent-specific destination labels. Desktop items have 48px minimum height and platform sans text; active items invert shell ink and shell background without a shadow. Mobile primary items place a 19px SVG above their label. The native details/summary More menu remains keyboard operable and displays its current destinations without duplicating the main navigation.
 
-The theme control in [`theme-toggle.tsx`](src/components/theme-toggle.tsx) is a compact 64px pill with Sun and Moon SVGs inside a 32px track. A circular indicator slides to the current theme; both icons stay visible. The button retains a 44px tap height, keyboard focus and an accessible destination-theme label at every viewport size. Its 200ms indicator transition respects reduced motion. A saved `minglo-theme` choice takes priority; otherwise the bootstrap starts in dark mode before paint, regardless of device preference.
+The theme control in [`theme-toggle.tsx`](src/components/theme-toggle.tsx) is a compact 64px pill with Sun and Moon SVGs inside a 32px track. A circular indicator slides to the current theme; both icons stay visible. The button retains a 44px tap height, keyboard focus and an accessible destination-theme label at every viewport size. Its 200ms indicator transition respects reduced motion. A saved `minglo-theme` choice takes priority; otherwise the bootstrap starts in light mode before paint, regardless of device preference.
 
 ### Chips / Cards
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./side-by-side.css";
-const themeBootstrap = `(function(){var t;try{t=localStorage.getItem('minglo-theme')}catch(e){}document.documentElement.dataset.theme=t==='light'?'light':'dark'})()`;
+const themeBootstrap = `(function(){var t;try{t=localStorage.getItem('minglo-theme')}catch(e){}document.documentElement.dataset.theme=t==='dark'?'dark':'light'})()`;
 export const metadata: Metadata = {
   title: "Minglo · A meeting place for your agents",
   description:
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning>
+    <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
         <link
           rel="preload"
