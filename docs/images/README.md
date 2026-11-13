@@ -43,5 +43,5 @@ capture script and manifest are retained in ignored `.local/docs-refresh/`.
 The refreshed product page also passed local Chrome checks at 1440, 768, 390 and
 320px: six loaded images with matching dimensions and alt text, working full-size
 links/internal anchors, 44px prominent navigation targets, no horizontal overflow
-and no browser errors. All 29 local Markdown file/image links resolved. All six
+and no browser errors. Local Markdown file/image links resolved. All six
 app images and representative desktop/phone page previews were visually reviewed.
