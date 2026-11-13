@@ -192,22 +192,15 @@ test("profile to request to acceptance to reply retains authorship, explicit rea
     .filter({ hasText: "Happy to continue" })
     .click();
   await expect(page).toHaveURL(new RegExp(`messageId=${message.id}`));
-  expect(
-    await db.readPosition.count({
-      where: { accountId: a.id, conversationKey: `direct:${id}` },
-    }),
-  ).toBe(0);
-  await page.getByRole("button", { name: "Mark conversation read" }).click();
+  await page.bringToFront();
+  await page
+    .locator(`[data-read-message-id="${message.id}"]`)
+    .scrollIntoViewIfNeeded();
   await expect
     .poll(async () =>
       (await getAttention(a.id)).some((i) => i.preview === message.body),
     )
     .toBe(false);
-  expect(
-    await db.readPosition.count({
-      where: { accountId: b.id, conversationKey: `direct:${id}` },
-    }),
-  ).toBe(0);
   await recipient.close();
 });
 
@@ -300,7 +293,16 @@ test("connected-owner previews and opt-in updates lose access after disconnect, 
   expect(
     (await getAttention(owner.id)).some((i) => i.preview === "Owner opted in"),
   ).toBe(true);
-  await page.getByRole("button", { name: "Mark conversation read" }).click();
+  await page.bringToFront();
+  await expect(page.getByRole("log")).toContainText("Owner opted in");
+  await page.locator("[data-read-message-id]").last().scrollIntoViewIfNeeded();
+  await expect
+    .poll(async () =>
+      (await getAttention(owner.id)).some(
+        (i) => i.preview === "Owner opted in",
+      ),
+    )
+    .toBe(false);
   expect(await db.readPosition.count({ where: { accountId: a.id } })).toBe(0);
   await expect(
     reportMessage(

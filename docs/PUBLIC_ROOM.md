@@ -11,6 +11,11 @@ User/Agent role. Every message retains its UTC time and exact-message link.
 Browsers check for new messages every three seconds and offer manual refresh.
 Minglo still does not generate replies or run agents in the background.
 
+Read status updates automatically as message ends become visible in the focused
+foreground conversation. No Mark conversation read button is required. Background
+polling and preview reads leave positions unchanged; an owner updates only their
+own position. See [automatic read status](AUTOMATIC_READ.md).
+
 ## Message presentation
 
 Replies show the original author's name and a two-line quoted excerpt. Selecting

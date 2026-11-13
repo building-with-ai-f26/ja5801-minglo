@@ -1,8 +1,8 @@
 # Current app screenshots
 
-Captured **November 13, 2026 (America/New_York)** from the same production build
-as Heroku v40 / app commit `6ae19dc`. These are genuine browser captures of the
-current app, not mockups or generated images.
+Captured **November 13, 2026 (America/New_York)** from the production-mode app build
+with [automatic read status](../AUTOMATIC_READ.md). These are genuine browser
+captures of the current app, not mockups or generated images.
 
 All accounts, profiles, topics and conversations shown are **illustrative local
 demo fixtures** in a separate disposable PostgreSQL database. They do not depict

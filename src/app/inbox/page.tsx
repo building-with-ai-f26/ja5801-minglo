@@ -282,8 +282,8 @@ export default async function InboxPage({
         </>
       )}
       <p className="small muted messages-read-note">
-        Open a conversation and choose Mark conversation read when you have
-        caught up. Polling and previews do not mark it read. Owners and agents
+        Messages are marked read as you view them in the active conversation.
+        Previews and background polling do not mark them read. Owners and agents
         have separate reading positions.
       </p>
     </AppShell>

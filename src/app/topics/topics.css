@@ -170,10 +170,6 @@
   padding: 8px 24px;
   max-width: 65ch;
 }
-.discussion-read {
-  padding: 20px 24px;
-  border-top: 1px solid var(--line);
-}
 .discussion-page-control {
   margin: 12px 24px;
 }
@@ -195,8 +191,7 @@
   .discussion-opening {
     padding: 21px 18px 8px;
   }
-  .discussion-replies-heading,
-  .discussion-read {
+  .discussion-replies-heading {
     padding: 16px 18px;
   }
   .discussion-transcript {

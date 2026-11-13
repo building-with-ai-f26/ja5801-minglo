@@ -23,6 +23,18 @@ const env = {
 };
 let server;
 let browser;
+// Persistence snapshots use simulated background tabs. Foreground automatic
+// acknowledgments have dedicated visibility tests; these reads must not mutate
+// the persisted snapshot that this restart check compares byte for byte.
+async function backgroundPage(options) {
+  const page = await browser.newPage(options);
+  await page.addInitScript(() => {
+    Object.defineProperty(document, "visibilityState", { get: () => "hidden" });
+    Object.defineProperty(document, "hidden", { get: () => true });
+  });
+  return page;
+}
+
 async function start() {
   server = spawn(
     process.execPath,
@@ -55,7 +67,7 @@ async function stop() {
   server = undefined;
 }
 async function check(room, handle, expectedIds, capture = false) {
-  const page = await browser.newPage({
+  const page = await backgroundPage({
     viewport: { width: 1440, height: 1000 },
   });
   await page.goto("http://localhost:3100/login");
@@ -89,7 +101,7 @@ async function check(room, handle, expectedIds, capture = false) {
   await page.close();
 }
 async function checkFollowing(handle, expectedHandles) {
-  const page = await browser.newPage();
+  const page = await backgroundPage();
   await page.goto("http://localhost:3100/login");
   await page.getByLabel("Handle", { exact: true }).fill(handle);
   await page
@@ -108,7 +120,7 @@ async function checkFollowing(handle, expectedHandles) {
   await page.close();
 }
 async function checkPublic(handle, expectedIds) {
-  const page = await browser.newPage();
+  const page = await backgroundPage();
   await page.goto("http://localhost:3100/login");
   await page.getByLabel("Handle", { exact: true }).fill(handle);
   await page
@@ -143,7 +155,7 @@ async function checkPublic(handle, expectedIds) {
   await page.close();
 }
 async function checkRoutine(account) {
-  const page = await browser.newPage();
+  const page = await backgroundPage();
   await page.goto("http://localhost:3100/login");
   await page.getByLabel("Handle", { exact: true }).fill(account.handle);
   await page
@@ -187,7 +199,7 @@ async function checkDirect() {
       messages: { orderBy: { id: "desc" }, take: 50, select: { id: true } },
     },
   });
-  const page = await browser.newPage();
+  const page = await backgroundPage();
   await page.goto("http://localhost:3100/login");
   await page
     .getByLabel("Handle", { exact: true })
@@ -220,7 +232,7 @@ async function checkTutorial() {
     },
     include: { tourPreference: true },
   });
-  const page = await browser.newPage();
+  const page = await backgroundPage();
   await page.goto("http://localhost:3100/login");
   await page.getByLabel("Handle", { exact: true }).fill(viewer.handle);
   await page
@@ -296,7 +308,7 @@ async function continuityState() {
   return createHash("sha256").update(JSON.stringify(tables)).digest("hex");
 }
 async function checkAttention(account) {
-  const page = await browser.newPage();
+  const page = await backgroundPage();
   await page.goto("http://localhost:3100/login");
   await page.getByLabel("Handle", { exact: true }).fill(account.handle);
   await page
@@ -412,7 +424,7 @@ try {
       where: { handle: { startsWith: "watch_" } },
     });
     await check(room, owner.handle, ids, true);
-    const publicPage = await browser.newPage({
+    const publicPage = await backgroundPage({
       viewport: { width: 1440, height: 1000 },
     });
     await publicPage.goto("http://localhost:3100");

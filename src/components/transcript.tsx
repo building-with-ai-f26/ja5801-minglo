@@ -21,8 +21,7 @@ import {
 import type { TranscriptMessage } from "@/lib/rooms";
 import type { PublicTranscriptMessage } from "@/lib/public-room";
 import { Avatar } from "./ui";
-import { StateForm } from "./state-form";
-import { markReadAction } from "@/app/actions/inbox";
+import { AutomaticRead, ReadMarker } from "./automatic-read";
 import type { ReplyTarget } from "./composer";
 type ChatMessage = TranscriptMessage | PublicTranscriptMessage;
 function senderId(message: ChatMessage) {
@@ -405,6 +404,7 @@ export function Transcript({
                       </p>
                     ))}
                   <p className="message-body">{m.body}</p>
+                  <ReadMarker messageId={m.id} />
                   {!publicRoom && onReply && (
                     <button
                       className="text-link small"
@@ -463,24 +463,12 @@ export function Transcript({
         </div>
       )}
       {messages.length > 0 && (
-        <div style={{ padding: 12 }}>
-          <StateForm action={markReadAction} label="Mark conversation read">
-            <input
-              type="hidden"
-              name="conversationKey"
-              value={conversationKey}
-            />
-            <input
-              type="hidden"
-              name="lastMessageId"
-              value={messages.at(-1)!.id}
-            />
-          </StateForm>
-          <p className="small muted conversation-read-helper">
-            Marks this conversation read through the last message shown,
-            including earlier history.
-          </p>
-        </div>
+        <AutomaticRead
+          key={conversationKey}
+          conversationKey={conversationKey}
+          rootRef={view}
+          revision={messages}
+        />
       )}
     </>
   );

@@ -11,8 +11,7 @@ import { RefreshCw } from "lucide-react";
 import { Composer, type ReplyTarget } from "./composer";
 import { MessageReportForm } from "./message-report-form";
 import { Avatar, PageHead } from "./ui";
-import { StateForm } from "./state-form";
-import { markReadAction } from "@/app/actions/inbox";
+import { AutomaticRead, ReadMarker } from "./automatic-read";
 import { postDiscussionAction } from "@/app/actions/topics";
 import { discussionPath } from "@/lib/discussion-path";
 import type {
@@ -71,6 +70,7 @@ export function DiscussionPanel({
   const following = useRef(!focusId),
     hasNewer = useRef(newer),
     view = useRef<HTMLDivElement>(null);
+  const reading = useRef<HTMLElement>(null);
   const focus = useRef(focusId),
     anchor = useRef<{ id: number; top: number } | null>(null);
   const thread = metadata.thread,
@@ -248,7 +248,6 @@ export function DiscussionPanel({
       </div>
     );
   const canPost = !paused && !thread.lockedAt && !thread.topic.archivedAt;
-  const last = messages.at(-1)?.id ?? opening?.id;
   return (
     <>
       <nav className="topic-navigation" aria-label="Discussion navigation">
@@ -267,7 +266,11 @@ export function DiscussionPanel({
         subtitle="A public discussion for signed-in people and agents."
       />
       <div className="room-grid">
-        <section className="card discussion-reading" aria-label="Discussion">
+        <section
+          className="card discussion-reading"
+          aria-label="Discussion"
+          ref={reading}
+        >
           <div className="discussion-opening">
             <h2>Opening contribution</h2>
             {opening && (
@@ -359,22 +362,12 @@ export function DiscussionPanel({
               </button>
             </div>
           )}
-          {last && (
-            <div className="discussion-read">
-              <StateForm action={markReadAction} label="Mark conversation read">
-                <input
-                  type="hidden"
-                  name="conversationKey"
-                  value={`discussion:${thread.id}`}
-                />
-                <input type="hidden" name="lastMessageId" value={last} />
-              </StateForm>
-              <p className="small muted">
-                Marks your account read through the last message shown,
-                including earlier history.
-              </p>
-            </div>
-          )}
+          <AutomaticRead
+            key={thread.id}
+            conversationKey={`discussion:${thread.id}`}
+            rootRef={reading}
+            revision={messages}
+          />
           {report && (
             <MessageReportForm
               key={report.id}
@@ -510,6 +503,7 @@ function DiscussionMessage({
           </p>
         )}
         <p className="message-body">{m.body}</p>
+        <ReadMarker messageId={m.id} />
         <div className="inline discussion-message-actions">
           {onReply && (
             <button

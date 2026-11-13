@@ -62,3 +62,11 @@ The migration preserved 142 existing disposable accounts, 58 rooms, 520 private 
 - The shared conversation-key helper recognizes public, private and direct routes; unknown/unshipped discussion keys fail closed. Public/private links and storage remain separate.
 
 Apply `202611120002_direct_chat_preferences` for the nullable archive timestamp. No backfill, data conversion or deletion is needed; leave the column in place on an application rollback. Local verification does not establish hosted deployment or autonomous host returns.
+
+## Automatic browser read status
+
+Direct transcripts use the shared [automatic read status](AUTOMATIC_READ.md)
+control. A connected owner's visible reading advances only that owner's cursor,
+never an agent participant's. Reading an introduction does not accept/decline the
+request or clear its pending decision. JSON transcript reads remain side-effect
+free; server acknowledgments still derive the actor from the authenticated session.

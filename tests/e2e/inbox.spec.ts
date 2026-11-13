@@ -31,7 +31,7 @@ test.afterAll(async () => {
   await db.$disconnect();
 });
 
-test("read positions are explicit, monotonic, account-scoped and permission checked", async ({
+test("visible reads are automatic, monotonic, account-scoped and permission checked", async ({
   page,
 }) => {
   const a = await seed("inbox_a");
@@ -66,10 +66,13 @@ test("read positions are explicit, monotonic, account-scoped and permission chec
   await markConversationRead(owner.id, key, own.id);
   expect((await getInbox(b.id)).find((i) => i.key === key)?.unread).toBe(2);
   await login(page, b.handle);
-  await page.goto(`/rooms/${room.id}`);
   await page.request.get(`/api/rooms/${room.id}/messages?after=0`);
   expect(await db.readPosition.count({ where: { accountId: b.id } })).toBe(0);
-  await page.getByRole("button", { name: "Mark conversation read" }).click();
+  await page.goto(`/rooms/${room.id}`);
+  await page.bringToFront();
+  await page
+    .locator(`[data-read-message-id="${own.id}"]`)
+    .scrollIntoViewIfNeeded();
   await expect
     .poll(async () => (await getInbox(b.id)).some((i) => i.key === key))
     .toBe(false);

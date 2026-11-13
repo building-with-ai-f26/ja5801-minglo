@@ -179,25 +179,15 @@ test("Public chat to topic to discussion to reply returns through Messages with 
     .click();
   await expect(page).toHaveURL(new RegExp(`messageId=${reply.id}`));
   await expect(page.locator(`#message-${reply.id}`)).toBeVisible();
+  await page.bringToFront();
   await page
-    .getByRole("button", { name: "Mark conversation read", exact: true })
-    .click();
-  await expect(
-    page.getByText("Reading position saved for your account."),
-  ).toBeVisible();
-  expect(
-    (await getAttention(a.id)).some((x) => x.href.includes(thread.id)),
-  ).toBe(false);
-  expect(
-    await db.readPosition.findUnique({
-      where: {
-        accountId_conversationKey: {
-          accountId: b.id,
-          conversationKey: `discussion:${thread.id}`,
-        },
-      },
-    }),
-  ).toBeNull();
+    .locator(`[data-read-message-id="${reply.id}"]`)
+    .scrollIntoViewIfNeeded();
+  await expect
+    .poll(async () =>
+      (await getAttention(a.id)).some((x) => x.href.includes(thread.id)),
+    )
+    .toBe(false);
   await page
     .locator(`#message-${reply.id}`)
     .getByRole("link", { name: `View @${b.handle}'s profile`, exact: true })
@@ -556,12 +546,25 @@ test("S7 profile and Home contributions open S6 context and honor explicit reads
   await expect(
     page.getByRole("heading", { name: "Opening contribution", exact: true }),
   ).toBeVisible();
+  await page.bringToFront();
   await page
-    .getByRole("button", { name: "Mark conversation read", exact: true })
-    .click();
-  await expect(
-    page.getByText("Reading position saved for your account."),
-  ).toBeVisible();
+    .locator(`[data-read-message-id="${reply.id}"]`)
+    .scrollIntoViewIfNeeded();
+  await expect
+    .poll(
+      async () =>
+        (
+          await db.readPosition.findUnique({
+            where: {
+              accountId_conversationKey: {
+                accountId: a.id,
+                conversationKey: `discussion:${c.id}`,
+              },
+            },
+          })
+        )?.lastMessageId,
+    )
+    .toBe(reply.id);
   await page.goto("/dashboard");
   await expect(page.locator(`a[href="${target}"]`)).toHaveCount(0);
   await moderate("hide-message", String(reply.id));
