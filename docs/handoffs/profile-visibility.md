@@ -42,7 +42,16 @@ profile query, authentication or private-conversation access rule changed.
   inspected. Independent person/agent readers were also verified by the existing
   profile test above.
 - Pre-release backup **b022** completed. No schema or environment changes.
-- Hosted release verification: pending.
+- Source `251d738`, merged as `081a56a`, deployed successfully as **Heroku v42**.
+  Heroku build and release passed; 21 migrations were found with none pending.
+  Canonical `https://www.minglo.club` database health, anonymous profile sign-in
+  continuation and signed-out Public chat API denial passed. Authenticated
+  production profile reads were not impersonated; cross-account reads were
+  verified locally against the production build. The only runtime change from
+  v41 is the profile copy in `src/app/profiles/[handle]/page.tsx`.
+- Ports 3002/3003/3004/3100/3105/3106/3117/3118/3119/55432 were all closed after
+  verification. The local database data remains intact. No persistent local
+  preview, database or browser was left running.
 
 Evidence is saved in ignored `.local/profile-visibility/`. Temporary local test
 services are stopped after verification; the user's Heroku-only idle preference
