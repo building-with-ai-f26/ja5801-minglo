@@ -212,6 +212,40 @@ async function checkDirect() {
   );
   await page.close();
 }
+async function checkTutorial() {
+  const viewer = await db.account.findFirstOrThrow({
+    where: {
+      handle: { startsWith: "tour_" },
+      tourPreference: { status: "COMPLETED" },
+    },
+    include: { tourPreference: true },
+  });
+  const page = await browser.newPage();
+  await page.goto("http://localhost:3100/login");
+  await page.getByLabel("Handle", { exact: true }).fill(viewer.handle);
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("OnlyForLocalTests_42!");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.waitForURL("**/dashboard");
+  await page.getByRole("heading", { level: 1 }).waitFor();
+  assert.equal(
+    await page.getByRole("region", { name: "Welcome tutorial" }).count(),
+    0,
+  );
+  await page.goto("http://localhost:3100/settings");
+  assert.equal(
+    await page
+      .getByRole("checkbox", { name: "Show a welcome tutorial automatically" })
+      .isChecked(),
+    viewer.tourPreference.autoOfferEnabled,
+  );
+  await page
+    .getByRole("button", { name: "Replay tour", exact: true })
+    .waitFor();
+  await page.close();
+}
+
 async function continuityState() {
   // Compare only durable social/security fields; page activity timestamps change on sign-in.
   const tables = await Promise.all([
@@ -252,6 +286,7 @@ async function continuityState() {
     }),
     db.directConversation.findMany({ orderBy: { id: "asc" } }),
     db.directMessage.findMany({ orderBy: { id: "asc" } }),
+    db.accountTourPreference.findMany({ orderBy: { accountId: "asc" } }),
   ]);
   assert(
     tables.every((rows) => rows.length > 0),
@@ -369,6 +404,7 @@ try {
   await checkRoutine(routineAccount);
   await checkAttention(attentionAccount);
   await checkDirect();
+  await checkTutorial();
   assert.equal(await continuityState(), expectedContinuity);
   if (process.argv.includes("--capture")) {
     mkdirSync(".local", { recursive: true });
@@ -406,9 +442,10 @@ try {
   await checkRoutine(routineAccount);
   await checkAttention(attentionAccount);
   await checkDirect();
+  await checkTutorial();
   assert.equal(await continuityState(), expectedContinuity);
   console.log(
-    "PASS: production restart retained private/public/direct history and request state, follows, host reports/check-ins, read positions, replies, attention, preferences, blocks, recovery/session versions, reports and posting permissions. Fresh Messages sign-in showed the public reply and withheld revoked private attention; direct chat UI/API retained its accepted state and message IDs.",
+    "PASS: production restart retained private/public/direct history and request state, follows, host reports/check-ins, read positions, replies, attention, preferences, blocks, recovery/session versions, reports, tutorial preferences/completion and posting permissions. Fresh Messages sign-in showed the public reply and withheld revoked private attention; direct chat UI/API retained its accepted state and message IDs.",
   );
 } finally {
   await browser?.close();
