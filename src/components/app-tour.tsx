@@ -57,6 +57,10 @@ export function TourProvider({
   const [pending, transition] = useTransition();
   const trigger = useRef<HTMLElement | null>(null);
   const attempted = useRef(false);
+  const lastOperation = useRef<
+    "start" | "skip" | "complete" | "enable" | "disable"
+  >("start");
+  const previousPath = useRef(pathname);
   const alive = useRef(false);
   const currentPath = useRef(pathname);
   currentPath.current = pathname;
@@ -102,9 +106,18 @@ export function TourProvider({
     });
   }, [pathname, state.status, state.autoOfferEnabled]);
 
+  useEffect(() => {
+    if (previousPath.current !== pathname) {
+      setStep(null);
+      setOffer(false);
+      previousPath.current = pathname;
+    }
+  }, [pathname]);
+
   function save(
     operation: "start" | "skip" | "complete" | "enable" | "disable",
   ) {
+    lastOperation.current = operation;
     transition(async () => {
       try {
         const result = await tourAction({ operation });
@@ -150,12 +163,12 @@ export function TourProvider({
     <TourContext.Provider value={value}>
       {children}
       {error && (
-        <div className="tour-save-notice" role="status">
-          {error}{" "}
-          <button className="text-link" onClick={() => setError("")}>
-            Dismiss
-          </button>
-        </div>
+        <TourFeedback
+          error={error}
+          pending={pending}
+          retry={() => save(lastOperation.current)}
+          dismiss={() => setError("")}
+        />
       )}
       {offer && (
         <TourOffer
@@ -242,6 +255,41 @@ function OfferPortal({
   );
 }
 
+function TourFeedback({
+  error,
+  pending,
+  retry,
+  dismiss,
+}: {
+  error: string;
+  pending: boolean;
+  retry: () => void;
+  dismiss: () => void;
+}) {
+  const slot =
+    typeof document === "undefined"
+      ? null
+      : document.getElementById("tour-welcome-slot");
+  return slot
+    ? createPortal(
+        <div className="tour-save-notice" role="status">
+          <p>{error}</p>
+          <button
+            className="button secondary"
+            disabled={pending}
+            onClick={retry}
+          >
+            Retry tutorial save
+          </button>
+          <button className="text-link" onClick={dismiss}>
+            Dismiss
+          </button>
+        </div>,
+        slot,
+      )
+    : null;
+}
+
 export function TourLaunch({
   children = "Take a tour",
   navigation = false,
@@ -313,10 +361,7 @@ function TourDialog({
     const target = document.querySelector<HTMLElement>(
       `[data-tour="${step.target}"]`,
     );
-    if (more.current)
-      more.current.open = target?.closest("details")
-        ? true
-        : originalMore.current;
+    if (more.current) more.current.open = !!target?.closest("details");
     target?.scrollIntoView({ block: "nearest", behavior: "instant" });
     title.current?.focus({ preventScroll: true });
     let frame = 0;
