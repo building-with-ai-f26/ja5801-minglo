@@ -6,7 +6,7 @@ Scope: the owner approved `docs/APP_STRUCTURE_PLAN.md` and its multi-file implem
 
 ## Launch status
 
-**READY — launch exactly one worker in each of terminals A, B, C and D.** All use `/Users/jonasal-taher/code/Jonas-09/ja5801-minglo` on the same **`feature/app-structure`** branch. No worker has been spawned by this coordinator. Jonas launches the independent terminals using the prompts below; each worker records its actual start in its own report.
+**COMPLETE — A–D and independent review are finished; the integrated application is deployed as Heroku v28. Do not relaunch these workers.** All use `/Users/jonasal-taher/code/Jonas-09/ja5801-minglo` on the same **`feature/app-structure`** branch. No worker has been spawned by this coordinator. Jonas launches the independent terminals using the prompts below; each worker records its actual start in its own report.
 
 ## Checkout and preserved baseline
 
@@ -84,7 +84,7 @@ Required semantics:
 
 ## Shared resource / runner lease
 
-**CURRENT RUNNER: RELEASED. Local verification and independent review are COMPLETE. Final Git integration is in progress.** The completed lease below is historical and must not be used to start another test run. App/test source stays frozen for independent review. Coordinator documentation updates are permitted; no competing server, new dependency, schema change or deployment is authorized. Do not run whole-tree formatting, stage/commit/pull/reset/stash/switch branches, or push/deploy. Coordinator owns Git mutations. Read-only source inspection and checks limited to owned files that do not mutate shared generated artifacts are permitted; record their scope.
+**CURRENT RUNNER: RELEASED. Local verification, independent review, Git integration and the authorized deployment are COMPLETE.** The completed lease below is historical and must not be used to start another test run. App/test source stays frozen for independent review. Coordinator documentation updates are permitted; no competing server, new dependency, schema change or deployment is authorized. Do not run whole-tree formatting, stage/commit/pull/reset/stash/switch branches, or push/deploy. Coordinator owns Git mutations. Read-only source inspection and checks limited to owned files that do not mutate shared generated artifacts are permitted; record their scope.
 
 D prepares test cases/configuration now, including a dedicated real Topics-off app environment and exclusion of its off-only tests from the enabled run. Service-only environment toggles do not prove served pages use the disabled flag. All reset targets must end in `_test`; no production or existing development DB reset.
 
@@ -120,13 +120,13 @@ Two-failed-fixes rule: for the same defect, record attempt 1 and attempt 2, symp
 | Work | State | Dependency / next action |
 | --- | --- | --- |
 | Incoming editing overlap | Resolved | Completed loading/theme task is `d5783d6`; spacing is `20dc6a8`/`496dd45`; all are pushed. Preserve their behavior. |
-| Shared branch and launch | READY | `feature/app-structure` based on pushed `d5783d6`. Jonas starts the four independent terminals; no duplicates spawned. |
+| Shared branch and launch | COMPLETE / MERGED | Focused commits on `feature/app-structure` pushed and merged into main as `4b8250a`; no duplicate worker was spawned. |
 | A | IMPLEMENTATION COMPLETE | Final source checks reported. Full shell/Topics/discovery integration available; runtime/render verification delegated to D. |
 | B | IMPLEMENTATION COMPLETE; ready for integration | B’s final report enumerates 12 app files and source-only checks. Coordinator inspected routes/cards/anchors/disconnect extraction and refresh paths. Runtime/semantic/render verification still pending D. B retains ownership for any findings. |
 | C | IMPLEMENTATION COMPLETE | Final Home/Messages wiring and source checks reported; runtime/render verification delegated to D. Coordinator’s small archive-tab integration patch is complete. |
 | D | VERIFICATION COMPLETE; RUNNER RELEASED | 115 default + 2 Topics-off cases passed; focused 15, typecheck, build and both restarts passed. 72 production page variants plus keyboard/touch evidence. |
 | Independent review | COMPLETE; required F1 RESOLVED / SHIP | Original source/visual review plus scoped verdict in `review-f1.md`; all 48 fresh originals inspected. F2/F3 are inherited nonblocking follow-ups. |
-| Deployment | AUTHORIZED; in progress | Jonas subsequently requested all pending commits/merges and deployment without further copy-paste handoffs. Coordinator owns execution; workers/reviewers remain read-only/complete. |
+| Deployment | COMPLETE — Heroku v28 | Reviewed merge `4b8250a`, backup b009, 20 migrations with none pending, live health/access/theme checks passed. |
 
 ## Launch prompts — use only after status is READY
 
@@ -316,3 +316,11 @@ The coordinator is now creating focused source, coverage and documentation commi
 Jonas explicitly asked: “Can you just work through all pending commits / merges and deployment so I dont have to copy paste all the time lol”. This authorizes the coordinator to finish focused commits, push/merge the reviewed branch and deploy the existing Heroku app without another approval/copy-paste step. It does not authorize credential rotation, paid resources, new features or weakening checks. Earlier no-deploy statements in historical worker/reviewer records apply to those earlier scopes, not to this current coordinator instruction.
 
 Current preflight: Heroku v27 runs `496dd453` with Topics enabled. This release will include the already-pushed theme/loading baseline as well as the reviewed app-structure changes. No schema or dependency changes are present; 20 existing migrations are expected. Standard backup is being captured before release. Exact deployed source, release and hosted checks will be recorded after the operation actually succeeds.
+
+## Final hosted release — November 12, 2026
+
+The owner-authorized release is complete. Focused app/test commits were pushed on `feature/app-structure`, then merged into GitHub main with merge commit **`4b8250a`**. The existing `minglo-ja5801` app deployed that exact source successfully as **Heroku v28**. Remote build/typecheck passed; release-phase Prisma found **20 migrations and none pending**. Backup **b009** completed before release. `web.1` is up and `MINGLO_TOPICS_ENABLED=true` is unchanged. No paid resource, dependency, credential or schema change was introduced by this release.
+
+Read-only live Chrome checks passed: database health 200/ok; exact sign-in continuation for `/agents`, `/profile?edit=1`, filtered rooms, filtered Requests with pagination, filtered archived Chats and topic creation; canonical temporary legacy Topics destination retaining followed/cursor values; malformed bracket filters return unavailable/noindex rather than broad lists; signed-out Public chat/direct/topic APIs return 401/private-no-store; fresh dark-device context starts light, the 64px switch keeps its 44px target and saved dark mode persists after reload. No page errors, production fixture accounts, posts or host tasks were created. Authenticated participation journeys were verified locally; no real hosted participant/Muse trial is claimed. Ignored live evidence: `.local/app-structure/deployment/hosted-access.json`.
+
+All required implementation work, validation, independent F1 verdict and this rollout are complete. F2/F3 remain inherited nonblocking follow-ups in `follow-ups.md`. The release-note updates are documentation only; they do not require another application deployment. No active worker/test lease remains, and the reviewed implementation branches stay on GitHub for tracking.
