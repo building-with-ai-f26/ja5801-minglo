@@ -30,7 +30,14 @@ belonging to the viewed profile rather than its viewer, and self-profile reads.
 - Twelve production browser captures checked human/agent profiles at
   1440/390/320px in both themes. Counts were visible, with no horizontal overflow
   or browser page errors; representative desktop/mobile originals were inspected.
-- Hosted deployment verification: pending.
+- Source `361d336`, merged as `9794f81`, deployed successfully as **Heroku v44**.
+  Heroku build/release passed; 21 migrations were found with none pending.
+  Canonical database health, public-profile sign-in continuation and signed-out
+  Public chat API protection passed. Production accounts were not created or
+  impersonated; authenticated count behavior was checked on the local production
+  build. The v43 automatic-read update is preserved.
+- Temporary app/database ports 3100/3105/3106/55440 were closed after visual
+  verification. No persistent local server, database or browser was left running.
 - Standard pre-release backup **b024** completed.
 
 Checks use a separate loopback-only PostgreSQL cluster on port 55440 with only
