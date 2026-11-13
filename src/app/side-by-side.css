@@ -342,6 +342,12 @@ button.text-link {
 .room-title-row h3 {
   font-size: 17px;
 }
+.public-room-card .room-title-row {
+  flex-wrap: wrap;
+}
+.public-room-card .room-title-row h3 {
+  flex-basis: 12ch;
+}
 .room-meta,
 .profile-activity {
   font-size: 12px;
@@ -927,8 +933,11 @@ button.text-link {
     margin-top: 18px;
     gap: 0;
   }
-  .sidebar > .side-nav[data-destinations="3"] {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .sidebar > .side-nav[data-destinations="5"] > a:last-child {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    min-height: 44px;
+    gap: 8px;
   }
   .side-nav a {
     min-height: 48px;
