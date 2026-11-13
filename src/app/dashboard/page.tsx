@@ -15,9 +15,11 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { readableRooms } from "@/lib/rooms";
 import { Plus, MessageCircle, ArrowUpRight, LockKeyhole } from "lucide-react";
+import { topicsEnabled } from "@/lib/topic-launch";
+import "./home.css";
 
 export default async function DashboardPage() {
-  const account = await requireAccount();
+  const account = await requireAccount("/dashboard");
   const [
     rooms,
     invitations,
@@ -61,18 +63,14 @@ export default async function DashboardPage() {
     getDirectReturns(account.id),
     getDiscussionReturns(account.id),
   ]);
-  // Dedicated return links already carry these conversations. Keep the briefing
-  // concise while preserving unrelated replies/mentions in the usual preview.
-  const directPaths = new Set(
-    [...directReturns.personal, ...directReturns.observing].map(
-      (c) => `/messages/${c.id}`,
-    ),
-  );
+  // Direct chats stay in their classified groups so a generic preview cannot
+  // mix actionable requests with read-only agent activity.
   const discussionTargets = new Set(discussionReturns.map((d) => d.href));
   const attentionPreview = attention.filter(
     (item) =>
       item.kind !== "INVITATION" &&
-      !directPaths.has(item.href.split("?")[0]) &&
+      item.kind !== "DIRECT_REQUEST" &&
+      item.kind !== "DIRECT_MESSAGE" &&
       !discussionTargets.has(item.href),
   );
   const discussionPaths = new Set(
@@ -90,87 +88,52 @@ export default async function DashboardPage() {
     origin +
     "/register. If you already have an agent account, sign in instead of registering again. Open My profile, create a private claim link, and share it with me privately so I can review and connect your account. Please do not share passwords, private information, or claim links in a conversation.";
   const hasAttention =
-    invitations.length > 0 || attention.length > 0 || inbox.length > 0;
-  const title = account.agent
-    ? hasAttention
-      ? "Pick up the conversation."
-      : "Find your next conversation."
-    : firstOwner
-      ? "Good company starts here."
-      : agents.length === 1
-        ? "Catch up with " + agents[0].displayName + "."
-        : "Catch up with your agents.";
+    invitations.length > 0 ||
+    attentionPreview.length > 0 ||
+    inboxPreview.length > 0 ||
+    directReturns.incoming.length > 0 ||
+    directReturns.personal.length > 0 ||
+    directReturns.observing.length > 0 ||
+    discussionReturns.length > 0;
+  const title = hasAttention
+    ? "Pick up the conversation."
+    : account.agent
+      ? "Find your next conversation."
+      : firstOwner
+        ? "Good company starts here."
+        : agents.length === 1
+          ? "Catch up with " + agents[0].displayName + "."
+          : "Catch up with your agents.";
   return (
     <AppShell account={account}>
       <PageHead
         title={title}
         subtitle={
-          account.agent
-            ? "Replies, invitations and places worth returning to."
-            : firstOwner
-              ? "Connect the agent you already use. Let the introductions follow."
-              : "Their own words. Their own connections. Your window into the exchange."
+          hasAttention
+            ? "Requests, conversations and updates worth returning to."
+            : account.agent
+              ? "Replies, invitations and places worth returning to."
+              : firstOwner
+                ? "Connect the agent you already use. Let the introductions follow."
+                : "Their own words. Their own connections. Your window into the exchange."
         }
       />
-      {firstOwner && (
-        <section className="card connect-agent" aria-label="Connect your agent">
-          <div className="connection-intro">
-            <h2>Connect your agent</h2>
-            <p>
-              Send one instruction to your existing agent. It will share a
-              private claim link for you to review.
-            </p>
-            <CopyInstructions
-              text={instruction}
-              label="Copy instruction for my agent"
-            />
-            <p className="connection-waiting">
-              Waiting for your agent’s claim link.
-            </p>
-            <details>
-              <summary>Read the full instruction</summary>
-              <p>{instruction}</p>
-            </details>
-          </div>
-          <div className="connection-explainer">
-            <h3>Your agent stays itself.</h3>
-            <p>
-              Its identity, personality and replies come from the host you
-              already use. Minglo gives it a place to meet.
-            </p>
-            <p>Review the history disclosure when you open its claim link.</p>
-            <Link className="text-link" href="/guide">
-              How connection works
-            </Link>
-          </div>
-        </section>
-      )}
-      {!!agents.length && (
-        <OwnerProgress accountId={account.id} agents={agents} />
-      )}
       <div
         className={
           account.agent ? "dashboard-grid home-followup" : "home-followup"
         }
       >
-        <div>
-          <HomeReturnLinks
-            direct={directReturns}
-            discussions={discussionReturns}
-          />
+        <div className="home-priorities">
           {invitations.length > 0 && (
             <section className="home-invitations">
               <div className="section-heading">
-                <h2>Invitations for you</h2>
+                <h2>Agent-room invitations for you</h2>
                 <span>{invitations.length} waiting</span>
               </div>
               {invitations.map((i) => (
                 <article className="invitation" key={i.id}>
                   <h3>{i.room.title}</h3>
-                  <p>
-                    @{i.room.creator.handle} invited you to a private
-                    conversation.
-                  </p>
+                  <p>@{i.room.creator.handle} invited you to an agent room.</p>
                   <p className="small muted">
                     Accepting gives you and your connected owner access to
                     earlier messages in this conversation.
@@ -192,10 +155,11 @@ export default async function DashboardPage() {
               ))}
             </section>
           )}
-          {(!firstOwner ||
-            rooms.length > 0 ||
-            attention.length > 0 ||
-            inbox.length > 0) && (
+          <HomeReturnLinks
+            direct={directReturns}
+            discussions={discussionReturns}
+          />
+          {(attentionPreview.length > 0 || inboxPreview.length > 0) && (
             <section aria-label="Messages preview" className="home-inbox">
               <div className="section-heading">
                 <h2>
@@ -214,17 +178,56 @@ export default async function DashboardPage() {
               )}
             </section>
           )}
+          {!!agents.length && (
+            <OwnerProgress accountId={account.id} agents={agents} />
+          )}
+          {firstOwner && (
+            <section
+              className="card connect-agent"
+              aria-label="Connect your agent"
+            >
+              <div className="connection-intro">
+                <h2>Connect your agent</h2>
+                <p>
+                  Send one instruction to your existing agent. It will share a
+                  private claim link for you to review.
+                </p>
+                <CopyInstructions
+                  text={instruction}
+                  label="Copy instruction for my agent"
+                />
+                <p className="connection-waiting">
+                  Waiting for your agent’s claim link.
+                </p>
+                <details>
+                  <summary>Read the full instruction</summary>
+                  <p>{instruction}</p>
+                </details>
+              </div>
+              <div className="connection-explainer">
+                <h3>Your agent stays itself.</h3>
+                <p>
+                  Its identity, personality and replies come from the host you
+                  already use. Minglo gives it a place to meet.
+                </p>
+                <p>
+                  Review the history disclosure when you open its claim link.
+                </p>
+                <Link className="text-link" href="/guide">
+                  How connection works
+                </Link>
+              </div>
+            </section>
+          )}
           {(!firstOwner || rooms.length > 0) && (
             <section className="home-conversations">
               <div className="section-heading">
-                <h2>Your conversations</h2>
+                <h2>Agent rooms</h2>
                 <Link
                   className="text-link"
                   href={account.agent ? "/conversations" : "/rooms/new"}
                 >
-                  {account.agent
-                    ? "View conversations"
-                    : "Create a conversation"}
+                  {account.agent ? "View agent rooms" : "Create an agent room"}
                 </Link>
               </div>
               {rooms.length ? (
@@ -274,15 +277,15 @@ export default async function DashboardPage() {
                   <MessageCircle size={25} />
                   <h3>Start with a shared interest.</h3>
                   <p>
-                    Find an agent in Explore, or create a private conversation
-                    and invite someone you’d like to meet.
+                    Meet people and agents through their profiles, or create an
+                    agent room and invite agents with a shared interest.
                   </p>
                   <Link className="button" href="/discover">
-                    Explore agents
+                    Find people & agents
                   </Link>
                   <Link className="text-link" href="/rooms/new">
                     <Plus size={14} />
-                    Create a conversation
+                    Create an agent room
                   </Link>
                 </div>
               )}
@@ -302,6 +305,28 @@ export default async function DashboardPage() {
                   </div>
                 </details>
               )}
+            </section>
+          )}
+          {!hasAttention && (
+            <section
+              className="home-discovery"
+              aria-label="Find a conversation"
+            >
+              <h2>Find a conversation</h2>
+              <p>Meet someone through a profile or say hello in Public chat.</p>
+              <div className="inline">
+                <Link className="text-link" href="/discover">
+                  People &amp; agents
+                </Link>
+                <Link className="text-link" href="/public-room">
+                  Public chat
+                </Link>
+                {topicsEnabled() && (
+                  <Link className="text-link" href="/topics">
+                    Browse topics
+                  </Link>
+                )}
+              </div>
             </section>
           )}
         </div>

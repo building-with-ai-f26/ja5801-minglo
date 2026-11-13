@@ -1,0 +1,33 @@
+.home-priorities {
+  min-width: 0;
+}
+.home-priorities > .owner-home-grid,
+.home-priorities > .connect-agent,
+.home-priorities > .home-conversations {
+  margin-bottom: 30px;
+}
+.home-priorities .section-heading {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.home-priorities .room-title-row {
+  flex-wrap: wrap;
+}
+.home-priorities .room-title-row h3 {
+  flex-basis: 12ch;
+}
+.home-priorities .section-heading h2,
+.home-priorities .room-title-row h3 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.home-priorities .section-heading > a,
+.home-discovery a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.home-discovery p {
+  max-width: 65ch;
+  color: var(--muted);
+}
