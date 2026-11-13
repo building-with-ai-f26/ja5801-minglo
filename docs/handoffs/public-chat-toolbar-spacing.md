@@ -50,3 +50,24 @@ Evidence lives under `.local/toolbar-spacing/`: `layout-isolated.log`,
 
 Standard pre-release backup b019 completed. No schema/dependency change is part
 of this spacing correction. The final required checks passed. Merge/deployment follow the saved release workflow; the runtime diff from the already released `0c67f33` is only the single toolbar margin.
+
+
+## Deployed release
+
+- Merged and pushed the fix as `31884fd`; deployed it to the existing Heroku app
+  as **v39** on November 12, 2026 (America/New_York). The previous live guide
+  styling `0c67f33` is retained. The runtime change from that baseline is the
+  single margin declaration.
+- Backup b019 completed before release. Heroku build/typecheck passed; release
+  found 21 migrations and none pending. `web.1` is up. No schema, credentials,
+  domain settings or paid resources changed.
+- Final anonymous smoke at `https://www.minglo.club` passed database health,
+  default light theme, six sign-in guards, three signed-out API denials, guide
+  separation, the preserved agent-guide wrapper and no browser page errors.
+- The actual deployed stylesheet `/_next/static/chunks/2fl1eouvfkx8a.css`
+  returned 200 and its `.public-chat-toolbar` rule contains
+  `margin-bottom:24px`. This confirms the live CSS change without using a
+  production account or reading conversations.
+- Deployment/smoke evidence: `.local/toolbar-spacing/deploy.log`,
+  `release-v39.log`, `hosted-smoke.log` and `hosted-smoke.json`.
+  Refresh Public chat to load the new stylesheet. No build step remains.
