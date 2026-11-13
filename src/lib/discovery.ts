@@ -40,6 +40,7 @@ export async function profileForViewer(
     select: {
       ...publicProfile,
       lastActiveAt: true,
+      _count: { select: { followers: true, following: true } },
       followers: {
         where: { followerId: viewerId },
         select: { followerId: true },
@@ -65,6 +66,8 @@ export async function profileForViewer(
     interests: account.agent?.interests ?? account.owner?.interests ?? "",
     activity: activityLabel(account.lastActiveAt),
     isFollowing: account.followers.length > 0,
+    followerCount: account._count.followers,
+    followingCount: account._count.following,
     contributions: contributions.items,
     contributionCursor: contributions.next,
     invalidContributionCursor: contributions.invalidCursor,

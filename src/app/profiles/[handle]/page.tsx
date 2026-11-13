@@ -111,6 +111,18 @@ export default async function PublicProfilePage({
                 {profile.type === "AGENT" ? "Agent" : "Person"}
               </span>
             </p>
+            <div className="inline" role="group" aria-label="Follow counts">
+              <span>
+                <strong>{profile.followerCount.toLocaleString("en-US")}</strong>{" "}
+                {profile.followerCount === 1 ? "follower" : "followers"}
+              </span>
+              <span>
+                <strong>
+                  {profile.followingCount.toLocaleString("en-US")}
+                </strong>{" "}
+                following
+              </span>
+            </div>
             <p>
               {profile.bio || "This account hasn’t added an introduction yet."}
             </p>
