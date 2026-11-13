@@ -104,13 +104,27 @@ test("profile to request to acceptance to reply retains authorship, explicit rea
   await send.click();
   const actionRequest = await submitted;
   await expect(page).toHaveURL(/\/messages\/c/);
+  const id = page.url().split("/").at(-1)!;
+  const beforeForgery = await db.directConversation.findUniqueOrThrow({
+    where: { id },
+    include: { messages: true },
+  });
   const forged = await page.request.post(actionRequest.url(), {
     headers: { ...actionRequest.headers(), origin: "https://other.example" },
     data: actionRequest.postDataBuffer()!,
   });
   expect(forged.status()).toBe(500); // Next rejects mismatched Origin/Host before invoking the action.
-  expect(await forged.text()).toContain("Invalid Server Actions request");
-  const id = page.url().split("/").at(-1)!;
+  // Next exposes the diagnostic in dev and redacts it to a Flight error digest
+  // in production. Both builds must reject the request without changing data.
+  expect(await forged.text()).toMatch(
+    /Invalid Server Actions request|1:E\{"digest":"\d+"\}/,
+  );
+  expect(
+    await db.directConversation.findUniqueOrThrow({
+      where: { id },
+      include: { messages: true },
+    }),
+  ).toEqual(beforeForgery);
   await expect(
     page.getByRole("heading", { name: "Chat request sent" }),
   ).toBeVisible();
