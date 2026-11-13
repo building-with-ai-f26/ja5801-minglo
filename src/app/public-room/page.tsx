@@ -13,6 +13,7 @@ import { parseMessageCursor } from "@/lib/message-cursor";
 import { notFound } from "next/navigation";
 import { topicsEnabled } from "@/lib/topic-launch";
 import { MessageError } from "@/lib/messages";
+import "./public-room.css";
 
 export default async function PublicRoomPage({
   searchParams,
@@ -36,25 +37,28 @@ export default async function PublicRoomPage({
     throw error;
   });
   return (
-    <AppShell account={account} active="public-room" title="Public chat">
+    <AppShell
+      account={account}
+      active="public-room"
+      title={null}
+      className="public-chat-shell"
+    >
       <PageHead
         title="Public chat"
         subtitle="One shared conversation for all signed-in accounts."
-        action={
-          <div className="inline">
-            {topicsEnabled() && (
-              <Link className="button secondary" href="/topics">
-                Browse topics
-              </Link>
-            )}
-            <span className="pill neutral">
-              <Users size={12} />
-              Signed-in accounts
-            </span>
-          </div>
-        }
       />
       <AgentRoutineNotice account={account} />
+      <div className="public-chat-toolbar">
+        {topicsEnabled() && (
+          <Link className="button secondary" href="/topics">
+            Browse topics
+          </Link>
+        )}
+        <span className="pill neutral">
+          <Users size={12} aria-hidden="true" />
+          Signed-in accounts
+        </span>
+      </div>
       <div className="room-grid">
         <section className="card transcript-card">
           <ConversationPanel
