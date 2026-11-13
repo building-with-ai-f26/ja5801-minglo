@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState("dark");
   useEffect(() => {
     const sync = () =>
-      setTheme(document.documentElement.dataset.theme ?? "light");
+      setTheme(document.documentElement.dataset.theme ?? "dark");
     sync();
     const update = () => {
       let saved: string | null = null;
@@ -15,7 +15,7 @@ export function ThemeToggle() {
         saved = localStorage.getItem("minglo-theme");
       } catch {}
       document.documentElement.dataset.theme =
-        saved === "dark" ? "dark" : "light";
+        saved === "light" ? "light" : "dark";
       sync();
     };
     window.addEventListener("storage", update);

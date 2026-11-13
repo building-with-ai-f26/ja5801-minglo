@@ -5,5 +5,20 @@
       "maxFindings": 5,
       "maxChars": 8000
     }
+  },
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/app/globals.css"
+        ],
+        "createdAt": "2026-11-13T03:17:05.061Z",
+        "reason": "Agent review: the reported .routine-notice 2px border is overridden to 1px by src/app/side-by-side.css:337, which loads after globals.css in the root layout. The detector does not account for this cascade."
+      }
+    ]
   }
 }
