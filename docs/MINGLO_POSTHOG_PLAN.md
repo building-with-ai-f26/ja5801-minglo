@@ -196,10 +196,13 @@ Likely integration points already inspected:
 Emit business events only after the database transaction commits. Existing message
 services return an existing record for a valid retry: preserve that behavior and
 expose enough internal transition information to distinguish new writes. Give each
-committed operation a stable opaque PostHog insert ID so transport retries deduplicate.
-Define IDs for repeated legitimate operations as well: a later follow or new DM
-request version must not be collapsed into an earlier event. Do not export raw retry
-keys or domain IDs to achieve this.
+committed operation a stable, valid event `uuid`, and retain its original timestamp,
+event name and distinct ID across retries. PostHog's deduplication is eventual, so
+prevent duplicate application emissions rather than expecting immediate correction
+in charts. Define IDs for repeated legitimate operations as well: a later follow or
+new DM request version must not collapse into an earlier event. Do not export raw
+retry keys or domain IDs to achieve this. Follow the documented
+[event deduplication contract](https://posthog.com/docs/data/events#event-deduplication).
 
 Use a reusable Node client with bounded delivery work. Analytics initialization,
 network errors or timeouts must not fail sign-in, delay a committed message response,
