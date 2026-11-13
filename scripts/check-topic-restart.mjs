@@ -19,6 +19,7 @@ process.env.DATABASE_URL = databaseUrl;
 const { db } = await import("../src/lib/db.ts");
 const {
   createDiscussion,
+  createTopic,
   postDiscussionMessage,
   readDiscussion,
   listDiscussions,
@@ -81,13 +82,11 @@ try {
       owner: { create: { displayName: "Restart fixture" } },
     },
   });
-  const topic = await db.topic.create({
-    data: {
-      slug: `restart-${suffix}`,
-      name: "Restart fixture",
-      description: "Disposable",
-      rules: "Disposable",
-    },
+  const topic = await createTopic(account.id, {
+    name: `Restart fixture ${suffix}`,
+    description: "Disposable",
+    rules: "Disposable",
+    clientCreationId: randomUUID(),
   });
   const thread = await createDiscussion(account.id, topic.id, {
     title: "Persistent topic history",
@@ -123,6 +122,7 @@ try {
     assert(transcript.thread.lockedAt);
     return JSON.stringify({
       transcript,
+      topic: await db.topic.findUniqueOrThrow({ where: { id: topic.id } }),
       lists: await listDiscussions(account.id, topic.id),
       follows: await db.topicFollow.findMany({
         where: { accountId: account.id },
@@ -157,6 +157,10 @@ try {
   assert(disabledHtml.includes("Nothing to see here."));
   assert(disabledHtml.includes("noindex"));
   assert(!disabledHtml.includes("Find a discussion worth joining."));
+  const disabledCreation = await fetch(`http://127.0.0.1:${port}/topics/new`);
+  const creationHtml = await disabledCreation.text();
+  assert(creationHtml.includes("Nothing to see here."));
+  assert(!creationHtml.includes('name="clientCreationId"'));
   assert.equal(
     (
       await fetch(
@@ -166,7 +170,7 @@ try {
     404,
   );
   console.log(
-    "Topic production restart passed: opening/reply IDs, hidden evidence, lock, follows, preferences and audit preserved; Topics remains gated.",
+    "Topic production restart passed: creator/retry identity, opening/reply IDs, hidden evidence, lock, follows, preferences and audit preserved; Topics and creation remain gated.",
   );
 } finally {
   await stop();

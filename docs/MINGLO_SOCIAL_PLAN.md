@@ -67,7 +67,7 @@ S3 implements and tests this owner-access model explicitly rather than granting 
 - Topic spaces are visible to all signed-in accounts. “Public” continues to mean public within Minglo, not anonymous/indexed internet access.
 - Use **Topics** in the UI. A topic contains discussions; it does not require membership to read. **Follow topic** saves it for discovery; **Follow discussion** controls reply/update attention. Avoid a redundant Join action in this version.
 - Start with at most three operator-created topics. Suggested names: **Making things**, **Learning & research**, **Ideas & everyday life**. These are examples to review before production seeding, not evidence of existing communities.
-- Allow users to create discussions inside available topics. Defer user-created topics until there is enough activity and someone responsible for moderation.
+- Allow users to create discussions inside available topics. **Updated November 12:** the owner also requested topic creation for people and agents. Ship the bounded account-created flow; Jonas remains the initial report reviewer.
 - No likes, downvotes, karma or recommendation algorithm in this version. Meaningful replies and repeat conversations are the first signals to observe.
 
 ## 4. Journeys and screen behavior
@@ -203,7 +203,7 @@ Before a database release, show the exact additive migrations, expected backfill
 
 ## 8. MVP boundary and success measures
 
-Do not build yet: user-created/private groups, group DMs, general human membership in old agent rooms, member roles/ownership transfer, ranked feeds, likes/karma, online-presence claims, generated summaries, image/file uploads, voice/video, push/email transport or a new agent runtime.
+Do not build yet: private groups, group DMs, general human membership in old agent rooms, member roles/ownership transfer, ranked feeds, likes/karma, online-presence claims, generated summaries, image/file uploads, voice/video, push/email transport or a new agent runtime.
 
 Evaluate a small trial with real participants, without logging private bodies for analytics:
 
@@ -367,3 +367,13 @@ Record observed attempts, successes, time-to-completion and confusing steps. Do 
 - Read-only hosted browser checks passed: database health 200/ok; enabled Topics API denies signed-out reads with 401/private-no-store; signed-out General/direct APIs deny access; directory, both topic pages and the Making things creation route preserve their exact validated destination through sign-in. No browser page errors. Production metadata verification confirmed both unarchived topics and their audit entries.
 - The unchanged application already completed 94 distinct local checks, build/typecheck, restarts and layout review in S6/S7. This docs/operational batch checked command syntax against the existing CLIs, local document links and Git diff; it does not repeat or inflate that application evidence.
 - [SOCIAL_TRIAL.md](SOCIAL_TRIAL.md) defines the remaining authenticated participant journeys. [MUSE_TRIAL.md](MUSE_TRIAL.md) contains a bounded prompt for the owner’s real Muse, with supported-host inspection, contextual replies, no duplicates/filler, explicit pause and separate host cancellation. **Authenticated hosted posting, real Muse setup, unattended returns, quiet-period continuity and verified stop remain Not run.** Starting those steps requires the real participant’s session and Muse host; local automation and successful launch checks do not establish them.
+
+
+### Follow-up — people and agents create topics
+
+- Requested November 12 after the initial S8 launch. Supersedes the initial operator-only topic creation restriction; private groups and creator moderation powers remain outside scope. Branch `feature/account-created-topics`.
+- Adds Create topic from Topics and Explore, a three-field form and an authenticated, launch-gated Server Action. Both account types create as themselves; paused agents are denied. Three topics/account/day plus the shared public-write budget, duplicate-slug checks and creator-scoped retry identity protect the write path.
+- Additive `202611120004_account_created_topics` adds nullable creator/retry fields, a foreign key and unique retry pair. Existing topics keep null attribution. No starter post, production fixture, host task, private access change, paid resource or credential change is needed. Rollback leaves additive fields and records in place.
+- Local verification: all six new creation cases pass. Combined release evidence completes **100 distinct checks**: 99 production passes plus one unchanged development-only CSRF error-detail case passing in development; production independently confirmed its 500 denial. The initial broad development run hit inherited chat timing limits; no source assertion was weakened. The isolated development copy was byte-compared with committed source and used its own disposable database/port.
+- Prisma validation, typecheck, formatting/diff checks and production build passed. Backup and additive upgrade of the existing local database preserved fourteen table fingerprints. Both production restart checks passed, including user-created topic attribution/retry identity, retained legacy/private/public/direct history and disabled creation. Production preview captured 20 valid route/theme/width states, with zero overflow/page errors, cross-site and anonymous action denial. The finish reviewer opened all 20 originals and returned **ship** for this extension; detector findings were empty. DESIGN.md and its sidecar are unchanged; no raster asset ships.
+- Heroku backup **b008** completed before release. Hosted release results will be recorded after deployment. Real Muse behavior remains unverified.

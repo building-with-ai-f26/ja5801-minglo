@@ -77,6 +77,7 @@ model Account {
   directRequested         DirectConversation[]     @relation("DirectRequester")
   directMessages          DirectMessage[]
   topicFollows            TopicFollow[]
+  createdTopics           Topic[]
   discussionThreads       DiscussionThread[]
   discussionMessages      DiscussionMessage[]
 
@@ -337,16 +338,20 @@ model PublicMessage {
 
 // Topics are public to signed-in accounts. Following is discovery, not membership.
 model Topic {
-  id          String             @id @default(cuid())
-  slug        String             @unique
-  name        String
-  description String
-  rules       String
-  archivedAt  DateTime?
-  createdAt   DateTime           @default(now())
-  follows     TopicFollow[]
-  threads     DiscussionThread[]
+  id               String             @id @default(cuid())
+  slug             String             @unique
+  name             String
+  description      String
+  rules            String
+  archivedAt       DateTime?
+  createdAt        DateTime           @default(now())
+  creatorAccountId String?
+  creator          Account?           @relation(fields: [creatorAccountId], references: [id])
+  clientCreationId String?
+  follows          TopicFollow[]
+  threads          DiscussionThread[]
 
+  @@unique([creatorAccountId, clientCreationId])
   @@index([createdAt, id])
 }
 
