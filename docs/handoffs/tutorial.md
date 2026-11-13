@@ -1,8 +1,8 @@
 # Tutorial implementation progress
 
-Approved scope: `docs/MINGLO_TOUR_PLAN.md`, T1 → T2 → T3. Deployment is pending
-explicit instruction after implementation. No production changes are authorized
-by this handoff.
+Approved scope: `docs/MINGLO_TOUR_PLAN.md`, T1 → T2 → T3. The user separately
+approved deployment after implementation. Tutorial source `707d1a6` is live as
+Heroku v36; see the deployment record below.
 
 ## Checkout and ownership
 
@@ -61,7 +61,7 @@ automatic offer, route departure and account switching. The original uncorrected
 full run was interrupted after approval so final checks use the corrected build.
 Full release checks are now complete; see the verification record below.
 
-No deployment has occurred.
+Deployment was subsequently approved and completed; see the release record below.
 
 
 ## Final verification and delivery
@@ -121,8 +121,34 @@ In particular, the next session integrating that shell work must preserve the
 merged tutorial provider, anchors and More replay entry. All tutorial work and
 its build/test artifacts remain isolated at `/private/tmp/minglo-tutorial-20261112`.
 
-No Heroku push, production migration, domain/config/credential change or paid
-resource provisioning occurred. **Deployment is the remaining operational step
-and requires the user's next instruction.** The additive migration is committed
-for the normal release phase; take the documented backup before deploying. No
-further product decision is needed for T1–T3.
+The user then explicitly requested deployment. The Heroku push and additive
+migration are complete. No domain/config/credential change, paid resource
+provisioning or production fixture creation occurred. No build or deployment step
+remains for T1–T3. Further real-user/host usability observation is separate.
+
+
+## Heroku v36 deployment — November 12, 2026 (America/New_York)
+
+- User explicitly authorized deployment after the completed implementation.
+- Pre-release live baseline was v35 / `1beeaad`; GitHub main and the isolated
+  tested source were `707d1a6`. The uncommitted shared Public chat work was excluded.
+- **Backup b016 completed before release**, at 23:12:07 Eastern. No restore/reset.
+- Deployed `707d1a6` to the existing `minglo-ja5801` app as **v36**. Heroku build
+  and TypeScript checks passed. Release phase found 21 migrations and successfully
+  applied only `202611130001_account_tour_preferences`; `web.1` is up.
+- Canonical URL `https://www.minglo.club` passed the final anonymous Chrome smoke:
+  database health, landing/default light theme, six authenticated page guards,
+  three signed-out private API denials, the public guide/authenticated-tour
+  separation and no browser page errors. An earlier smoke while release was still
+  pending checked the previous healthy app; final evidence was rerun after v36
+  succeeded (`.local/tutorial/hosted-smoke-final.log` and `hosted-smoke.json`).
+- Existing accounts replay from **More → Take a tour**, How it works or Account
+  settings; they deliberately do not receive a surprise welcome on release.
+  Genuine new registrations receive the eligible one-time optional offer.
+- Authenticated production tour completion was not exercised: no production
+  accounts, messages or host tasks were created, and no user session was
+  impersonated. Both role journeys and persistence passed locally against the
+  same production source in the 145-case verification and both restart checks.
+- Build/deploy and migration evidence: `.local/tutorial/deploy.log`,
+  `deploy-backup.log` and `release-v36.log`. Release records do not change app
+  source and require no additional deployment.

@@ -50,7 +50,7 @@ Owner steps:
 
 | Check                                    | Status  | Evidence / actual result                                                            |
 | ---------------------------------------- | ------- | ----------------------------------------------------------------------------------- |
-| Stable hosted URL with current code      | Passed  | Heroku v33 / `99cca62`; 20 migrations and anonymous health/access checks passed; custom DNS propagating; real-host journeys not yet run |
+| Stable hosted URL with current code      | Passed  | Heroku v36 / `707d1a6`; 21 migrations and canonical www.minglo.club anonymous health/access checks passed; real-host journeys not yet run |
 | Agent A browser access                   | Not run | Requires a real personal agent                                                      |
 | Agent B browser access                   | Not run | Requires a real personal agent                                                      |
 | Registration / room invitation           | Not run |                                                                                     |
