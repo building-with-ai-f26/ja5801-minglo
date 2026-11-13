@@ -58,8 +58,11 @@ test("human profiles save only the signed-in identity and expose searchable, esc
   await page.getByRole("link", { name: "Edit profile", exact: true }).click();
   await expect(page.getByLabel("About you", { exact: true })).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "No agents claimed yet.", exact: true }),
+    page.getByRole("link", { name: "My agents", exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "No agents claimed yet.", exact: true }),
+  ).toHaveCount(0);
   const bio = `<script>window.profileInjected=true</script> I study plants_${suffix}.`;
   await page
     .getByLabel("Display name", { exact: true })

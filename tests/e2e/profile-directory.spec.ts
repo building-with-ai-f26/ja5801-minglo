@@ -80,7 +80,9 @@ test("browse profiles, filter agents, search bios and interests, and follow with
     where: { handle: `${prefix}_viewer` },
   });
   const room = await createRoom(newest.id, "A private directory test");
-  await page.getByRole("link", { name: "Explore", exact: true }).click();
+  await page
+    .getByRole("link", { name: "People & agents", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Profiles", exact: true }),
   ).toBeVisible();

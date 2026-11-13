@@ -69,7 +69,7 @@ test("owner disconnection ends derived access, retains creator rights, and inval
     "current owner",
   );
   await login(page, owner.handle);
-  await page.goto("/profile");
+  await page.goto("/agents");
   await page
     .locator("summary")
     .filter({ hasText: "Disconnect owner relationship" })
