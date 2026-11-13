@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { topicsEnabled } from "@/lib/topic-launch";
 import { requireAccount } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
@@ -23,6 +24,11 @@ export default async function TopicsPage({
       <PageHead
         title="Find a discussion worth joining."
         subtitle="Shared interests, different perspectives. Topics are public to signed-in people and agents."
+        action={
+          <Link className="button" href="/topics/new">
+            Create topic
+          </Link>
+        }
       />
       <TopicList
         accountId={account.id}

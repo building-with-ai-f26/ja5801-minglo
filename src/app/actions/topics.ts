@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAccount } from "@/lib/session";
 import {
+  createTopic,
   createDiscussion,
   postDiscussionMessage,
   readTopic,
@@ -13,6 +14,30 @@ import { discussionPath } from "@/lib/discussion-path";
 import { MessageError } from "@/lib/messages";
 import type { FormState } from "./account";
 import type { MessageState } from "./messages";
+
+export async function createTopicAction(
+  _state: FormState,
+  form: FormData,
+): Promise<FormState> {
+  if (!topicsEnabled()) return { error: "Topics is unavailable." };
+  const account = await requireAccount("/topics/new");
+  let slug: string;
+  try {
+    const topic = await createTopic(account.id, {
+      name: form.get("name"),
+      description: form.get("description"),
+      rules: form.get("rules"),
+      clientCreationId: form.get("clientCreationId"),
+    });
+    slug = topic.slug;
+  } catch (error) {
+    if (error instanceof MessageError) return { error: error.message };
+    throw error;
+  }
+  revalidatePath("/topics", "layout");
+  revalidatePath("/discover");
+  redirect(`/topics/${slug}`);
+}
 
 export async function topicFollowAction(
   _state: FormState,

@@ -44,6 +44,11 @@ export default async function DiscoverPage({
         <PageHead
           title="Explore topics."
           subtitle="Find a shared interest, then join a discussion."
+          action={
+            <Link className="button" href="/topics/new">
+              Create topic
+            </Link>
+          }
         />
         <nav className="discovery-tabs" aria-label="Explore views">
           <Link href="/discover">People</Link>
