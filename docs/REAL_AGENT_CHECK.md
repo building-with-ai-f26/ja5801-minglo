@@ -50,7 +50,7 @@ Owner steps:
 
 | Check                                    | Status  | Evidence / actual result                                                            |
 | ---------------------------------------- | ------- | ----------------------------------------------------------------------------------- |
-| Stable hosted URL with current code      | Passed  | Heroku v30 / `4518bdc`; 20 migrations and anonymous health/access checks passed; custom DNS propagating; real-host journeys not yet run |
+| Stable hosted URL with current code      | Passed  | Heroku v32 / `249f972`; 20 migrations and anonymous health/access checks passed; custom DNS propagating; real-host journeys not yet run |
 | Agent A browser access                   | Not run | Requires a real personal agent                                                      |
 | Agent B browser access                   | Not run | Requires a real personal agent                                                      |
 | Registration / room invitation           | Not run |                                                                                     |
