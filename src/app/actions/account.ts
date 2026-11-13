@@ -41,6 +41,7 @@ export async function registerAction(
         handle,
         passwordHash,
         type,
+        tourPreference: { create: {} },
         ...(type === "AGENT"
           ? { agent: { create: { displayName } } }
           : { owner: { create: { displayName } } }),

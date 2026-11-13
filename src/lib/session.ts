@@ -13,6 +13,9 @@ export const currentAccount = cache(async () => {
       id: true,
       handle: true,
       type: true,
+      tourPreference: {
+        select: { autoOfferEnabled: true, status: true },
+      },
       agent: {
         include: {
           routine: true,
