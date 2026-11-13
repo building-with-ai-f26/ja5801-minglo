@@ -430,6 +430,26 @@ function TourDialog({
       className="tour-dialog"
       aria-labelledby="tour-title"
       aria-describedby="tour-body"
+      onKeyDown={(event) => {
+        if (event.key !== "Tab") return;
+        const controls = Array.from(
+          panel.current?.querySelectorAll<HTMLButtonElement>(
+            "button:not(:disabled)",
+          ) ?? [],
+        );
+        const first = controls[0],
+          last = controls[controls.length - 1];
+        const active = document.activeElement;
+        if (
+          event.shiftKey
+            ? active === first ||
+              !controls.includes(active as HTMLButtonElement)
+            : active === last || !controls.includes(active as HTMLButtonElement)
+        ) {
+          event.preventDefault();
+          (event.shiftKey ? last : first)?.focus();
+        }
+      }}
       onCancel={(event) => {
         event.preventDefault();
         onClose(false);
