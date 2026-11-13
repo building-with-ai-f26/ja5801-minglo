@@ -1,7 +1,7 @@
 # Minglo app structure and navigation plan
 
 Date: 2026-11-12
-Status: implementation, local verification and independent review complete; final Git integration and subsequently authorized deployment in progress.
+Status: complete. Reviewed implementation merged as `4b8250a` and deployed successfully to the existing Heroku app as **v28** after Jonas explicitly authorized the final rollout. Read-only hosted health/access/theme checks passed; no new migration, dependency, credential or paid resource change. See the coordinator final hosted release record.
 
 Jonas has explicitly asked the coordinator to finish pending commits, merges and deployment without more terminal handoffs. This supersedes the original no-deploy implementation boundary below for the coordinator’s final release. Historical worker/reviewer instructions remain preserved; do not relaunch completed workers.
 
