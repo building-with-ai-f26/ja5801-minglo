@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { DirectChatList } from "@/lib/direct-views";
+import type { MessageChatList, MessageChatItem } from "@/lib/direct-views";
 
 export function DirectChatGroups({
   chats,
@@ -7,12 +7,14 @@ export function DirectChatGroups({
   archived,
   showObserving,
 }: {
-  chats: DirectChatList;
+  chats: MessageChatList;
   view: "chats" | "requests";
   archived: boolean;
   showObserving: boolean;
 }) {
   const requests = view === "requests";
+  const personal = (c: MessageChatItem) =>
+    c.kind === "room" ? c.access !== "owner-read-only" : c.isParticipant;
   const groups = [
     {
       title: requests
@@ -21,7 +23,7 @@ export function DirectChatGroups({
           ? "Your archived chats"
           : "Your chats",
       observing: false,
-      items: chats.items.filter((c) => c.isParticipant),
+      items: chats.items.filter(personal),
     },
     {
       title: requests
@@ -30,13 +32,13 @@ export function DirectChatGroups({
           ? "Your agents’ archived chats"
           : "Your agents’ chats",
       observing: true,
-      items: chats.items.filter((c) => !c.isParticipant),
+      items: chats.items.filter((c) => !personal(c)),
     },
   ];
   return (
     <section
       className="messages-direct-groups"
-      aria-label={requests ? "Direct chat requests" : "Direct chats"}
+      aria-label={requests ? "Direct chat requests" : "Chats"}
     >
       {groups.map((group) => {
         if (group.observing && !showObserving && !group.items.length)
@@ -63,35 +65,51 @@ export function DirectChatGroups({
               {group.items.map((c) => (
                 <Link
                   className="room-card"
-                  href={`/messages/${c.id}`}
-                  key={c.id}
+                  href={
+                    c.kind === "room" ? `/rooms/${c.id}` : `/messages/${c.id}`
+                  }
+                  key={`${c.kind}:${c.id}`}
                 >
                   <div className="room-title-row">
                     <h3>{c.title}</h3>
                     <span className="pill neutral">
-                      {c.status === "PENDING"
-                        ? c.requestDirection === "incoming"
-                          ? "Request received"
-                          : c.requestDirection === "outgoing"
-                            ? "Request sent"
-                            : "Agent’s pending request"
-                        : c.status === "ACTIVE"
-                          ? c.muted
+                      {c.kind === "room"
+                        ? c.closed
+                          ? "Closed"
+                          : c.muted
                             ? "Muted"
                             : `${c.unread} unread`
-                          : c.status === "DECLINED"
-                            ? "Request declined"
-                            : "Request cancelled"}
+                        : c.status === "PENDING"
+                          ? c.requestDirection === "incoming"
+                            ? "Request received"
+                            : c.requestDirection === "outgoing"
+                              ? "Request sent"
+                              : "Agent’s pending request"
+                          : c.status === "ACTIVE"
+                            ? c.muted
+                              ? "Muted"
+                              : `${c.unread} unread`
+                            : c.status === "DECLINED"
+                              ? "Request declined"
+                              : "Request cancelled"}
                     </span>
                   </div>
                   <p className="small">
-                    {group.observing
-                      ? "Read only"
-                      : c.requestDirection === "outgoing"
-                        ? "Waiting for the recipient’s decision"
-                        : requests
-                          ? "You can review and accept or decline"
-                          : "You participate as your own account"}
+                    {c.kind === "room"
+                      ? c.closed
+                        ? "Agent room · Closed · Read only"
+                        : c.access === "participant"
+                          ? "Agent room · You participate as your own agent"
+                          : c.access === "creator-read-only"
+                            ? "Agent room · Room creator · Read only"
+                            : "Agent room · Read only"
+                      : group.observing
+                        ? "Read only"
+                        : c.requestDirection === "outgoing"
+                          ? "Waiting for the recipient’s decision"
+                          : requests
+                            ? "You can review and accept or decline"
+                            : "You participate as your own account"}
                   </p>
                   <p>{c.preview.slice(0, 240)}</p>
                   <small className="muted">
@@ -113,7 +131,11 @@ export function DirectChatGroups({
                     {chats.page > 0 || chats.hasNext
                       ? "Use the shared page links below to see more chats and requests."
                       : group.observing
-                        ? "Your connected agents’ chats and requests appear here with read-only access."
+                        ? requests
+                          ? "Your connected agents’ pending direct chat requests appear here with read-only access."
+                          : archived
+                            ? "Your connected agents’ archived direct chats appear here. Agent rooms stay in current Chats."
+                            : "Your connected agents’ direct chats and agent-room conversations appear here with read-only access."
                         : requests
                           ? "Requests sent to your account appear here. Requests you sent stay in Chats."
                           : archived
