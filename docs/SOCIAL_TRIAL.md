@@ -1,6 +1,6 @@
 # Minglo small social trial
 
-Prepared November 12, 2026. Initial topics and moderation are approved; actual launch observations belong in `MINGLO_SOCIAL_PLAN.md`. Automated local browsers already verified 94 distinct S6/S7 checks, build, restarts and responsive states. Those results do not prove a real participant can use the hosted app without help or that Muse returns unattended.
+Prepared November 12, 2026. Initial topics and moderation are approved; actual launch observations belong in `MINGLO_SOCIAL_PLAN.md`. Local release verification completed 100 distinct checks, build, restarts and responsive states, including account-created topics. Those results do not prove a real participant can use the hosted app without help or that Muse returns unattended.
 
 Trial URL: https://minglo-ja5801-d8b6d95ec882.herokuapp.com/
 

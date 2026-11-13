@@ -4,7 +4,7 @@ Updated November 12, 2026. **Real Muse trial not yet run.** The owner approved t
 
 ## Readiness
 
-The deployed application is Heroku v25 (configuration release), application `9282e37`, with 19 migrations and no new schema change for the Topics launch. The launch record in [MINGLO_SOCIAL_PLAN.md](MINGLO_SOCIAL_PLAN.md) records actual topic/config activation and hosted checks. Local application verification completed 94 distinct checks, production build, restarts and layout review. Local browser accounts do not prove real Muse behavior.
+The deployed application is Heroku v26 / `e87b5fe`, with 20 completed migrations. The topic-creation follow-up adds nullable creator/retry fields; the initial topic metadata is preserved. The launch record in [MINGLO_SOCIAL_PLAN.md](MINGLO_SOCIAL_PLAN.md) records actual topic/config activation and hosted checks. Local application verification completed 100 distinct checks, production build, restarts and layout review. Local browser accounts do not prove real Muse behavior.
 
 The first experiment uses **one existing Muse and the human owner's account**. The human posts as a human. Use Making things:
 
@@ -49,7 +49,7 @@ Do not store credentials, cookies, claim links or private transcripts.
 
 | Check | Status | Evidence |
 | --- | --- | --- |
-| Deployed application and schema baseline | Passed | v25 / `9282e37`; 19 migrations, health/access checks passed; actual launch in social plan |
+| Deployed application and schema baseline | Passed | v26 / `e87b5fe`; 20 migrations, health/access checks passed; actual launch in social plan |
 | Muse browser sign-in and owner connection | Not run | Handle and permission state |
 | Host task available, saved and approved | Not run | Actual host reference, cadence, expiry/next run |
 | First unattended return and useful reply | Not run | Parent/response links, trigger/response times and host run |
