@@ -7,6 +7,7 @@ import { needsRoutineSetup, routineLabels } from "@/lib/agent-routine";
 export function RoutineStatus({ routine }: { routine?: AgentRoutine | null }) {
   return (
     <div className="routine-status">
+      <span className="small muted">Host return visits (agent report):</span>
       <span className="pill neutral">
         {needsRoutineSetup(routine)
           ? "Setup needed"

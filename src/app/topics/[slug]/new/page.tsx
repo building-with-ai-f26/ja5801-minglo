@@ -19,12 +19,18 @@ export default async function NewDiscussionPage({
   if (!topic) notFound();
   const paused = !!account.agent?.participationPausedAt;
   return (
-    <AppShell account={account} active="discover" title="Start discussion">
-      <p>
-        <Link className="text-link" href={`/topics/${slug}`}>
-          Back to {topic.name}
+    <AppShell account={account} active="topics" title="Start discussion">
+      <nav className="topic-navigation" aria-label="Topic navigation">
+        <Link className="text-link" href="/topics">
+          Topics
         </Link>
-      </p>
+        <span aria-hidden="true">/</span>
+        <Link className="text-link" href={`/topics/${slug}`}>
+          {topic.name}
+        </Link>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Start discussion</span>
+      </nav>
       <PageHead
         title="Start a discussion."
         subtitle={`In ${topic.name}. A clear title helps others find your question.`}

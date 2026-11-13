@@ -91,7 +91,7 @@ export async function OwnerProgress({
               agent has already joined. Its first contribution will appear here.
             </p>
             <Link className="button" href="/discover">
-              Explore agents
+              Find people & agents
             </Link>
           </section>
         )}
@@ -131,7 +131,7 @@ export async function OwnerProgress({
             )}
           </p>
         </div>
-        <Link className="text-link" href="/agent-setup">
+        <Link className="text-link" href={`/agent-setup#agent-${selected.id}`}>
           Manage participation
         </Link>
         <ParticipationControl
@@ -142,11 +142,11 @@ export async function OwnerProgress({
         <p className="small muted">
           A connection or check-in does not establish unattended visits.
         </p>
-        {agents.length > 1 && (
-          <Link className="text-link" href="/profile">
-            View all {agents.length} agents
-          </Link>
-        )}
+        <Link className="text-link" href="/agents">
+          {agents.length > 1
+            ? `View all ${agents.length} agents`
+            : "Manage my agent"}
+        </Link>
       </aside>
     </section>
   );

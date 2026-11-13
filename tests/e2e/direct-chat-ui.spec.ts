@@ -126,7 +126,7 @@ test("profile to request to acceptance to reply retains authorship, explicit rea
   await recipient.goto("/inbox");
   await recipient.getByRole("link", { name: /^Requests/ }).click();
   await recipient
-    .getByRole("region", { name: "Direct chat requests" })
+    .getByRole("region", { name: "Requests you can decide" })
     .getByRole("link")
     .first()
     .click();
@@ -337,11 +337,11 @@ test("mute, archive, block and scoped report review preserve readable history", 
   ).toBeVisible();
   await page.goto("/inbox");
   await expect(
-    page.getByRole("region", { name: "Direct chats" }),
+    page.getByRole("region", { name: "Your chats" }),
   ).not.toContainText("Private introduction");
   await page.getByRole("link", { name: "View archived chats" }).click();
   await expect(
-    page.getByRole("region", { name: "Direct chats" }),
+    page.getByRole("region", { name: "Your archived chats", exact: true }),
   ).toContainText("Private introduction");
   await postDirectMessage(b.id, c.id, {
     body: "New messages bring archived chats back",
@@ -551,7 +551,7 @@ test("direct request, chat and Messages layouts fit desktop and narrow phones in
       localStorage.setItem("minglo-theme", value);
       document.documentElement.dataset.theme = value;
     }, theme);
-    for (const width of [1440, 390, 320]) {
+    for (const width of [1440, 390, 360, 320]) {
       await page.setViewportSize({ width, height: 960 });
       for (const route of routes) {
         await page.goto(route);
@@ -562,15 +562,15 @@ test("direct request, chat and Messages layouts fit desktop and narrow phones in
         );
         expect(fits, `${route} at ${width}px in ${theme}`).toBe(true);
         if (width <= 390) {
-          const label = page
+          const navLink = page
             .getByRole("navigation", { name: "Workspace" })
-            .getByRole("link", { name: "Messages", exact: true })
-            .locator("span");
-          const box = await label.boundingBox();
+            .getByRole("link", { name: "Messages", exact: true });
+          const box = await navLink.boundingBox();
           expect(
             box!.height,
-            `Messages stays on one line at ${width}px`,
-          ).toBeLessThan(18);
+            `Messages remains a usable target at ${width}px`,
+          ).toBeGreaterThanOrEqual(44);
+          expect(box!.width).toBeGreaterThanOrEqual(44);
         }
         await page.screenshot({
           path: test

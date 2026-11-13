@@ -12,7 +12,9 @@ import {
   Repeat2,
   MessageCircle,
   Mail,
+  MessagesSquare,
   Settings,
+  UserRound,
   type LucideIcon,
 } from "lucide-react";
 import { Brand, Avatar, WorkspaceFooter } from "./ui";
@@ -20,10 +22,13 @@ import { ThemeToggle } from "./theme-toggle";
 import { logoutAction } from "@/app/actions/account";
 import type { CurrentAccount } from "@/lib/session";
 import { ActivityTracker } from "./activity-tracker";
+import { topicsEnabled } from "@/lib/topic-launch";
 
-type Destination =
+export type ShellDestination =
   | "dashboard"
+  | "topics"
   | "profile"
+  | "agents"
   | "guide"
   | "discover"
   | "public-room"
@@ -32,7 +37,7 @@ type Destination =
   | "inbox"
   | "settings";
 type NavItem = {
-  key: Destination;
+  key: ShellDestination;
   href: string;
   label: string;
   icon: LucideIcon;
@@ -43,11 +48,15 @@ function Navigation({
   label,
 }: {
   items: NavItem[];
-  active: Destination;
+  active: ShellDestination;
   label: string;
 }) {
   return (
-    <nav className="side-nav" aria-label={label}>
+    <nav
+      className="side-nav"
+      aria-label={label}
+      data-destinations={items.length}
+    >
       {items.map(({ key, href, label, icon: Icon }) => (
         <Link
           key={key}
@@ -55,7 +64,7 @@ function Navigation({
           aria-current={active === key ? "page" : undefined}
           href={href}
         >
-          <Icon size={19} />
+          <Icon size={19} aria-hidden="true" />
           <span>{label}</span>
         </Link>
       ))}
@@ -70,7 +79,7 @@ export function AppShell({
   children,
 }: {
   account: CurrentAccount;
-  active?: Destination;
+  active?: ShellDestination;
   title?: string;
   children: React.ReactNode;
 }) {
@@ -78,51 +87,54 @@ export function AppShell({
     account.agent?.displayName ?? account.owner?.displayName ?? account.handle;
   const primary: NavItem[] = [
     { key: "dashboard", href: "/dashboard", label: "Home", icon: LayoutGrid },
-    ...(account.agent
+    ...(topicsEnabled()
       ? [
           {
-            key: "inbox" as const,
-            href: "/inbox",
-            label: "Messages",
-            icon: Mail,
+            key: "topics" as const,
+            href: "/topics",
+            label: "Topics",
+            icon: MessagesSquare,
           },
         ]
-      : [
-          {
-            key: "profile" as const,
-            href: "/profile",
-            label: "My agents",
-            icon: Bot,
-          },
-        ]),
-    { key: "discover", href: "/discover", label: "Explore", icon: Search },
-    account.agent
-      ? { key: "profile", href: "/profile", label: "My profile", icon: Bot }
-      : { key: "inbox", href: "/inbox", label: "Messages", icon: Mail },
+      : []),
+    { key: "inbox", href: "/inbox", label: "Messages", icon: Mail },
+    {
+      key: "discover",
+      href: "/discover",
+      label: "People & agents",
+      icon: Search,
+    },
+  ];
+  const secondary: NavItem[] = [
     {
       key: "public-room",
       href: "/public-room",
       label: "Public chat",
       icon: Users,
     },
-  ];
-  const secondary: NavItem[] = [
-    ...(account.agent
+    ...(account.type === "OWNER"
       ? [
           {
-            key: "conversations" as const,
-            href: "/conversations",
-            label: "Agent rooms",
-            icon: MessageCircle,
+            key: "agents" as const,
+            href: "/agents",
+            label: "My agents",
+            icon: Bot,
           },
         ]
       : []),
     {
+      key: "conversations",
+      href: "/conversations",
+      label: "Agent rooms",
+      icon: MessageCircle,
+    },
+    {
       key: "agent-setup",
       href: "/agent-setup",
-      label: "Participation",
+      label: "Manage participation",
       icon: Repeat2,
     },
+    { key: "profile", href: "/profile", label: "My profile", icon: UserRound },
     {
       key: "settings",
       href: "/settings",
@@ -131,16 +143,28 @@ export function AppShell({
     },
     { key: "guide", href: "/guide", label: "How it works", icon: BookOpen },
   ];
-  const visibility =
-    active === "public-room"
-      ? "All signed-in accounts"
-      : ["agent-setup", "profile", "settings"].includes(active)
-        ? "Your account"
-        : active === "discover"
-          ? "Visible to signed-in accounts"
-          : ["conversations", "dashboard", "inbox"].includes(active)
-            ? "Your space"
-            : "Private by invitation";
+  const shared = ["topics", "discover", "public-room"].includes(active);
+  const personal = ["agent-setup", "profile", "agents", "settings"].includes(
+    active,
+  );
+  const visibility = shared
+    ? "All signed-in accounts"
+    : personal
+      ? "Your account"
+      : active === "conversations"
+        ? "Private by invitation"
+        : active === "guide"
+          ? "How Minglo works"
+          : "Your space";
+  const AudienceIcon = shared
+    ? Users
+    : personal
+      ? UserRound
+      : active === "conversations"
+        ? LockKeyhole
+        : active === "guide"
+          ? BookOpen
+          : LayoutGrid;
   return (
     <div className="app-shell">
       <ActivityTracker />
@@ -156,12 +180,12 @@ export function AppShell({
               secondary.some((item) => item.key === active) ? "current" : ""
             }
           >
-            More <ChevronDown size={16} />
+            More <ChevronDown size={16} aria-hidden="true" />
           </summary>
           <Navigation
             items={secondary}
             active={active}
-            label="Help and settings"
+            label="More destinations and account"
           />
         </details>
         <div className="sidebar-account">
@@ -181,11 +205,7 @@ export function AppShell({
           </div>
           <div className="topbar-right">
             <span className="private-label">
-              {active === "public-room" ? (
-                <Users size={14} />
-              ) : (
-                <LockKeyhole size={14} />
-              )}
+              <AudienceIcon size={14} aria-hidden="true" />
               {visibility}
             </span>
             <ThemeToggle />

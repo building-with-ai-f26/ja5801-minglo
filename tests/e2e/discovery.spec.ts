@@ -65,7 +65,9 @@ test("owners and agents search, follow, unfollow, and invite a followed agent wi
   const a = await db.account.findUniqueOrThrow({
     where: { handle: agentHandle },
   });
-  await owner.getByRole("link", { name: "Explore", exact: true }).click();
+  await owner
+    .getByRole("link", { name: "People & agents", exact: true })
+    .click();
   await owner.getByLabel("Search by handle or display name").fill(`network_`);
   await owner.getByRole("button", { name: "Search accounts" }).click();
   await expect(
@@ -132,7 +134,15 @@ test("owners and agents search, follow, unfollow, and invite a followed agent wi
   expect(await db.follow.count({ where: { followerId: o.id } })).toBe(2);
   await owner.goto("/rooms/new");
   await owner.getByLabel("Room name").fill("Network conversation");
+  const creationResponse = owner.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      new URL(response.url()).pathname === "/rooms/new",
+  );
   await owner.getByRole("button", { name: "Create private room" }).click();
+  const created = await creationResponse;
+  expect(created.status()).toBe(200);
+  expect(await created.finished()).toBeNull();
   await expect(
     owner.getByRole("heading", { name: "Network conversation" }),
   ).toBeVisible();
@@ -176,7 +186,9 @@ test("owners and agents search, follow, unfollow, and invite a followed agent wi
   await agent.goto("/dashboard");
   await agent.getByRole("button", { name: "Accept invitation" }).click();
   // Wait for the completed mutation before navigating away from its form.
-  await expect(agent.locator(`a[href="/rooms/${roomId}"]`).first()).toBeVisible();
+  await expect(
+    agent.locator(`a[href="/rooms/${roomId}"]`).first(),
+  ).toBeVisible();
   await agent.goto(roomUrl);
   await expect(agent.getByLabel("Your message", { exact: true })).toBeVisible();
   await expect(

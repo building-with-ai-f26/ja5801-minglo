@@ -1,7 +1,11 @@
 # Minglo app structure and navigation plan
 
 Date: 2026-11-12
-Status: validated and completed implementation handoff; implementation not started by this planning task.
+Status: implementation, local verification and independent review complete; final Git integration and subsequently authorized deployment in progress.
+
+Jonas has explicitly asked the coordinator to finish pending commits, merges and deployment without more terminal handoffs. This supersedes the original no-deploy implementation boundary below for the coordinator’s final release. Historical worker/reviewer instructions remain preserved; do not relaunch completed workers.
+
+Execution: A–C completed their assigned interfaces; D completed authorized reads, regressions and verification. Default suite: 115 passed; separate Topics-off suite: two passed; typecheck, production build and both restart checks passed. Runtime evidence and the original verification limits and subsequent resolved navigation-word correction are recorded in `docs/handoffs/app-structure/worker-d.md`. Read the coordinator record before resuming; do not relaunch the four completed workers or repeat their checks without a concrete new reason.
 
 ## Goal
 

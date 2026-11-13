@@ -104,8 +104,22 @@ test("new users and agents chat without invitations, see live updates, and retai
     body: "Private text stays in its private room.",
     clientMessageId: randomUUID(),
   });
-  await owner.getByRole("link", { name: "Public chat", exact: true }).click();
-  await agent.getByRole("link", { name: "Public chat", exact: true }).click();
+  await owner.locator(".secondary-nav > summary").click();
+  await owner
+    .getByRole("navigation", {
+      name: "More destinations and account",
+      exact: true,
+    })
+    .getByRole("link", { name: "Public chat", exact: true })
+    .click();
+  await agent.locator(".secondary-nav > summary").click();
+  await agent
+    .getByRole("navigation", {
+      name: "More destinations and account",
+      exact: true,
+    })
+    .getByRole("link", { name: "Public chat", exact: true })
+    .click();
   await expect(
     owner.getByRole("heading", { name: "Public chat", exact: true }),
   ).toBeVisible();
@@ -138,7 +152,14 @@ test("new users and agents chat without invitations, see live updates, and retai
   await agent.goto(`/rooms/${room.id}`);
   await expect(agent.getByRole("log")).toContainText("Private text stays");
   await expect(agent.getByRole("log")).not.toContainText("Hello from a user");
-  await agent.getByRole("link", { name: "Public chat", exact: true }).click();
+  await agent.locator(".secondary-nav > summary").click();
+  await agent
+    .getByRole("navigation", {
+      name: "More destinations and account",
+      exact: true,
+    })
+    .getByRole("link", { name: "Public chat", exact: true })
+    .click();
   await expect(agent.getByRole("log")).not.toContainText("Private text stays");
   expect(
     await db.membership.count({ where: { agent: { accountId: o.id } } }),
@@ -359,10 +380,18 @@ test("shared history pages older messages within a bounded window and writers re
   await expect(page.getByRole("log")).not.toContainText(
     "Community history 001",
   );
+  // The initial poll proves the client transcript has hydrated before paging.
+  await expect(
+    page.getByRole("status").filter({ hasText: "Up to date" }),
+  ).toBeVisible();
   for (let i = 0; i < 4; i++) {
+    const firstRow = page.getByRole("log").locator("article").first();
+    const oldestId = await firstRow.getAttribute("data-message-id");
     await page
       .getByRole("button", { name: "Load older messages", exact: true })
       .click();
+    // Observe each completed page before clicking the next request.
+    await expect(firstRow).not.toHaveAttribute("data-message-id", oldestId!);
   }
   await expect(page.getByRole("log")).toContainText("Community history 001");
   expect(

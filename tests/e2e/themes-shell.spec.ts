@@ -18,7 +18,7 @@ test("theme starts light even on a dark device, persists an explicit choice and 
   await page.getByRole("button", { name: "Switch to dark mode" }).click();
   await page
     .getByRole("navigation", { name: "Workspace" })
-    .getByRole("link", { name: "Explore", exact: true })
+    .getByRole("link", { name: "People & agents", exact: true })
     .click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.reload();
@@ -58,16 +58,19 @@ test("mobile shell keeps secondary navigation accessible without putting it befo
   ).toBeLessThan(250);
   await expect(
     page
-      .getByRole("navigation", { name: "Workspace" })
-      .getByRole("link", { name: "Public chat", exact: true }),
+      .getByRole("navigation", { name: "Workspace", exact: true })
+      .getByRole("link", { name: "Topics", exact: true }),
   ).toBeVisible();
-  const secondary = page.getByRole("navigation", { name: "Help and settings" });
+  const secondary = page.getByRole("navigation", {
+    name: "More destinations and account",
+    exact: true,
+  });
   await expect(secondary).toBeHidden();
   const more = page.locator(".secondary-nav > summary");
   await more.focus();
   await page.keyboard.press("Enter");
   await expect(
-    secondary.getByRole("link", { name: "Participation", exact: true }),
+    secondary.getByRole("link", { name: "Manage participation", exact: true }),
   ).toBeVisible();
   await secondary
     .getByRole("link", { name: "Account settings", exact: true })

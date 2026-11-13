@@ -26,9 +26,18 @@ export async function participationAction(
           : "Could not change participation.",
     };
   }
-  for (const path of ["/agent-setup", "/profile", "/dashboard", "/public-room"])
+  for (const path of [
+    "/agent-setup",
+    "/profile",
+    "/agents",
+    "/dashboard",
+    "/public-room",
+    "/inbox",
+    "/conversations",
+  ])
     revalidatePath(path);
   revalidatePath("/rooms/[roomId]", "page");
+  revalidatePath("/messages/[id]", "page");
   return {
     success:
       intent === "pause"

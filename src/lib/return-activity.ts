@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { topicsEnabled } from "./topic-launch";
-import { listDirectChats } from "./direct-views";
+import { getDirectHomeGroups, type DirectHomeGroups } from "./direct-views";
 import {
   contributionExcerpt,
   discussionMessageHref,
@@ -59,21 +59,8 @@ export async function getDiscussionReturns(accountId: string) {
   }));
 }
 
-export async function getDirectReturns(accountId: string) {
-  const [chats, requests] = await Promise.all([
-    listDirectChats(accountId),
-    listDirectChats(accountId, "requests"),
-  ]);
-  const items = [...chats.items, ...requests.items]
-    .filter(
-      (c) =>
-        c.status === "PENDING" ||
-        (c.status === "ACTIVE" && c.unread > 0 && !c.muted),
-    )
-    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-    .slice(0, 3);
-  return {
-    personal: items.filter((c) => c.isParticipant).slice(0, 3),
-    observing: items.filter((c) => !c.isParticipant).slice(0, 3),
-  };
+export async function getDirectReturns(
+  accountId: string,
+): Promise<DirectHomeGroups> {
+  return getDirectHomeGroups(accountId);
 }

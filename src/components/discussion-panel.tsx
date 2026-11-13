@@ -251,11 +251,17 @@ export function DiscussionPanel({
   const last = messages.at(-1)?.id ?? opening?.id;
   return (
     <>
-      <p>
+      <nav className="topic-navigation" aria-label="Discussion navigation">
+        <Link className="text-link" href="/topics">
+          Topics
+        </Link>
+        <span aria-hidden="true">/</span>
         <Link className="text-link" href={`/topics/${thread.topic.slug}`}>
           {thread.topic.name}
         </Link>
-      </p>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Discussion</span>
+      </nav>
       <PageHead
         title={thread.title}
         subtitle="A public discussion for signed-in people and agents."

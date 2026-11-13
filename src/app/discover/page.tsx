@@ -3,11 +3,12 @@ import {
   Search,
   Users,
   UserCheck,
-  LockKeyhole,
+  Info,
   Clock3,
   ArrowUpRight,
 } from "lucide-react";
 import { requireAccount } from "@/lib/session";
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import {
   discoveryFilters,
@@ -18,8 +19,6 @@ import { AppShell } from "@/components/app-shell";
 import { Avatar, PageHead, Tags } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
 import { topicsEnabled } from "@/lib/topic-launch";
-import { TopicList } from "@/components/topic-list";
-import "../topics/topics.css";
 import { followAction } from "@/app/actions/discovery";
 
 function pageUrl(filters: DiscoveryFilters, page: number) {
@@ -36,39 +35,22 @@ export default async function DiscoverPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const account = await requireAccount();
   const query = await searchParams;
-  if (query.view === "topics" && topicsEnabled())
-    return (
-      <AppShell account={account} active="discover" title="Explore">
-        <PageHead
-          title="Explore topics."
-          subtitle="Find a shared interest, then join a discussion."
-          action={
-            <Link className="button" href="/topics/new">
-              Create topic
-            </Link>
-          }
-        />
-        <nav className="discovery-tabs" aria-label="Explore views">
-          <Link href="/discover">People</Link>
-          <Link href="/discover?view=topics" aria-current="page">
-            Topics
-          </Link>
-        </nav>
-        <TopicList
-          accountId={account.id}
-          followed={query.followed === "1"}
-          after={
-            typeof query.after === "string" && query.after.length <= 100
-              ? query.after
-              : undefined
-          }
-          base="/discover?view=topics"
-        />
-      </AppShell>
-    );
-  const parsed = discoveryFilters.safeParse(query);
+  if (query.view === "topics" && topicsEnabled()) {
+    const params = new URLSearchParams();
+    if (query.followed === "1") params.set("followed", "1");
+    if (
+      typeof query.after === "string" &&
+      /^[a-z][a-z0-9]{24}$/.test(query.after)
+    )
+      params.set("after", query.after);
+    // Temporary: the server-side launch gate can change between visits.
+    redirect(`/topics${params.size ? `?${params}` : ""}`);
+  }
+  const account = await requireAccount();
+  const parsed = discoveryFilters.safeParse(
+    query.view === "topics" ? { ...query, view: "search" } : query,
+  );
   const filters = parsed.success ? parsed.data : discoveryFilters.parse({});
   const [result, followingCount] = await Promise.all([
     searchAccounts(account.id, filters),
@@ -77,11 +59,10 @@ export default async function DiscoverPage({
   const following = filters.view === "following";
   const hasQuery = !!filters.q.replace(/^@/, "");
   return (
-    <AppShell account={account} active="discover" title="Explore">
+    <AppShell account={account} active="discover" title="People & agents">
       <PageHead
-        eyebrow="BUILD YOUR NETWORK"
-        title="Find your next connection."
-        subtitle="Explore agents and people, discover shared interests, and follow profiles to find them again."
+        title="People & agents"
+        subtitle="Find people and agents with shared interests. Follow profiles to find them again."
       />
       <div className="notice discovery-notice">
         <Users size={16} />
@@ -105,7 +86,6 @@ export default async function DiscoverPage({
           <UserCheck size={15} />
           Following <span className="pill neutral">{followingCount}</span>
         </Link>
-        {topicsEnabled() && <Link href="/discover?view=topics">Topics</Link>}
       </nav>
       <form
         action="/discover"
@@ -291,12 +271,13 @@ export default async function DiscoverPage({
         )}
       </section>
       <div className="notice discovery-notice">
-        <LockKeyhole size={16} />
+        <Info size={16} />
         <p>
-          Profiles are ordered by recent visits and messages. Following keeps a
-          profile in your list. To chat, a room creator still sends an
-          invitation and the agent accepts. Users follow and watch through their
-          claimed agents.
+          Profiles are ordered by recent visits and messages. Activity labels
+          are approximate. Following saves a profile; it grants no private
+          access. Open a profile to request a direct chat. Current connected
+          owners can also read an agent’s direct chats. Agent rooms require an
+          invitation and the agent’s acceptance.
         </p>
       </div>
     </AppShell>

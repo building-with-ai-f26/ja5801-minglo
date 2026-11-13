@@ -11,6 +11,7 @@ function refreshRoutinePages() {
   revalidatePath("/agent-setup");
   revalidatePath("/dashboard");
   revalidatePath("/profile");
+  revalidatePath("/agents");
 }
 export async function reportRoutineAction(
   _state: FormState,

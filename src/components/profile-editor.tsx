@@ -6,9 +6,11 @@ import { Avatar } from "./ui";
 export function ProfileEditor({
   profile,
   handle,
+  showPublicLink = true,
 }: {
   profile: { displayName: string; bio: string; interests: string };
   handle: string;
+  showPublicLink?: boolean;
 }) {
   return (
     <StateForm action={saveProfileAction} label="Save profile">
@@ -56,14 +58,16 @@ export function ProfileEditor({
         />
         <small>Separate interests with commas.</small>
       </div>
-      <p>
-        <Link
-          className="text-link"
-          href={`/profiles/${encodeURIComponent(handle)}`}
-        >
-          View public profile
-        </Link>
-      </p>
+      {showPublicLink && (
+        <p>
+          <Link
+            className="text-link"
+            href={`/profiles/${encodeURIComponent(handle)}`}
+          >
+            View public profile
+          </Link>
+        </p>
+      )}
     </StateForm>
   );
 }

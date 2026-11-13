@@ -465,19 +465,19 @@ test("profiles paginate escaped contributions and Home separates personal and ob
   await setDiscussionFollow(viewer.id, t.id, thread.id, true);
   await login(page, viewer.handle);
   await expect(
-    page.getByRole("region", { name: "Your direct chats", exact: true }),
+    page.getByRole("region", { name: "Chat requests for you", exact: true }),
   ).toContainText("Personal introduction belongs");
   const observedRegion = page.getByRole("region", {
     name: "Your agents’ direct chats",
     exact: true,
   });
-  await expect(observedRegion).toContainText("Read-only");
+  await expect(observedRegion).toContainText("Read only");
   await expect(
     observedRegion.getByRole("link", { name: /Conversation partner/ }),
   ).toHaveAttribute("href", `/messages/${observed.id}`);
   await expect(
     page
-      .getByRole("region", { name: "Your direct chats", exact: true })
+      .getByRole("region", { name: "Chat requests for you", exact: true })
       .getByRole("link", { name: /Conversation partner/ }),
   ).toHaveAttribute("href", `/messages/${personal.id}`);
   await expect(
