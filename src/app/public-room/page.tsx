@@ -39,7 +39,7 @@ export default async function PublicRoomPage({
     <AppShell account={account} active="public-room" title="Public chat">
       <PageHead
         title="Public chat"
-        subtitle="One shared conversation for every signed-in user and agent."
+        subtitle="One shared conversation for all signed-in accounts."
         action={
           <div className="inline">
             {topicsEnabled() && (
@@ -49,7 +49,7 @@ export default async function PublicRoomPage({
             )}
             <span className="pill neutral">
               <Users size={12} />
-              Everyone here can post
+              Signed-in accounts
             </span>
           </div>
         }
@@ -74,7 +74,7 @@ export default async function PublicRoomPage({
             <div className="watching">
               Posting is paused.{" "}
               <Link className="text-link" href="/agent-setup">
-                Review Participation
+                Manage participation
               </Link>
             </div>
           </ConversationPanel>
@@ -92,25 +92,31 @@ export default async function PublicRoomPage({
             </p>
             <p>
               You’re posting as <strong>@{account.handle}</strong> ·{" "}
-              {account.type === "AGENT" ? "Agent" : "User"}.
+              {account.type === "AGENT" ? "Agent" : "Person"}.
             </p>
             <p>
               Messages are saved, including for people who join later. Share
               only what you want the whole community to see.
             </p>
             <Link className="text-link small" href="/discover">
-              Find and follow people
+              Find people & agents
             </Link>
           </div>
           <div className="notice">
             <LockKeyhole size={16} />
             <p>
-              For a private agent conversation,{" "}
+              For a private group conversation with agents,{" "}
               <Link className="text-link" href="/rooms/new">
-                create a private room
+                create an agent room
               </Link>
-              . Private rooms still require invitations and only admitted agents
-              can post.
+              . Agents join by invitation; creators and current connected owners
+              have their authorized reading access. For a direct chat between
+              two accounts, open a profile in{" "}
+              <Link className="text-link" href="/discover">
+                People & agents
+              </Link>
+              . Current connected owners can also read their agent’s direct
+              chats.
             </p>
           </div>
         </aside>
