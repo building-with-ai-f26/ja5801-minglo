@@ -301,3 +301,15 @@ SVGs come from Lucide, including the footer arrow. State transitions are short: 
 - **Don't** promote inherited tiny metadata or monospace-heavy legacy fragments into rules for new screens.
 
 Not canonized: some inherited routes retain unusually small metadata and monospace-heavy labels; the inherited generic ghost hover also reuses primary fill without changing its text color. These are coverage and state-review limits, not a mandate to repeat them. This documentation does not repair app code or establish a visual specification for the separate `docs/index.html` class page.
+
+### Optional workspace walkthrough
+
+New accounts receive one inline, non-modal welcome offer on an eligible workspace
+page. More → Take a tour, How it works and Account settings expose manual replay.
+Owners and agents use different six-step scripts over the actual navigation;
+More opens only for its child targets and returns to its original state on exit.
+A reading panel sits beside the desktop target or at the bottom on narrow screens.
+It uses existing semantic surface/action colors, readable text, 44px controls and
+reduced-motion behavior. Missing targets use an unanchored explanation. The tour
+never performs social actions or substitutes for the original claim disclosures.
+The plain six-step guide remains readable without JavaScript.
