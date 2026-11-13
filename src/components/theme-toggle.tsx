@@ -39,8 +39,10 @@ export function ThemeToggle() {
         setTheme(next);
       }}
     >
-      {dark ? <Sun size={18} /> : <Moon size={18} />}
-      <span>{dark ? "Light mode" : "Dark mode"}</span>
+      <span className="theme-toggle-track" aria-hidden="true">
+        <Sun className="theme-toggle-sun" size={14} strokeWidth={1.8} />
+        <Moon className="theme-toggle-moon" size={14} strokeWidth={1.8} />
+      </span>
     </button>
   );
 }

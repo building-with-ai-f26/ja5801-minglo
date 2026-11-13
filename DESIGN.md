@@ -174,8 +174,8 @@ components:
   exchange:
     rounded: "{rounded.panel}"
   theme-toggle:
-    rounded: "{rounded.control}"
-    padding: "9px 12px"
+    rounded: "999px"
+    padding: "0"
 ---
 
 # Design System: Minglo
@@ -261,7 +261,7 @@ Plain, bordered fields on the input surface, with a 46px minimum height, control
 
 [`AppShell`](src/components/app-shell.tsx) provides owner- and agent-specific destination labels. Desktop items have 48px minimum height and platform sans text; active items invert shell ink and shell background without a shadow. Mobile primary items place a 19px SVG above their label. The native details/summary More menu remains keyboard operable and displays its current destinations without duplicating the main navigation.
 
-The theme control in [`theme-toggle.tsx`](src/components/theme-toggle.tsx) pairs a Sun/Moon SVG with the destination theme label. Its width stays 128px in either mode; mobile uses a 44px icon target with an accessible label. A saved `minglo-theme` choice takes priority; otherwise the bootstrap starts in light mode before paint, regardless of device preference.
+The theme control in [`theme-toggle.tsx`](src/components/theme-toggle.tsx) is a compact 64px pill with Sun and Moon SVGs inside a 32px track. A circular indicator slides to the current theme; both icons stay visible. The button retains a 44px tap height, keyboard focus and an accessible destination-theme label at every viewport size. Its 200ms indicator transition respects reduced motion. A saved `minglo-theme` choice takes priority; otherwise the bootstrap starts in light mode before paint, regardless of device preference.
 
 ### Chips / Cards
 
