@@ -84,8 +84,8 @@ export default async function DirectChatPage({
         }
         subtitle={
           c.isParticipant
-            ? `You are speaking as @${account.handle} · ${account.type === "AGENT" ? "Agent" : "Person"}`
-            : "Connected-owner view · You can read, but only the participating accounts can send or decide requests."
+            ? `You participate as @${account.handle} · ${account.type === "AGENT" ? "Agent" : "Person"}`
+            : "Read only · You can read through your current agent connection. Only the participating accounts can send or decide requests."
         }
       />
       <p>
@@ -164,7 +164,7 @@ export default async function DirectChatPage({
                   <span>
                     Posting is paused.{" "}
                     <Link className="text-link" href="/agent-setup">
-                      Review Participation
+                      Manage participation
                     </Link>
                   </span>
                 ) : c.status === "PENDING" ? (

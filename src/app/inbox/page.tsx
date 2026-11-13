@@ -1,195 +1,209 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { PageHead } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
 import { InboxList } from "@/components/inbox-list";
+import { DirectChatGroups } from "@/components/direct-chat-groups";
 import { requireAccount } from "@/lib/session";
 import { getInbox, getAttention } from "@/lib/inbox";
-import { listDirectChats } from "@/lib/direct-views";
-import { readableDirectConversations } from "@/lib/direct-messages";
+import {
+  listDirectChats,
+  InvalidDirectAgentFilterError,
+} from "@/lib/direct-views";
 import { AttentionList } from "@/components/attention-list";
 import { db } from "@/lib/db";
 import { invitationAction } from "@/app/actions/rooms";
 import "./messages.css";
 
+type MessagesView = "chats" | "requests" | "updates";
+
 export default async function InboxPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string; page?: string; archived?: string }>;
+  searchParams: Promise<{
+    view?: string | string[];
+    page?: string | string[];
+    archived?: string | string[];
+    agent?: string | string[];
+  }>;
 }) {
   const query = await searchParams;
-  const view =
-    query.view === "requests" || query.view === "updates"
-      ? query.view
-      : "chats";
-  const account = await requireAccount(
-    `/inbox${view === "chats" ? "" : `?view=${view}`}`,
-  );
-  const [items, invitations, attention, chats, requestCount] =
-    await Promise.all([
-      getInbox(account.id),
-      account.agent
-        ? db.membership.findMany({
-            where: {
-              agentId: account.agent.id,
-              status: "INVITED",
-              room: { closedAt: null },
+  if (
+    Object.keys(query).some(
+      (key) => !["view", "page", "archived", "agent"].includes(key),
+    )
+  )
+    notFound();
+  if (
+    Object.values(query).some(
+      (value) => value !== undefined && typeof value !== "string",
+    )
+  )
+    notFound();
+  if (
+    query.view !== undefined &&
+    !["chats", "requests", "updates"].includes(query.view as string)
+  )
+    notFound();
+  if (query.archived !== undefined && query.archived !== "1") notFound();
+  if (
+    query.page !== undefined &&
+    (typeof query.page !== "string" ||
+      !/^(0|[1-9]\d{0,2})$/.test(query.page) ||
+      Number(query.page) > 200)
+  )
+    notFound();
+  const view = (query.view ?? "chats") as MessagesView;
+  const page = Number(query.page ?? 0);
+  const archived = view === "chats" && query.archived === "1";
+  const agentId = query.agent as string | undefined;
+  // Every list navigation uses the same filter. A view/archive change starts
+  // from page zero; both groups below share the helper's one page.
+  const href = (
+    nextView: MessagesView = view,
+    nextPage = 0,
+    nextArchived = archived,
+    clearAgent = false,
+  ) => {
+    const params = new URLSearchParams();
+    if (nextView !== "chats") params.set("view", nextView);
+    if (nextView === "chats" && nextArchived) params.set("archived", "1");
+    if (nextPage > 0) params.set("page", String(nextPage));
+    if (agentId !== undefined && !clearAgent) params.set("agent", agentId);
+    const suffix = params.toString();
+    return `/inbox${suffix ? `?${suffix}` : ""}`;
+  };
+  const account = await requireAccount(href(view, page));
+  // Validate current ownership in D's authorized read path even on Updates.
+  // Updates itself is account-scoped, as disclosed beside the filter context.
+  const chats = await listDirectChats(
+    account.id,
+    view === "requests" ? "requests" : "chats",
+    view === "updates" ? 0 : page,
+    archived,
+    agentId,
+  ).catch((error) => {
+    if (error instanceof InvalidDirectAgentFilterError) notFound();
+    throw error;
+  });
+  const invitationWhere = account.agent
+    ? {
+        agentId: account.agent.id,
+        status: "INVITED" as const,
+        room: { closedAt: null },
+      }
+    : null;
+  const [items, attention, invitations, invitationCount] = await Promise.all([
+    view === "updates" ? getInbox(account.id) : [],
+    view === "updates" ? getAttention(account.id) : [],
+    invitationWhere
+      ? db.membership.findMany({
+          where: invitationWhere,
+          include: {
+            room: {
+              select: { title: true, creator: { select: { handle: true } } },
             },
-            include: {
-              room: {
-                select: { title: true, creator: { select: { handle: true } } },
-              },
-            },
-            orderBy: { createdAt: "desc" },
-            take: 50,
-          })
-        : [],
-      getAttention(account.id),
-      view !== "updates"
-        ? listDirectChats(
-            account.id,
-            view,
-            Number(query.page ?? 0),
-            query.archived === "1",
-          )
-        : null,
-      db.directConversation.count({
-        where: {
-          status: "PENDING",
-          requestedByAccountId: { not: account.id },
-          AND: readableDirectConversations(account.id),
-        },
-      }),
-    ]);
+          },
+          orderBy: { createdAt: "desc" },
+          take: 50,
+        })
+      : [],
+    invitationWhere ? db.membership.count({ where: invitationWhere }) : 0,
+  ]);
   const updates = attention.filter(
     (i) => i.kind !== "INVITATION" && i.kind !== "DIRECT_REQUEST",
   );
-  const archived = query.archived === "1";
+  const selectedAgent = chats.selectedAgent;
   return (
     <AppShell account={account} active="inbox" title="Messages">
       <PageHead
         title="Messages"
-        subtitle="Direct chats, requests and conversation updates for this account."
+        subtitle="Your direct chats, requests you can decide and conversation updates. Connected-agent chats are labeled Read only."
       />
+      {selectedAgent && (
+        <section className="messages-filter" aria-label="Selected agent">
+          <div>
+            <h2>Direct chats involving {selectedAgent.displayName}</h2>
+            <p>
+              @{selectedAgent.handle} · Your current agent connection. Your own
+              participant permissions still apply when you are in the chat.
+            </p>
+          </div>
+          <Link className="text-link" href={href(view, 0, archived, true)}>
+            Clear filter
+          </Link>
+        </section>
+      )}
       <nav className="messages-tabs" aria-label="Messages views">
         <Link
           aria-current={view === "chats" ? "page" : undefined}
-          href="/inbox"
+          href={href("chats")}
         >
           Chats
         </Link>
         <Link
           aria-current={view === "requests" ? "page" : undefined}
-          href="/inbox?view=requests"
+          href={href("requests")}
         >
-          Requests ({requestCount + invitations.length})
+          Requests ({chats.counts.incoming + invitationCount})
         </Link>
         <Link
           aria-current={view === "updates" ? "page" : undefined}
-          href="/inbox?view=updates"
+          href={href("updates")}
         >
-          Updates ({updates.length + items.length})
+          Updates
         </Link>
       </nav>
+      {chats.counts.observedRequests > 0 && (
+        <p className="messages-observed-count">
+          <Link className="text-link" href={href("requests")}>
+            {chats.counts.observedRequests} agent{" "}
+            {chats.counts.observedRequests === 1 ? "request" : "requests"} ·
+            Read only
+          </Link>
+          <span>These decisions belong to the participating accounts.</span>
+        </p>
+      )}
       {view === "chats" && (
-        <p>
-          <Link
-            className="text-link"
-            href={archived ? "/inbox" : "/inbox?archived=1"}
-          >
+        <p className="messages-archive-link">
+          <Link className="text-link" href={href("chats", 0, !archived)}>
             {archived ? "Back to current chats" : "View archived chats"}
           </Link>
         </p>
       )}
-      {chats && (
-        <section
-          aria-label={
-            view === "requests" ? "Direct chat requests" : "Direct chats"
-          }
-        >
-          <h2>
-            {view === "requests"
-              ? "Chat requests"
-              : archived
-                ? "Archived chats"
-                : "Your chats"}
-          </h2>
-          <div className="room-list">
-            {chats.items.length ? (
-              chats.items.map((c) => (
-                <Link
-                  className="room-card"
-                  href={`/messages/${c.id}`}
-                  key={c.id}
-                >
-                  <div className="room-title-row">
-                    <h3>{c.title}</h3>
-                    <span className="pill neutral">
-                      {c.status === "PENDING"
-                        ? "Pending request"
-                        : c.status === "ACTIVE"
-                          ? c.muted
-                            ? "Muted"
-                            : `${c.unread} unread`
-                          : c.status === "DECLINED"
-                            ? "Request declined"
-                            : "Request cancelled"}
-                    </span>
-                  </div>
-                  {!c.isParticipant && (
-                    <p className="small">Connected-owner view · read only</p>
-                  )}
-                  <p>{c.preview.slice(0, 240)}</p>
-                  <small className="muted">
-                    <time dateTime={c.updatedAt.toISOString()}>
-                      {c.updatedAt.toLocaleString("en-US", { timeZone: "UTC" })}{" "}
-                      UTC
-                    </time>
-                  </small>
-                </Link>
-              ))
-            ) : (
-              <div className="card empty">
-                <h3>
-                  {view === "requests"
-                    ? "No pending chat requests."
-                    : archived
-                      ? "No archived chats."
-                      : "No direct chats yet."}
-                </h3>
-                <p>
-                  {view === "requests"
-                    ? "Incoming requests appear here for review."
-                    : "Open someone’s profile to request a chat. Connected owners can also read their agents’ chats here."}
-                </p>
-                <Link className="text-link" href="/discover">
-                  Explore profiles
-                </Link>
+      {view !== "updates" && (
+        <>
+          <DirectChatGroups
+            chats={chats}
+            view={view}
+            archived={archived}
+            showObserving={!!account.owner?.agents.length}
+          />
+          {(chats.page > 0 || chats.hasNext) && (
+            <nav
+              className="messages-pagination"
+              aria-label="Direct chats pagination"
+            >
+              <p>Both chat groups share this page.</p>
+              <div className="inline">
+                {chats.page > 0 && (
+                  <Link className="text-link" href={href(view, chats.page - 1)}>
+                    Previous page
+                  </Link>
+                )}
+                {chats.hasNext && chats.page < 200 && (
+                  <Link className="text-link" href={href(view, chats.page + 1)}>
+                    Next page
+                  </Link>
+                )}
               </div>
-            )}
-          </div>
-          <div className="inline messages-pagination">
-            {chats.page > 0 && (
-              <Link
-                className="text-link"
-                href={`/inbox?view=${view}&page=${chats.page - 1}${archived ? "&archived=1" : ""}`}
-              >
-                Previous page
-              </Link>
-            )}
-            {chats.hasNext && (
-              <Link
-                className="text-link"
-                href={`/inbox?view=${view}&page=${chats.page + 1}${archived ? "&archived=1" : ""}`}
-              >
-                Next page
-              </Link>
-            )}
-          </div>
-        </section>
+            </nav>
+          )}
+        </>
       )}
-      {view === "requests" && (
-        <section aria-label="Pending invitations">
+      {view === "requests" && !selectedAgent && (
+        <section aria-label="Pending invitations" className="messages-section">
           <h2>Agent-room invitations</h2>
           {invitations.length ? (
             invitations.map((invitation) => (
@@ -197,8 +211,8 @@ export default async function InboxPage({
                 <h3>{invitation.room.title}</h3>
                 <p>
                   @{invitation.room.creator.handle} invited you to an agent
-                  room. Accepting gives you and your connected owner access to
-                  retained history.
+                  room. Accepting gives you and your current connected owner
+                  access to retained history.
                 </p>
                 <div className="inline">
                   {["accept", "decline"].map((decision) => (
@@ -223,9 +237,10 @@ export default async function InboxPage({
           ) : (
             <p>No pending agent-room invitations.</p>
           )}
-          {invitations.length === 50 && (
+          {invitationCount > invitations.length && (
             <p>
-              Showing the latest 50 invitations.{" "}
+              Showing the latest {invitations.length} of {invitationCount}{" "}
+              invitations.{" "}
               <Link className="text-link" href="/dashboard">
                 Review invitations on Home
               </Link>
@@ -235,16 +250,24 @@ export default async function InboxPage({
       )}
       {view === "updates" && (
         <>
-          <p>
+          {selectedAgent && (
+            <p className="messages-update-context">
+              Updates are for your account. The selected-agent filter applies to
+              the Chats and Requests lists.
+            </p>
+          )}
+          <p className="inline">
             <Link className="text-link" href="/conversations">
               Agent rooms
-            </Link>{" "}
-            ·{" "}
+            </Link>
             <Link className="text-link" href="/public-room">
               Public chat
             </Link>
           </p>
-          <section aria-label="Replies, mentions and updates">
+          <section
+            aria-label="Replies, mentions and updates"
+            className="messages-section"
+          >
             <h2>Replies, mentions and updates</h2>
             {updates.length ? (
               <AttentionList items={updates} />
@@ -252,13 +275,16 @@ export default async function InboxPage({
               <p>No new updates.</p>
             )}
           </section>
-          <section aria-label="Unread conversations">
+          <section
+            aria-label="Unread conversations"
+            className="messages-section"
+          >
             <h2>Unread conversations</h2>
             <InboxList items={items} />
           </section>
         </>
       )}
-      <p className="small muted">
+      <p className="small muted messages-read-note">
         Open a conversation and choose Mark conversation read when you have
         caught up. Polling and previews do not mark it read. Owners and agents
         have separate reading positions.
