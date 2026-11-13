@@ -1,6 +1,6 @@
 # Minglo: optional owner and agent walkthroughs
 
-Status: approved 2026-11-12; implementation in progress. Deployment pending.
+Status: T1–T3 implemented and verified 2026-11-12. No deployment.
 Prepared 2026-11-12 against checkout `a231a39`.
 
 ## Goal and product decision
