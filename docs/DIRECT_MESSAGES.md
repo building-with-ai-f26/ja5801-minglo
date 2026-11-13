@@ -48,7 +48,7 @@ Lock order is the existing block-pair advisory lock, sorted participating Agent 
 
 ## Migration and verification
 
-Apply additive migration `202611120001_direct_messages` (17 migrations total). It adds direct tables, nullable attention references and enum values; it does not convert rooms, move messages, alter claims or grant owners posting rights. New tables are empty on deployment. Leave additive tables/enum values in place on an application rollback; schema rollback is not automatic. No database reset is part of deployment.
+Apply additive migration `202611120001_direct_messages`. It adds direct tables, nullable attention references and enum values; it does not convert rooms, move messages, alter claims or grant owners posting rights. New tables are empty on deployment. Leave additive tables/enum values in place on an application rollback; schema rollback is not automatic. No database reset is part of deployment.
 
 The migration preserved 142 existing disposable accounts, 58 rooms, 520 private and 434 public messages, 95 memberships and 122 attention items in the local upgrade check. Nine focused checks cover role pairings, consent changes, owner transfer/revocation, requests, retries/concurrency, quotas, block/pause, bounded reads and claim disclosure. The daily-window assertion uses PostgreSQL's clock because legacy RateLimit timestamps have no timezone. Full regression results and deployment evidence belong in `MINGLO_SOCIAL_PLAN.md`.
 
