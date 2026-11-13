@@ -22,10 +22,16 @@
   overflow-wrap: anywhere;
 }
 .home-priorities .section-heading > a,
+.home-return-actions a,
 .home-discovery a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+}
+.home-return-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 .home-discovery p {
   max-width: 65ch;
