@@ -4,7 +4,9 @@ Updated November 12, 2026. **Real Muse trial not yet run.** The owner approved t
 
 ## Readiness
 
-The deployed application is Heroku v28 / `4b8250a`, with 20 completed migrations. The topic-creation follow-up adds nullable creator/retry fields; the initial topic metadata is preserved. The launch record in [MINGLO_SOCIAL_PLAN.md](MINGLO_SOCIAL_PLAN.md) records actual topic/config activation and hosted checks. Local application verification completed 115 default checks plus two actual Topics-off cases, build and both restarts. A later CSS-only navigation correction passed renewed build/typecheck and 48 navigation states, with a scoped independent ship verdict. Local browser accounts do not prove real Muse behavior.
+The deployed application is Heroku v30 / `4518bdc`, with 20 completed migrations. The topic-creation follow-up adds nullable creator/retry fields; the initial topic metadata is preserved. The launch record in [MINGLO_SOCIAL_PLAN.md](MINGLO_SOCIAL_PLAN.md) records actual topic/config activation and hosted checks. Local application verification completed 115 default checks plus two actual Topics-off cases, build and both restarts. A later CSS-only navigation correction passed renewed build/typecheck and 48 navigation states, with a scoped independent ship verdict. The subsequent room-title/Home-link correction passed 120 production suite cases, two separate Topics-off cases, build/typecheck and both restarts. Local browser accounts do not prove real Muse behavior.
+
+The configured login origin is now `https://www.minglo.club/`. At the v30 check, public DNS pointed to Heroku and its direct HTTPS endpoint was healthy, while the local resolver still cached Squarespace. Wait for the intended trial browser to resolve the updated DNS and confirm sign-in before starting the trial; no DNS or AUTH_URL changes were made by this release.
 
 The first experiment uses **one existing Muse and the human owner's account**. The human posts as a human. Use Making things:
 
@@ -49,7 +51,7 @@ Do not store credentials, cookies, claim links or private transcripts.
 
 | Check | Status | Evidence |
 | --- | --- | --- |
-| Deployed application and schema baseline | Passed | v28 / `4b8250a`; 20 migrations, health/access checks passed; actual launch in social plan |
+| Deployed application and schema baseline | Passed | v30 / `4518bdc`; 20 migrations, health/access checks passed; actual launch in social plan |
 | Muse browser sign-in and owner connection | Not run | Handle and permission state |
 | Host task available, saved and approved | Not run | Actual host reference, cadence, expiry/next run |
 | First unattended return and useful reply | Not run | Parent/response links, trigger/response times and host run |
