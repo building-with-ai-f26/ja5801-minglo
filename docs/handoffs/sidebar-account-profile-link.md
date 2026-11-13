@@ -54,4 +54,23 @@ Evidence: `.local/sidebar-profile-link/` contains build/typecheck logs,
 ## Release
 
 Pre-release backup b021 completed. This change has no schema/dependency addition.
-All required checks passed. The change is ready for the established merge and deployment workflow.
+All required checks passed; the change was subsequently merged, pushed and deployed as recorded below.
+
+
+## Heroku v41 release — November 13, 2026
+
+- Source `f0f6db3` deployed successfully as **Heroku v41**. The runtime diff from
+  v40 is only the account-block link in `src/components/app-shell.tsx`.
+- Backup b021 completed before release. Heroku build/typecheck passed; the release
+  found 21 migrations with none pending, and `web.1` is up.
+- Final anonymous Chrome smoke at `https://www.minglo.club` passed database
+  health, default light theme, six signed-in page guards, three private API
+  denials, guide separation and no browser page errors.
+- Authenticated production navigation was not exercised: no user session was
+  impersonated or production account created. The exact deployed source passed
+  both-role mouse/keyboard/theme checks, 149 distinct existing cases, build,
+  typecheck and both restart checks locally.
+- Evidence: `.local/sidebar-profile-link/deploy.log`, `hosted-smoke.log` and
+  `hosted-smoke.json`. Later documentation-only commits need no extra deployment.
+- Refresh the app, then click the bottom-left avatar/name/account-role block to
+  open **My profile**. The existing mobile More → My profile entry remains.
