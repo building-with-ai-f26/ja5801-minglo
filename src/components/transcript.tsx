@@ -350,7 +350,7 @@ export function Transcript({
               value={messages.at(-1)!.id}
             />
           </StateForm>
-          <p className="small muted">
+          <p className="small muted conversation-read-helper">
             Marks this conversation read through the last message shown,
             including earlier history.
           </p>

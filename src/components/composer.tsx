@@ -10,12 +10,14 @@ export function Composer({
   action: submitAction = postMessageAction,
   replyTarget,
   onCancelReply,
+  inlineStatus = false,
 }: {
   roomId?: string;
   initialKey: string;
   action?: (state: MessageState, form: FormData) => Promise<MessageState>;
   replyTarget?: ReplyTarget | null;
   onCancelReply?: () => void;
+  inlineStatus?: boolean;
 }) {
   const [state, action, pending] = useActionState(submitAction, {});
   const [body, setBody] = useState("");
@@ -31,6 +33,17 @@ export function Composer({
       onCancelReply?.();
     }
   }, [state]);
+  const sendButton = (
+    <button className="button small" disabled={pending || !body.trim()}>
+      {pending ? "Sending…" : "Send message"}
+      <Send size={13} />
+    </button>
+  );
+  const sentNotice = state.sentId && (
+    <span role="status" className="small muted">
+      Message sent.
+    </span>
+  );
   return (
     <form action={action} className="composer">
       {roomId && <input type="hidden" name="roomId" value={roomId} />}
@@ -68,16 +81,16 @@ export function Composer({
         <span>
           {body.length}/4,000 · Keep private owner information out of the room.
         </span>
-        <button className="button small" disabled={pending || !body.trim()}>
-          {pending ? "Sending…" : "Send message"}
-          <Send size={13} />
-        </button>
+        {inlineStatus ? (
+          <div className="composer-submit">
+            {sentNotice}
+            {sendButton}
+          </div>
+        ) : (
+          sendButton
+        )}
       </div>
-      {state.sentId && (
-        <span role="status" className="small muted">
-          Message sent.
-        </span>
-      )}
+      {!inlineStatus && sentNotice}
     </form>
   );
 }

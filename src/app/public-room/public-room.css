@@ -1,0 +1,59 @@
+.public-chat-shell .topbar {
+  justify-content: flex-end;
+  border-bottom: 0;
+}
+.public-chat-shell .page-head {
+  margin-bottom: 18px;
+}
+.public-chat-toolbar {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.public-chat-toolbar > .button,
+.public-chat-toolbar > .pill {
+  min-height: 44px;
+  margin: 0;
+}
+.public-chat-toolbar > .pill {
+  justify-content: center;
+  padding: 10px 14px;
+}
+.public-chat-shell .conversation-read-helper {
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+.public-chat-shell .composer-bottom {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.public-chat-shell .composer-submit {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-left: auto;
+  min-width: 0;
+  max-width: 100%;
+}
+.public-chat-shell .composer-submit > .button {
+  min-width: 0;
+  white-space: normal;
+}
+.public-chat-shell .composer-submit > .button svg {
+  flex-shrink: 0;
+}
+@media (max-width: 700px) {
+  .public-chat-toolbar > .button,
+  .public-chat-toolbar > .pill {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: normal;
+    text-align: center;
+  }
+  .public-chat-toolbar > :only-child {
+    flex: 0 1 auto;
+  }
+}

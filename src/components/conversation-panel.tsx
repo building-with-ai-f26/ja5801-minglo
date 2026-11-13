@@ -70,6 +70,7 @@ export function ConversationPanel({
           action={action}
           replyTarget={replyTarget}
           onCancelReply={clearReply}
+          inlineStatus={publicRoom}
         />
       ) : (
         children

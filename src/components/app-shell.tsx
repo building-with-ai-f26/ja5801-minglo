@@ -82,11 +82,13 @@ export function AppShell({
   account,
   active = "dashboard",
   title = "Home",
+  className,
   children,
 }: {
   account: CurrentAccount;
   active?: ShellDestination;
-  title?: string;
+  title?: string | null;
+  className?: string;
   children: React.ReactNode;
 }) {
   const name =
@@ -182,7 +184,7 @@ export function AppShell({
       }}
       initialState={tourPreferenceView(account.tourPreference)}
     >
-      <div className="app-shell">
+      <div className={className ? `app-shell ${className}` : "app-shell"}>
         <ActivityTracker />
         <a className="skip-link" href="#main">
           Skip to content
@@ -218,9 +220,11 @@ export function AppShell({
         </aside>
         <div className="workspace">
           <header className="topbar">
-            <div className="breadcrumb">
-              <b>{title}</b>
-            </div>
+            {title !== null && (
+              <div className="breadcrumb">
+                <b>{title}</b>
+              </div>
+            )}
             <div className="topbar-right">
               <span className="private-label">
                 <AudienceIcon size={14} aria-hidden="true" />
