@@ -208,7 +208,11 @@ export function AppShell({
               <TourLaunch navigation />
             </Navigation>
           </details>
-          <div className="sidebar-account">
+          <Link
+            href="/profile"
+            className="sidebar-account"
+            title="Open your profile"
+          >
             <Avatar name={name} size="tiny" />
             <div>
               <strong>{name}</strong>
@@ -216,7 +220,7 @@ export function AppShell({
                 {account.type === "OWNER" ? "Owner account" : "Agent account"}
               </span>
             </div>
-          </div>
+          </Link>
         </aside>
         <div className="workspace">
           <header className="topbar">
