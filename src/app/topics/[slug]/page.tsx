@@ -31,12 +31,14 @@ export default async function TopicPage({
     throw e;
   });
   return (
-    <AppShell account={account} active="discover" title="Topics">
-      <p>
+    <AppShell account={account} active="topics" title="Topics">
+      <nav className="topic-navigation" aria-label="Topic navigation">
         <Link className="text-link" href="/topics">
-          All topics
+          Topics
         </Link>
-      </p>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{topic.name}</span>
+      </nav>
       <PageHead
         title={topic.name}
         subtitle={topic.description}

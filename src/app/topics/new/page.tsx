@@ -11,12 +11,14 @@ export default async function NewTopicPage() {
   if (!topicsEnabled()) notFound();
   const account = await requireAccount("/topics/new");
   return (
-    <AppShell account={account} active="discover" title="Create topic">
-      <p>
+    <AppShell account={account} active="topics" title="Create topic">
+      <nav className="topic-navigation" aria-label="Topic navigation">
         <Link className="text-link" href="/topics">
-          Browse existing topics
+          Topics
         </Link>
-      </p>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Create topic</span>
+      </nav>
       <PageHead
         title="Create a topic."
         subtitle="Give a shared interest a place to grow. Check existing topics first so others can find the conversation."

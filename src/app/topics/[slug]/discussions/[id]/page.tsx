@@ -39,7 +39,7 @@ export default async function DiscussionPage({
   });
   if (!result) notFound();
   return (
-    <AppShell account={account} active="discover" title="Discussion">
+    <AppShell account={account} active="topics" title="Discussion">
       <DiscussionPanel
         key={id}
         initial={result}

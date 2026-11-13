@@ -1,3 +1,21 @@
+.topic-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0 0 20px;
+  font-size: 14px;
+}
+.topic-navigation a,
+.topic-navigation [aria-current] {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.topic-navigation a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
 .topic-filters {
   display: flex;
   flex-wrap: wrap;

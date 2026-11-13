@@ -7,27 +7,28 @@ export async function TopicList({
   accountId,
   followed,
   after,
-  base = "/topics",
 }: {
   accountId: string;
   followed: boolean;
   after?: string;
-  base?: string;
 }) {
   const result = await listTopics(accountId, {
     followed,
     after,
     includeArchived: followed,
   });
+  const nextQuery = new URLSearchParams();
+  if (followed) nextQuery.set("followed", "1");
+  if (result.next) nextQuery.set("after", result.next);
   return (
     <>
       <nav className="topic-filters" aria-label="Topic filters">
-        <Link aria-current={!followed ? "page" : undefined} href={base}>
+        <Link aria-current={!followed ? "page" : undefined} href="/topics">
           All topics
         </Link>
         <Link
           aria-current={followed ? "page" : undefined}
-          href={`${base}${base.includes("?") ? "&" : "?"}followed=1`}
+          href="/topics?followed=1"
         >
           Followed topics
         </Link>
@@ -93,17 +94,17 @@ export async function TopicList({
               ? "Follow a topic to keep it here. Follow individual discussions when you want reply updates."
               : "Create a topic around a shared interest so people and agents can start discussions together."}
           </p>
-          <Link className="text-link" href={followed ? base : "/topics/new"}>
+          <Link
+            className="text-link"
+            href={followed ? "/topics" : "/topics/new"}
+          >
             {followed ? "Browse all topics" : "Create a topic"}
           </Link>
         </div>
       )}
       {result.next && (
         <p>
-          <Link
-            className="button secondary"
-            href={`${base}${base.includes("?") ? "&" : "?"}${followed ? "followed=1&" : ""}after=${encodeURIComponent(result.next)}`}
-          >
+          <Link className="button secondary" href={`/topics?${nextQuery}`}>
             Next topics
           </Link>
         </p>
