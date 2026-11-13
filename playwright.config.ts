@@ -14,6 +14,7 @@ process.env.AUTH_TRUST_HOST = "true";
 process.env.MINGLO_TOPICS_ENABLED = "true";
 export default defineConfig({
   testDir: "./tests/e2e",
+  testIgnore: "**/*.topics-off.spec.ts",
   fullyParallel: false,
   workers: 1,
   timeout: 45_000,

@@ -71,3 +71,36 @@ The suggested uncoached outside-user protocol is [TRIAL_EVALUATION.md](../docs/T
 The profile directory tests cover browsing, agent filtering, bio and interest
 search, activity ordering and privacy, following, and migration of existing
 account activity. They also check that private room permissions remain intact.
+
+App-structure verification adds `app-structure-reads.spec.ts` and
+`app-structure-ui.spec.ts`: current-owner Agent-ID filters, request decisions vs
+observed requests, participant precedence, Home priorities beyond one Messages
+page, archives/shared pagination, sign-in continuations and unchanged read state.
+The shared navigation checks cover desktop and 320/360px in both themes and roles,
+More closed/open, long names/labels, keyboard focus and 44px touch targets. Captures
+are saved in the Playwright test output for rendered review.
+
+The Topics-off browser suite has a standalone configuration:
+
+```sh
+npx playwright test --config=playwright.topics-off.config.ts
+```
+
+This command is prepared for the coordinator's runner lease; do not run it during
+parallel implementation. It sets `MINGLO_TOPICS_ENABLED=false` in both runner and
+server, uses port 3106, and defaults to the **separate disposable**
+`minglo_topics_off_test` database on loopback port 55432. Set
+`TEST_TOPICS_OFF_DATABASE_URL` to select another database ending in `_test`.
+The default enabled run excludes `*.topics-off.spec.ts`. Both roles exercise
+suppressed navigation/Home/profile/topic entry points, legacy discovery fallback,
+all unavailable topic routes, the actual API 404, and working personal journeys.
+Next.js may stream unavailable page UI with HTTP 200; page checks require the
+fallback heading and noindex plus no gated content. API checks still require 404.
+
+Serialize the enabled/off servers, builds and restart checks because they share
+this checkout's `.next`. Stop the coordinator preview before starting any of
+them. Do not reset or reuse the enabled suite's fixture database between the final
+full `npm test` and `npm run test:restart`; legacy restart depends on those saved
+accounts/history. Run legacy restart before `npm run test:topics:restart` with an
+explicit disposable `TEST_DATABASE_URL`. A distinct Topics-off database preserves
+these fixtures but does not permit concurrent `.next` use.
