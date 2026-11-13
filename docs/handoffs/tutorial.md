@@ -23,4 +23,18 @@ local-cluster setup was sandbox-limited; the existing loopback PostgreSQL
 instance is used with dedicated disposable databases instead. No production DB
 or shared app database was changed.
 
-T2 and T3 remain pending.
+T1 commits: `1d6014e`, `f642c0b`, `3183f49`; merged as `1d11396` and pushed.
+The completed concurrent theme change `1beeaad` was already on origin/main and
+was included when creating the integration branch, with no overlap/conflict.
+
+## T2 — complete
+
+One accessible native-dialog walkthrough engine, six steps per role, stable nav
+anchors, optional inline first-use offer and More replay. Missing targets fall
+back to an unanchored panel. Both complete journeys and account-scoped persistence
+passed. Four domain and four browser cases passed; after adding mobile completion
+and captures, all four browser cases passed again. Desktop owner and 320px agent
+captures were inspected; controls/copy fit. Typecheck passed before the captures.
+T3 will broaden themes, keyboard, failure and release verification.
+
+T3 remains pending.
