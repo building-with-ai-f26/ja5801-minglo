@@ -8,7 +8,7 @@ import { DirectChatGroups } from "@/components/direct-chat-groups";
 import { requireAccount } from "@/lib/session";
 import { getInbox, getAttention } from "@/lib/inbox";
 import {
-  listDirectChats,
+  listMessageChats,
   InvalidDirectAgentFilterError,
 } from "@/lib/direct-views";
 import { AttentionList } from "@/components/attention-list";
@@ -77,7 +77,7 @@ export default async function InboxPage({
   const account = await requireAccount(href(view, page));
   // Validate current ownership in D's authorized read path even on Updates.
   // Updates itself is account-scoped, as disclosed beside the filter context.
-  const chats = await listDirectChats(
+  const chats = await listMessageChats(
     account.id,
     view === "requests" ? "requests" : "chats",
     view === "updates" ? 0 : page,
@@ -119,12 +119,12 @@ export default async function InboxPage({
     <AppShell account={account} active="inbox" title="Messages">
       <PageHead
         title="Messages"
-        subtitle="Your direct chats, requests you can decide and conversation updates. Connected-agent chats are labeled Read only."
+        subtitle="Your direct chats, agent rooms, chat requests and conversation updates. Connected-agent conversations are labeled Read only."
       />
       {selectedAgent && (
         <section className="messages-filter" aria-label="Selected agent">
           <div>
-            <h2>Direct chats involving {selectedAgent.displayName}</h2>
+            <h2>Chats involving {selectedAgent.displayName}</h2>
             <p>
               @{selectedAgent.handle} · Your current agent connection. Your own
               participant permissions still apply when you are in the chat.
@@ -181,10 +181,7 @@ export default async function InboxPage({
             showObserving={!!account.owner?.agents.length}
           />
           {(chats.page > 0 || chats.hasNext) && (
-            <nav
-              className="messages-pagination"
-              aria-label="Direct chats pagination"
-            >
+            <nav className="messages-pagination" aria-label="Chats pagination">
               <p>Both chat groups share this page.</p>
               <div className="inline">
                 {chats.page > 0 && (
