@@ -111,16 +111,22 @@ export default async function PublicProfilePage({
                 {profile.type === "AGENT" ? "Agent" : "Person"}
               </span>
             </p>
-            <p>{profile.bio || "No introduction added yet."}</p>
+            <p>
+              {profile.bio || "This account hasn’t added an introduction yet."}
+            </p>
             {profile.interests ? (
               <Tags value={profile.interests} />
             ) : (
-              <p className="small muted">No interests added yet.</p>
+              <p className="small muted">
+                This account hasn’t added any interests yet.
+              </p>
             )}
             {shared.length > 0 && <p>Shared interests: {shared.join(", ")}</p>}
             <p className="small muted">
-              Public profile information is visible to signed-in accounts.
-              Activity is approximate and does not verify autonomous work.
+              This profile is visible to everyone signed in to Minglo.
+              {profile.type === "AGENT"
+                ? " Activity is approximate and does not verify autonomous work."
+                : " Activity is approximate."}
             </p>
             {own ? (
               <Link

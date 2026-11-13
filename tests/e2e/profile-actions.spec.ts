@@ -17,6 +17,7 @@ test.afterAll(async () => {
 
 test("human profiles save only the signed-in identity and expose searchable, escaped public fields", async ({
   page,
+  browser,
 }) => {
   const suffix = Date.now().toString(36);
   const handle = `human_profile_${suffix}`;
@@ -27,7 +28,11 @@ test("human profiles save only the signed-in identity and expose searchable, esc
       type: "AGENT",
       passwordHash,
       agent: {
-        create: { displayName: "Protected agent", interests: "Gardening" },
+        create: {
+          displayName: "Protected agent",
+          bio: "I enjoy discussing gardens.",
+          interests: "Gardening",
+        },
       },
     },
     include: { agent: true },
@@ -53,7 +58,9 @@ test("human profiles save only the signed-in identity and expose searchable, esc
   await login(page, handle);
   await page.goto(`/profiles/${handle}`);
   await expect(
-    page.getByText("No introduction added yet.", { exact: true }),
+    page.getByText("This account hasn’t added an introduction yet.", {
+      exact: true,
+    }),
   ).toBeVisible();
   await page.getByRole("link", { name: "Edit profile", exact: true }).click();
   await expect(page.getByLabel("About you", { exact: true })).toBeVisible();
@@ -96,7 +103,7 @@ test("human profiles save only the signed-in identity and expose searchable, esc
     await db.agent.findUniqueOrThrow({ where: { accountId: target.id } }),
   ).toMatchObject({
     displayName: "Protected agent",
-    bio: "",
+    bio: "I enjoy discussing gardens.",
     interests: "Gardening",
   });
   expect(
@@ -127,6 +134,9 @@ test("human profiles save only the signed-in identity and expose searchable, esc
   ).toBe(true);
   await page.goto(`/profiles/${target.handle}`);
   await expect(
+    page.getByRole("region", { name: "Public profile", exact: true }),
+  ).toContainText("I enjoy discussing gardens.");
+  await expect(
     page.getByText("Shared interests: Gardening", { exact: true }),
   ).toBeVisible();
   await page.goto("/profile?edit=1");
@@ -140,6 +150,30 @@ test("human profiles save only the signed-in identity and expose searchable, esc
     (await db.owner.findUniqueOrThrow({ where: { accountId: account.id } }))
       .bio,
   ).toBe(bio);
+  for (const reader of [other, target]) {
+    const context = await browser.newContext({
+      baseURL: new URL(page.url()).origin,
+    });
+    try {
+      const readerPage = await context.newPage();
+      await login(readerPage, reader.handle);
+      await readerPage.goto(`/profiles/${handle}`);
+      const publicProfile = readerPage.getByRole("region", {
+        name: "Public profile",
+        exact: true,
+      });
+      await expect(publicProfile).toContainText(bio);
+      await expect(publicProfile).toContainText(`soil_${suffix}`);
+      await expect(publicProfile).toContainText(
+        "This profile is visible to everyone signed in to Minglo.",
+      );
+      await expect(
+        publicProfile.getByRole("link", { name: "Edit profile", exact: true }),
+      ).toHaveCount(0);
+    } finally {
+      await context.close();
+    }
+  }
 });
 test("profiles show safe public context and carry a target into an authorized invitation", async ({
   page,
@@ -184,6 +218,9 @@ test("profiles show safe public context and carry a target into an authorized in
   );
   await login(page, viewer.handle);
   await page.goto(`/profiles/${target.handle}`);
+  await expect(
+    page.getByRole("region", { name: "Public profile", exact: true }),
+  ).toContainText("Interested in conversation");
   await expect(page.getByText("Shared interests: music")).toBeVisible();
   await expect(
     page.getByRole("region", { name: "Recent public contributions" }),
