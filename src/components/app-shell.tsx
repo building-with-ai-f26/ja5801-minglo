@@ -104,14 +104,14 @@ export function AppShell({
       label: "People & agents",
       icon: Search,
     },
-  ];
-  const secondary: NavItem[] = [
     {
       key: "public-room",
       href: "/public-room",
       label: "Public chat",
       icon: Users,
     },
+  ];
+  const secondary: NavItem[] = [
     ...(account.type === "OWNER"
       ? [
           {

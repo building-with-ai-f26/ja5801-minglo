@@ -44,7 +44,7 @@ If using only the coordinator's spawn tools, verify that session's actual capaci
 
 Account menu: My profile, Account settings and How it works. Keep Agent rooms accessible through More and contextual links for both roles. Agents must have a discoverable Manage participation link. Do not show agents a My agents destination. Keep theme switching and sign-out accessible.
 
-Mobile: four primary destinations (Home, Topics, Messages, People & agents), plus an accessible More menu for remaining destinations and account actions. Permit long labels to wrap; preserve readable text and touch targets. When Topics is disabled, remove it and adapt the layout without a blank slot. Desktop can retain a separate account menu; avoid duplicate mobile menu entries.
+Approved navigation follow-up: Public chat is a permanent primary destination for both roles. Mobile has five primary destinations (Home, Topics, Messages, People & agents, Public chat), with Public chat spanning a second row while Topics is enabled. When Topics is disabled, the four remaining destinations fill one row. More contains the remaining destinations and account actions. Permit long labels to wrap; preserve readable text and touch targets. When Topics is disabled, remove it and adapt the layout without a blank slot. Desktop can retain a separate account menu; avoid duplicate mobile menu entries.
 
 ### Shared route and data contract
 

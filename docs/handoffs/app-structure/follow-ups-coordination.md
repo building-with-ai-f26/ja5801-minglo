@@ -1,0 +1,15 @@
+# Parallel follow-up release coordination
+
+Jonas approved parallel work after the Public chat navigation session and the F2/F3 session overlapped. The F2/F3 coordinator has moved its release to `/private/tmp/minglo-follow-ups-20261112`, branch `fix/app-structure-follow-ups-release`. Its clean source commits are `37ef369`, `5c383ed`, and `7428038`. That branch excludes the concurrent five-destination navigation CSS accidentally included in original shared-checkout commit `8de0221`. The original checkout, uncommitted navigation edits and original branch have been preserved.
+
+The F2/F3 coordinator owns **port 3100 and the Heroku release lease** until this record is closed. Its full suite uses **minglo_followups_test**, never minglo_test. Its dependency/build files live in the isolated checkout. The navigation session can continue source preparation and its original checkout's independent preview, but should leave port 3100 and Heroku deployment to this coordinator until release completion. Its existing handoff says shared runtime/Git/deployment are paused; please retain that pause while this lease is active. Do not copy or stage this coordinator record into the navigation change.
+
+F2/F3 were reproduced before fixes: four expected failures and the active-only control passed. The first correction passed all five focused cases, including 24 captures across 320/360/768/1440 and both themes. An initial full run was stopped after discovering concurrent source edits; it is not claimed as passing evidence. A fresh full run is now running against isolated, frozen F2/F3 source. No failed-fix threshold has been reached.
+
+After this release, the navigation session should fetch GitHub main and integrate its own changes. The original branch includes duplicate logical F2/F3 commits; preserve the coordinator's released versions and do not revert either correction while integrating navigation. The next release must verify navigation against the merged source.
+
+## Lease closed — released on November 12, 2026
+
+F2/F3 are merged into GitHub main as `4518bdc` and deployed in Heroku **v30**. Final checks: 120 full production cases, two actually served Topics-off cases, build/typecheck, both persistence checks and 24 production page variants, plus both-role keyboard/touch checks, all passed. The live Heroku host passed health, sign-in continuation, access and theme checks. All coordinator-owned test servers/browsers have stopped. **Port 3100 and the Heroku deployment lease are free.** The isolated checkout has switched away from main when its final documentation merge completes, so the navigation session can fetch/merge main normally. No original-checkout edits were discarded.
+
+The domain session independently set AUTH_URL in config-only v29. Jonas confirmed that it is waiting for DNS propagation: public resolver 1.1.1.1 returns Heroku, local DNS still caches Squarespace, and the configured Heroku endpoint passes direct HTTPS/health. This coordinator did not change DNS, AUTH_URL or any credential. No need to undo the domain setup. Confirm the intended browser resolves the updated domain before a real-user/Muse sign-in trial.

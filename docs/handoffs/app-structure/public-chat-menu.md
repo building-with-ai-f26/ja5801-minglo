@@ -1,0 +1,27 @@
+# Permanent Public chat navigation
+
+The user requested Public chat in the permanent menu and explicitly requested commit, push and deployment. This supersedes the earlier More-only destination contract for this narrow change.
+
+Implementation is prepared: `src/components/app-shell.tsx` moves Public chat from More to Workspace for both roles; mobile uses a full-width final Public chat row when Topics is enabled and four columns when off. The existing type sizes, whole-word checks and touch targets remain. Updated shared navigation, Home journey, Public chat journey and shell geometry checks; DESIGN.md and AGENTS.md reflect the new destination.
+
+Concurrency finding: entered on `fix/app-structure-follow-ups`, HEAD `284af0c`, with a generated next-env diff and an untracked follow-up test. Another terminal committed `8de0221`, `a394c85`, `5f84d86` while this work was in progress. `8de0221` includes this terminal's five-destination CSS rule. No unrelated source or tests were discarded. No Git mutation or deployment has been performed by this terminal. Asked Jonas to select one exclusive runner/commit/deployment owner before continuing shared runtime/Git work.
+
+Checks so far: `npm run typecheck` passed. Scoped Prettier passed. No new server/build/resetting suite has been started. Current source/test changes require actual rendered verification and the normal deployment checks before release. Evidence will go under `.local/public-chat-menu/`.
+
+Planned next steps after exclusive ownership is confirmed: run default suite (including committed follow-up cases), actual Topics-off suite, production build/typecheck and existing restart checks; preserve fixtures and outputs. Run the shared production navigation helper against both roles, both gates/themes, desktop/320/360, verifying the permanent Public chat link without More, no duplicate menu entry, whole words and touch targets. Commit explicit changed paths only, preserve generated/unrelated work, push/merge using existing tracking preference, capture the existing Heroku database backup, deploy existing minglo-ja5801 and verify release/health/live navigation. No new resource, schema or credential change.
+
+Failed fixes: 0. Shared runtime / Git / deployment paused pending coordination answer; independent preparation only.
+
+## Coordinator takeover — approved integration
+
+Jonas requested merging and pushing everything after the pending-work audit. This supersedes the preparation pause above. The coordinator owns the remaining navigation release; no duplicate worker was launched. All pending source/tests/handoffs were saved in focused commits on `feature/permanent-public-chat` (renamed from the old local follow-up branch), then latest deployed main `111fad7` was merged into it as `fdec291`. The deployed room-title/Home-link corrections, test-client isolation, production error-redaction check and favicon are preserved. The old three local follow-up commits are reconciled through ancestry rather than discarded.
+
+The mobile shell regression retains its original 250px task-position bound after subtracting only the newly required Public chat row, and separately requires that row to stay 44–48px tall. The shared navigation checks retain whole-word, overflow, role/gate, focus and touch-target assertions, and now verify primary-link access without More, no duplicate entry, full-width fifth row and actual keyboard navigation.
+
+Verification uses the existing isolated checkout `/private/tmp/minglo-follow-ups-20261112` at detached snapshot `fdec291`, its own `.next`, and disposable `minglo_menu_test` / `minglo_menu_off_test`. Existing root previews on 3002/3003 stay untouched. The known generated root `next-env.d.ts` dev-import drift was normalized to the committed production imports; no functional work was discarded. Production build and typecheck passed. The unchanged full-case suite, Topics-off suite and both restart checks are running serially against the production artifact; final results will be appended only after completion. Runtime logs are ignored under `.local/public-chat-menu/` in the isolated checkout. Failed fixes: 0.
+
+## Final verification — ready for release
+
+The complete production suite passed **120/120**, the separately served Topics-off suite passed **2/2**, and typecheck/build plus both production restart checks passed. No skips/retries or failed fixes. The actual shared navigation helper produced **48 fresh open/closed captures** across both roles, gates, themes and 1440/360/320 widths. Its word integrity, overflow, target, role/gate and keyboard assertions all passed. Supplemental touch verification reached Public chat directly with More closed in eight role/theme/320–360px combinations; zero page errors. Representative original desktop/phone, enabled/disabled, light/dark and open/closed captures were visually inspected. Scoped coordinator verdict: ready to ship. This does not claim a fresh independent design review, physical-device/screen-reader run or real Muse activity.
+
+All six changed app/test files match the isolated production-verified snapshot byte for byte; later edits are documentation only. No deployed fix, favicon, permission, schema, dependency or credential change was lost. Backup **b012** completed before release. Source/test manifest, logs, 48 suite captures and eight touch originals remain ignored in the isolated checkout's `.local/public-chat-menu/` and `test-results/`. The feature branch is pushed; main merge and hosted result will be recorded after success.

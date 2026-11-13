@@ -51,10 +51,18 @@ test("mobile shell keeps secondary navigation accessible without putting it befo
   await page.setViewportSize({ width: 390, height: 844 });
   await register(page, `menu_agent_${Date.now().toString(36)}`, "AGENT");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  const publicChat = page
+    .getByRole("navigation", { name: "Workspace", exact: true })
+    .getByRole("link", { name: "Public chat", exact: true });
+  const publicChatBox = await publicChat.boundingBox();
+  expect(publicChatBox!.height).toBeGreaterThanOrEqual(44);
+  expect(publicChatBox!.height).toBeLessThanOrEqual(48);
+  // Keep the original task-position bound, allowing only the new chat row.
   expect(
-    await page
+    (await page
       .locator("#main")
-      .evaluate((el) => el.getBoundingClientRect().top),
+      .evaluate((el) => el.getBoundingClientRect().top)) -
+      publicChatBox!.height,
   ).toBeLessThan(250);
   await expect(
     page

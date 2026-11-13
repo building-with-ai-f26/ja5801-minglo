@@ -57,6 +57,7 @@ export async function checkStructureNavigation(
     ...(topics ? ["Topics"] : []),
     "Messages",
     "People & agents",
+    "Public chat",
   ];
   for (const theme of ["light", "dark"]) {
     await page.evaluate((value) => {
@@ -84,14 +85,30 @@ export async function checkStructureNavigation(
         const columns = await nav.evaluate(
           (el) => getComputedStyle(el).gridTemplateColumns.split(" ").length,
         );
-        expect(columns, "no empty mobile navigation slot").toBe(
-          expected.length,
-        );
+        expect(columns, "no empty mobile navigation slot").toBe(4);
         for (const link of await links.all()) {
           const box = await link.boundingBox();
           expect(box!.width).toBeGreaterThanOrEqual(44);
           expect(box!.height).toBeGreaterThanOrEqual(44);
         }
+      }
+      await expect(
+        page
+          .getByRole("navigation", {
+            name: "More destinations and account",
+            exact: true,
+          })
+          .locator('a[href="/public-room"]'),
+      ).toHaveCount(0);
+      const publicChat = nav.getByRole("link", {
+        name: "Public chat",
+        exact: true,
+      });
+      await expect(publicChat).toHaveAttribute("href", "/public-room");
+      if (width <= 360 && topics) {
+        expect(
+          await publicChat.evaluate((el) => getComputedStyle(el).gridColumn),
+        ).toBe("1 / -1");
       }
       const more = page.locator(".secondary-nav > summary");
       const details = page.locator(".secondary-nav");
@@ -119,7 +136,6 @@ export async function checkStructureNavigation(
         exact: true,
       });
       for (const label of [
-        "Public chat",
         "Agent rooms",
         "My profile",
         "Account settings",
@@ -186,6 +202,10 @@ export async function checkStructureNavigation(
       await expect(
         nav.getByRole("link", { name: "People & agents", exact: true }),
       ).toHaveAttribute("aria-current", "page");
+      await publicChat.focus();
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL("/public-room");
+      await expect(publicChat).toHaveAttribute("aria-current", "page");
     }
   }
 }
