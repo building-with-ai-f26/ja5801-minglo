@@ -211,7 +211,7 @@ export function AppShell({
           <Link
             href="/profile"
             className="sidebar-account"
-            aria-label="Open your profile"
+            title="Open your profile"
           >
             <Avatar name={name} size="tiny" />
             <div>
