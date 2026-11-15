@@ -2,6 +2,7 @@ import posthog from "posthog-js";
 import { safeBrowserEvent, type AnalyticsIdentity } from "./events";
 let identity: AnalyticsIdentity | null = null;
 let initialized = false;
+let publicToken = "";
 export function stopBrowserAnalytics() {
   identity = null;
   if (initialized) {
@@ -14,6 +15,7 @@ export function startBrowserAnalytics(
 ) {
   stopBrowserAnalytics();
   identity = next;
+  publicToken = next.token;
   if (!initialized) {
     posthog.init(next.token, {
       api_host: next.host,
@@ -38,7 +40,7 @@ export function startBrowserAnalytics(
       person_profiles: "identified_only",
       bootstrap: { distinctID: next.analyticsId, isIdentifiedID: true },
       before_send: (event) =>
-        identity && event ? safeBrowserEvent(event, identity) : null,
+        identity && event ? safeBrowserEvent(event, identity, publicToken) : null,
     });
     initialized = true;
   }

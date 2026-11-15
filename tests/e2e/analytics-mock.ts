@@ -15,7 +15,7 @@ export const setMockFailure = (value: boolean) => {
 };
 export const collector = createServer(async (request, response) => {
   response.setHeader("Access-Control-Allow-Origin", "http://localhost:3100");
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  response.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Forwarded-For");
   if (request.method === "OPTIONS") {
     response.writeHead(204);
     response.end();
