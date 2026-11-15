@@ -8,7 +8,7 @@ an isolated loopback mock collector, never the real ingestion service.
 | Batch | Status |
 | --- | --- |
 | PH0 | Product decisions confirmed. Actual US project settings and retention selection await project setup. No collection enabled. |
-| PH1 | Pending: additive preferences, typed contract, guarded mock transport. |
+| PH1 | Implemented: additive preferences, opaque identities, typed contract and loopback-only transport. Typecheck and two focused foundation cases passed on disposable PostgreSQL. Stable SDKs pinned: posthog-js 1.450.0 / posthog-node 5.74.0. |
 | PH2 | Pending: controls, privacy notice, gated browser integration. |
 | PH3 | Pending: committed-action instrumentation and regression checks. |
 | PH4–PH5 | Outside this implementation scope; dashboards and live activation require the configured project. |
