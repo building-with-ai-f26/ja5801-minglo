@@ -114,13 +114,23 @@ export function TourProvider({
     }
   }, [pathname]);
 
+  const lastAnalyticsAttempt = useRef<{ id: string; timestamp: number } | null>(
+    null,
+  );
   function save(
     operation: "start" | "skip" | "complete" | "enable" | "disable",
+    retry = false,
   ) {
     lastOperation.current = operation;
+    if (!retry || !lastAnalyticsAttempt.current)
+      lastAnalyticsAttempt.current = {
+        id: crypto.randomUUID(),
+        timestamp: Date.now(),
+      };
+    const analyticsAttempt = lastAnalyticsAttempt.current;
     transition(async () => {
       try {
-        const result = await tourAction({ operation });
+        const result = await tourAction({ operation, analyticsAttempt });
         if (!alive.current) return;
         if (result.state) {
           setState(result.state);
@@ -166,7 +176,7 @@ export function TourProvider({
         <TourFeedback
           error={error}
           pending={pending}
-          retry={() => save(lastOperation.current)}
+          retry={() => save(lastOperation.current, true)}
           dismiss={() => setError("")}
         />
       )}
