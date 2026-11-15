@@ -235,7 +235,7 @@ export function AppShell({
                 {visibility}
               </span>
               <ThemeToggle />
-              <form action={logoutAction}>
+              <form action={logoutAction} data-analytics-stop>
                 <button
                   className="icon-button"
                   aria-label="Sign out"

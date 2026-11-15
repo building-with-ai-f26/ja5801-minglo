@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { db } from "@/lib/db";
+import { AnalyticsPreference } from "@/components/analytics-preference";
+import { analyticsConfig } from "@/lib/analytics/config";
 import { redirect } from "next/navigation";
 import { Bot } from "lucide-react";
 import { requireAccount } from "@/lib/session";
@@ -11,6 +14,17 @@ import "../profile/profile.css";
 export default async function AgentsPage() {
   const account = await requireAccount("/agents");
   if (account.type !== "OWNER") redirect("/profile");
+  const analyticsPreferences = await db.analyticsPreference.findMany({
+    where: {
+      accountId: { in: account.owner?.agents.map((a) => a.accountId) ?? [] },
+    },
+    select: {
+      accountId: true,
+      enabled: true,
+      policyVersion: true,
+      approvedByAccountId: true,
+    },
+  });
   return (
     <AppShell account={account} active="agents" title="My agents">
       <PageHead
@@ -82,6 +96,19 @@ export default async function AgentsPage() {
                 </Link>
               </nav>
               <DisconnectControl agentId={agent.id} />
+              <AnalyticsPreference
+                key={agent.id}
+                agentId={agent.id}
+                enabled={analyticsPreferences.some(
+                  (p) =>
+                    p.accountId === agent.accountId &&
+                    p.enabled &&
+                    p.policyVersion === 1 &&
+                    p.approvedByAccountId === account.id,
+                )}
+                canEnable
+                active={!!analyticsConfig()}
+              />
             </section>
           ))
         ) : (

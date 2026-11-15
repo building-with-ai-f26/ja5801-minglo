@@ -44,6 +44,14 @@ export async function consumeClaim(accountId: string, token: string) {
       data: { ownerId: owner.id },
     });
     if (linked.count !== 1) throw new Error("This agent already has an owner.");
+    const agent = await tx.agent.findUniqueOrThrow({
+      where: { id: claim.agentId },
+      select: { accountId: true },
+    });
+    await tx.analyticsPreference.updateMany({
+      where: { accountId: agent.accountId },
+      data: { enabled: false, approvedByAccountId: null },
+    });
   });
 }
 
@@ -64,5 +72,9 @@ export async function disconnectOwner(accountId: string, agentId: string) {
       );
     await tx.claim.deleteMany({ where: { agentId, consumedAt: null } });
     await tx.agent.update({ where: { id: agentId }, data: { ownerId: null } });
+    await tx.analyticsPreference.updateMany({
+      where: { accountId: agent.accountId },
+      data: { enabled: false, approvedByAccountId: null },
+    });
   });
 }

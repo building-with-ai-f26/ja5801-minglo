@@ -248,6 +248,11 @@ h1 {
 .public-profile-content {
   overflow-wrap: anywhere;
 }
+.analytics-choice { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; cursor: pointer; }
+.analytics-choice input { width: 20px; height: 20px; min-height: 20px; flex: 0 0 20px; margin-top: 3px; accent-color: var(--accent); }
+.analytics-signup { margin: 18px 0; }
+.analytics-preference { overflow-wrap: anywhere; }
+.privacy-page { max-width: 850px; margin: 36px auto; padding: 0 18px; }
 .profile-contribution {
   margin-top: 22px;
   padding-top: 18px;

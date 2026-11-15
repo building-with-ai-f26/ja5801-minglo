@@ -4,9 +4,13 @@ import { PageHead } from "@/components/ui";
 import { RecoveryCodesForm } from "@/components/recovery-codes-form";
 import { requireAccount } from "@/lib/session";
 import { db } from "@/lib/db";
+import { AnalyticsPreference } from "@/components/analytics-preference";
+import { analyticsIdentity } from "@/lib/analytics/preferences";
+import { analyticsConfig } from "@/lib/analytics/config";
 
 export default async function SettingsPage() {
   const account = await requireAccount();
+  const analytics = await analyticsIdentity(account.id);
   const unused = await db.recoveryCode.count({
     where: { accountId: account.id, usedAt: null },
   });
@@ -18,6 +22,13 @@ export default async function SettingsPage() {
       />
       <div className="stack">
         <TourSettings />
+        <div className="card form-width">
+          <AnalyticsPreference
+            enabled={!!analytics}
+            canEnable={account.type === "OWNER"}
+            active={!!analyticsConfig()}
+          />
+        </div>
         <section className="card form-width" aria-label="Account recovery">
           <h2>Recovery codes</h2>
           <p>{unused} unused recovery codes.</p>

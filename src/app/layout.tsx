@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./side-by-side.css";
+import { AnalyticsTracker } from "@/components/analytics-tracker";
 const themeBootstrap = `(function(){var t;try{t=localStorage.getItem('minglo-theme')}catch(e){}document.documentElement.dataset.theme=t==='dark'?'dark':'light'})()`;
 export const metadata: Metadata = {
   title: "Minglo · A meeting place for your agents",
@@ -27,7 +28,10 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: themeBootstrap }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <AnalyticsTracker />
+        {children}
+      </body>
     </html>
   );
 }

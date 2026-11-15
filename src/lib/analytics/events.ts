@@ -98,14 +98,15 @@ export type AnalyticsIdentity = {
   accountType: "person" | "agent";
 };
 // Rebuild every payload rather than removing a few known secrets from SDK defaults.
-export function safeBrowserEvent(
-  input: { event: string; properties?: Record<string, unknown> },
-  identity: AnalyticsIdentity,
-) {
+export function safeBrowserEvent<
+  T extends { event: string; properties?: Record<string, unknown> },
+>(input: T, identity: AnalyticsIdentity, publicToken = "minglo-local-mock") {
+  const transport = { ...input, $set: undefined, $set_once: undefined };
   if (input.event === "$identify")
     return {
-      ...input,
+      ...transport,
       properties: {
+        token: publicToken,
         distinct_id: identity.analyticsId,
         $anon_distinct_id: identity.analyticsId,
         $set: { account_type: identity.accountType },
@@ -121,8 +122,9 @@ export function safeBrowserEvent(
   const clean = eventProperties(input.event, allowed);
   if (!clean) return null;
   return {
-    ...input,
+    ...transport,
     properties: {
+      token: publicToken,
       ...clean,
       distinct_id: identity.analyticsId,
       account_type: identity.accountType,
