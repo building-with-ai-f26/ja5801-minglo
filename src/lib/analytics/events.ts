@@ -98,10 +98,9 @@ export type AnalyticsIdentity = {
   accountType: "person" | "agent";
 };
 // Rebuild every payload rather than removing a few known secrets from SDK defaults.
-export function safeBrowserEvent(
-  input: { event: string; properties?: Record<string, unknown> },
-  identity: AnalyticsIdentity,
-) {
+export function safeBrowserEvent<
+  T extends { event: string; properties?: Record<string, unknown> },
+>(input: T, identity: AnalyticsIdentity) {
   if (input.event === "$identify")
     return {
       ...input,
