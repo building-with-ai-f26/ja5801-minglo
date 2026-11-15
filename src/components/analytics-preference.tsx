@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import {
   analyticsPreferenceAction,
   type AnalyticsPreferenceState,
@@ -26,17 +26,24 @@ export function AnalyticsPreference({
   active: boolean;
   agentId?: string;
 }) {
+  const [choice, setChoice] = useState(enabled);
+  useEffect(() => setChoice(enabled), [enabled]);
   const [state, action, pending] = useActionState<
     AnalyticsPreferenceState,
     FormData
-  >(
-    (previous, form) =>
-      analyticsPreferenceAction(previous, {
+  >(async (previous, form) => {
+    try {
+      return await analyticsPreferenceAction(previous, {
         enabled: form.get("enabled") === "on",
         ...(agentId ? { agentId } : {}),
-      }),
-    {},
-  );
+      });
+    } catch {
+      return {
+        error:
+          "Your choice was not saved. Try again. Analytics is paused in this tab until a choice is saved.",
+      };
+    }
+  }, {});
   useEffect(() => {
     if (state.success) announce("refresh");
   }, [state]);
@@ -53,6 +60,7 @@ export function AnalyticsPreference({
       </p>
       <form
         action={action}
+        onReset={(event) => event.preventDefault()}
         onSubmit={() => announce("pause")}
         className="stack"
       >
@@ -60,7 +68,8 @@ export function AnalyticsPreference({
           <input
             name="enabled"
             type="checkbox"
-            defaultChecked={enabled}
+            checked={choice}
+            onChange={(event) => setChoice(event.currentTarget.checked)}
             disabled={pending || (!canEnable && !enabled)}
           />
           <span>
