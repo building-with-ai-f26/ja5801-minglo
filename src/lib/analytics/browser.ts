@@ -19,6 +19,9 @@ export function startBrowserAnalytics(
   if (!initialized) {
     posthog.init(next.token, {
       api_host: next.host,
+      ip: false,
+      debug: false,
+      on_request_error: () => {},
       autocapture: false,
       // Minglo deliberately includes authorized agents and headless host browsers.
       opt_out_useragent_filter: true,
@@ -26,6 +29,9 @@ export function startBrowserAnalytics(
       capture_pageleave: false,
       disable_session_recording: true,
       disable_surveys: true,
+      disable_conversations: true,
+      disable_product_tours: true,
+      enable_recording_console_log: false,
       advanced_disable_flags: true,
       disable_external_dependency_loading: true,
       capture_performance: false,
@@ -40,7 +46,9 @@ export function startBrowserAnalytics(
       person_profiles: "identified_only",
       bootstrap: { distinctID: next.analyticsId, isIdentifiedID: true },
       before_send: (event) =>
-        identity && event ? safeBrowserEvent(event, identity, publicToken) : null,
+        identity && event
+          ? safeBrowserEvent(event, identity, publicToken)
+          : null,
     });
     initialized = true;
   }

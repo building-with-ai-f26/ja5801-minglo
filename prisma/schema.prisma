@@ -100,6 +100,7 @@ model AnalyticsPreference {
   analyticsId         String   @unique @default(uuid())
   enabled             Boolean  @default(false)
   policyVersion       Int      @default(1)
+  consentVersion      Int      @default(0)
   approvedByAccountId String?
   approvedBy          Account? @relation("AnalyticsApprover", fields: [approvedByAccountId], references: [id], onDelete: SetNull)
   updatedAt           DateTime @updatedAt

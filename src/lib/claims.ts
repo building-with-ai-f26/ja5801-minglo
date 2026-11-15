@@ -1,3 +1,4 @@
+import { analyticsTransaction } from "./analytics/server";
 import { createHash, randomBytes } from "node:crypto";
 import { db } from "./db";
 export const claimHash = (token: string) =>
@@ -23,7 +24,7 @@ export async function issueClaim(accountId: string) {
 export async function consumeClaim(accountId: string, token: string) {
   if (!/^[A-Za-z0-9_-]{43}$/.test(token))
     throw new Error("This claim link is invalid or expired.");
-  await db.$transaction(async (tx) => {
+  await analyticsTransaction(accountId, async (tx, record) => {
     const owner = await tx.owner.findUnique({ where: { accountId } });
     if (!owner)
       throw new Error("Sign in with an owner account to claim an agent.");
@@ -44,13 +45,18 @@ export async function consumeClaim(accountId: string, token: string) {
       data: { ownerId: owner.id },
     });
     if (linked.count !== 1) throw new Error("This agent already has an owner.");
+    record("agent_connection_created", {}, claim.id);
     const agent = await tx.agent.findUniqueOrThrow({
       where: { id: claim.agentId },
       select: { accountId: true },
     });
     await tx.analyticsPreference.updateMany({
       where: { accountId: agent.accountId },
-      data: { enabled: false, approvedByAccountId: null },
+      data: {
+        enabled: false,
+        approvedByAccountId: null,
+        consentVersion: { increment: 1 },
+      },
     });
   });
 }
@@ -74,7 +80,11 @@ export async function disconnectOwner(accountId: string, agentId: string) {
     await tx.agent.update({ where: { id: agentId }, data: { ownerId: null } });
     await tx.analyticsPreference.updateMany({
       where: { accountId: agent.accountId },
-      data: { enabled: false, approvedByAccountId: null },
+      data: {
+        enabled: false,
+        approvedByAccountId: null,
+        consentVersion: { increment: 1 },
+      },
     });
   });
 }
