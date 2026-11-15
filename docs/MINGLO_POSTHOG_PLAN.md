@@ -1,6 +1,9 @@
 # Minglo PostHog implementation plan
 
-Prepared November 13, 2026. **Planning only; implementation and collection are not enabled.**
+Prepared November 13, 2026. Updated November 15, 2026: **Jonas approved implementation
+with the recommended privacy defaults. Use US Cloud following his US-location
+clarification. Implementation has not started in this handoff; live collection
+still requires project setup and activation approval.**
 Baseline: Heroku v44, application merge `9794f81`; repository main `8b919d9`.
 
 ## 1. Recommendation
@@ -39,12 +42,12 @@ execution. Preserve the distinction in `REAL_AGENT_CHECK.md` and `MUSE_TRIAL.md`
 
 ## 3. Scope and decisions before enabling collection
 
-Recommended defaults, to confirm before production enablement:
+Approved implementation defaults; project setup and live activation remain pending:
 
-1. **Project:** use Jonas's existing PostHog project if one exists. Otherwise select
-   a Cloud project and its region first; EU Cloud is the proposed starting choice,
-   subject to Jonas's preference. Configure the matching ingestion host. Region is
-   a project decision, not something to guess from the visitor's location.
+1. **Project:** use **PostHog Cloud US**. Jonas clarified that he is in the US on
+   November 15. Use his existing US project if one exists, or configure a new US
+   project. Verify the project's matching ingestion host during setup. If an existing
+   project is in another region, ask before replacing or migrating it.
 2. **Collection:** explicit opt-in, initially off for existing accounts. No historic
    event backfill. Signed-in usage only in the first release.
 3. **Agent permission:** a current connected owner can explicitly authorize usage
@@ -54,8 +57,9 @@ Recommended defaults, to confirm before production enablement:
 4. **Content recording:** session replay stays off. Any future replay proposal
    needs a separate decision about surfaces, masking, consent and retention.
 
-Approval of implementation can adopt these defaults; ask only if the user wants a
-different policy or the selected PostHog account cannot support the proposed setup.
+Jonas has approved these privacy defaults; do not ask him to approve them again.
+Ask only if he requests a different policy or the selected PostHog account cannot
+support the proposed setup. Obtain activation approval before live collection.
 These are product privacy choices, not a claim that a configuration alone establishes
 legal compliance.
 
@@ -262,7 +266,7 @@ proposed account-level views.
 
 | Batch / branch | Deliverable | Completion evidence |
 | --- | --- | --- |
-| **PH0 — setup** | Confirm project/region, recommended collection policy and owner control for agent analytics; freeze event/property contract and retention choices | Actual project settings recorded; no collection enabled |
+| **PH0 — setup** | Configure the US project using the approved collection policy and owner control for agent analytics; freeze event/property contract and retention choices | Actual project settings recorded; no collection enabled |
 | **PH1 — `feature/posthog-foundation`** | Additive preference model, opaque identities, typed capture wrapper, environment switch and mock transport; keep collection disabled | Existing accounts untracked; missing config no-op; identity and payload allowlists verified |
 | **PH2 — `feature/posthog-preferences`** | Optional human signup/settings opt-in, per-agent current-owner authorization, agent opt-out, privacy page, gated browser identity and sanitized page events | No SDK/network capture before permission; withdrawal, account switching and claim changes checked |
 | **PH3 — `feature/posthog-product-events`** | Instrument the event table in small subcommits: onboarding first, conversation/social actions next, observed returns/owner views last | Correct actors and new-operation-only events; no false successes, polling events or retry inflation |
@@ -331,8 +335,9 @@ or introduce cross-site identity tracking as part of this first implementation.
 > plan in small batches, starting with PH0 and PH1. Use separate branches, small
 > commits and the existing merge workflow. Preserve the v44 follow counts and v43
 > automatic-read behavior. Prepare PH1–PH3 with mock transport if project details
-> are unavailable. Confirm the project/region and collection-policy decisions
-> before enabling real collection. Keep chat/profile content and sensitive URLs
+> are unavailable. Use PostHog Cloud US and the already approved privacy defaults;
+> obtain missing project details and activation approval before real collection.
+> Keep chat/profile content and sensitive URLs
 > out of every payload; keep session replay/autocapture off. Follow the documented
 > checks and stop-after-two-failed-fixes rule. Keep local services off when idle.
 > Do not enable production collection or purchase resources without approval.
