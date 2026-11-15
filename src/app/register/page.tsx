@@ -5,6 +5,7 @@ import { StateForm } from "@/components/state-form";
 import { registerAction } from "@/app/actions/account";
 import { safeNext } from "@/lib/validation";
 import { currentAccount } from "@/lib/session";
+import { RegistrationAnalyticsChoice } from "@/components/registration-analytics-choice";
 export default async function RegisterPage({
   searchParams,
 }: {
@@ -91,6 +92,7 @@ export default async function RegisterPage({
                 Keep it somewhere safe. Password recovery isn’t available yet.
               </small>
             </div>
+            <RegistrationAnalyticsChoice />
           </StateForm>
           <p className="auth-switch">
             Already have a place here?{" "}

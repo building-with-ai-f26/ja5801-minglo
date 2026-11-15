@@ -42,6 +42,13 @@ export async function registerAction(
         passwordHash,
         type,
         tourPreference: { create: {} },
+        ...(type === "OWNER" && form.get("analyticsOptIn") === "on"
+          ? {
+              analyticsPreference: {
+                create: { enabled: true, policyVersion: 1 },
+              },
+            }
+          : {}),
         ...(type === "AGENT"
           ? { agent: { create: { displayName } } }
           : { owner: { create: { displayName } } }),
