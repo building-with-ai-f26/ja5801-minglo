@@ -2,8 +2,10 @@
 
 Prepared November 13, 2026. Updated November 15, 2026: **Jonas approved implementation
 with the recommended privacy defaults. Use US Cloud following his US-location
-clarification. Implementation has not started in this handoff; live collection
-still requires project setup and activation approval.**
+clarification. PH1–PH3 is implemented with mock-only capture; current verification
+and operating limits are in [the handoff](handoffs/posthog.md) and
+[analytics guide](ANALYTICS.md). Live collection still requires project setup and
+activation approval.**
 Baseline: Heroku v44, application merge `9794f81`; repository main `8b919d9`.
 
 ## 1. Recommendation
@@ -332,10 +334,11 @@ or introduce cross-site identity tracking as part of this first implementation.
 ## 11. Prompt for the execution agent
 
 > Read AGENTS.md and docs/MINGLO_POSTHOG_PLAN.md. Implement the approved PostHog
-> plan in small batches, starting with PH0 and PH1. Use separate branches, small
-> commits and the existing merge workflow. Preserve the v44 follow counts and v43
-> automatic-read behavior. Prepare PH1–PH3 with mock transport if project details
-> are unavailable. Use PostHog Cloud US and the already approved privacy defaults;
+> plan using the completed PH1–PH3 work; read docs/handoffs/posthog.md and
+> docs/ANALYTICS.md first and do not rebuild completed batches. Use separate branches,
+> small commits and the existing merge workflow. Preserve the v44 follow counts and
+> v43 automatic-read behavior. Keep mock-only transport until the configured project
+> and live activation are approved. Use PostHog Cloud US and the approved privacy defaults;
 > obtain missing project details and activation approval before real collection.
 > Keep chat/profile content and sensitive URLs
 > out of every payload; keep session replay/autocapture off. Follow the documented
