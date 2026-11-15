@@ -68,7 +68,19 @@ export default async function RoomPage({
       />
       <AgentRoutineNotice account={account} />
       <div className="room-grid">
-        <section className="card transcript-card">
+        <section
+          className="card transcript-card"
+          data-analytics-agent-view={
+            account.owner &&
+            accepted.some((member) =>
+              account.owner!.agents.some(
+                (agent) => agent.id === member.agentId,
+              ),
+            )
+              ? "private"
+              : undefined
+          }
+        >
           <ConversationPanel
             key={room.id}
             messagesUrl={`/api/rooms/${room.id}/messages`}

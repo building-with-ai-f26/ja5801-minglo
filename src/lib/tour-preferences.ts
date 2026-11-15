@@ -1,3 +1,4 @@
+import { analyticsTransaction } from "./analytics/server";
 import { db } from "./db";
 
 export const TOUR_VERSION = 1;
@@ -42,11 +43,12 @@ export async function claimTourOffer(accountId: string) {
 export async function updateTourPreference(
   accountId: string,
   operation: "start" | "skip" | "complete" | "enable" | "disable",
+  analyticsAttempt?: { id: string; timestamp: number },
 ) {
   // Upsert serializes initial creation. Missing rows represent existing accounts,
   // so neither replay nor enabling the preference makes them automatically new.
-  return db.$transaction(async (tx) => {
-    await tx.accountTourPreference.upsert({
+  return analyticsTransaction(accountId, async (tx, record) => {
+    const before = await tx.accountTourPreference.upsert({
       where: { accountId },
       create: { accountId, status: "OFFERED", seenVersion: TOUR_VERSION },
       update: {},
@@ -71,6 +73,21 @@ export async function updateTourPreference(
         },
       });
     }
+    if (operation === "start")
+      record(
+        "tour_started",
+        { tour_version: TOUR_VERSION },
+        analyticsAttempt?.id,
+        analyticsAttempt ? new Date(analyticsAttempt.timestamp) : undefined,
+      );
+    if (
+      operation === "skip" &&
+      before.status !== "SKIPPED" &&
+      before.status !== "COMPLETED"
+    )
+      record("tour_skipped", { tour_version: TOUR_VERSION });
+    if (operation === "complete" && before.status !== "COMPLETED")
+      record("tour_completed", { tour_version: TOUR_VERSION });
     return tx.accountTourPreference.findUniqueOrThrow({
       where: { accountId },
       select: { autoOfferEnabled: true, status: true },

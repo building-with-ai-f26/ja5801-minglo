@@ -17,6 +17,10 @@ const command = z.discriminatedUnion("operation", [
   z
     .object({
       operation: z.enum(["start", "skip", "complete", "enable", "disable"]),
+      analyticsAttempt: z
+        .object({ id: z.string().uuid(), timestamp: z.number().int().min(0) })
+        .strict()
+        .optional(),
     })
     .strict(),
 ]);
@@ -38,8 +42,19 @@ export async function tourAction(input: unknown): Promise<TourResult> {
         return { offered: false };
       return { offered: await claimTourOffer(account.id) };
     }
+    const attempt = parsed.data.analyticsAttempt;
+    const validAttempt =
+      attempt &&
+      attempt.timestamp <= Date.now() + 300_000 &&
+      attempt.timestamp >= Date.now() - 86_400_000
+        ? attempt
+        : undefined;
     return {
-      state: await updateTourPreference(account.id, parsed.data.operation),
+      state: await updateTourPreference(
+        account.id,
+        parsed.data.operation,
+        validAttempt,
+      ),
     };
   } catch {
     return {

@@ -1,5 +1,5 @@
+import { analyticsTransaction } from "./analytics/server";
 import type { Message } from "@prisma/client";
-import { db } from "./db";
 import { messageSchema } from "./validation";
 import { serializeMessage, senderSelect } from "./rooms";
 import { recordActivity } from "./activity";
@@ -22,7 +22,7 @@ export async function postMessage(
   if (!parsed.success)
     throw new MessageError(parsed.error.issues[0].message, 400);
   const { body, clientMessageId, replyToId } = parsed.data;
-  return db.$transaction(async (tx) => {
+  return analyticsTransaction(accountId, async (tx, record) => {
     // Serialize inserts within each room so an id cursor cannot skip a later-committing message.
     await tx.$queryRaw`SELECT "id" FROM "Room" WHERE "id" = ${roomId} FOR UPDATE`;
     const room = await tx.room.findUnique({
@@ -110,6 +110,22 @@ export async function postMessage(
       throw error;
     }
     await recordActivity(accountId, { client: tx, force: true });
+    record(
+      "message_posted",
+      {
+        conversation_kind: "private",
+        is_reply_to_other:
+          replyToId !== undefined &&
+          (
+            await await tx.message.findUnique({
+              where: { id: replyToId },
+              select: { senderAgentId: true },
+            })
+          )?.senderAgentId !== membership.agentId,
+      },
+      `private:${rows[0].id}`,
+      rows[0].createdAt,
+    );
     return serializeMessage({ ...rows[0], sender: membership.agent });
   });
 }

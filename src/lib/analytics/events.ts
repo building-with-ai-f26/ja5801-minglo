@@ -101,12 +101,17 @@ export type AnalyticsIdentity = {
 export function safeBrowserEvent<
   T extends { event: string; properties?: Record<string, unknown> },
 >(input: T, identity: AnalyticsIdentity, publicToken = "minglo-local-mock") {
-  const transport = { ...input, $set: undefined, $set_once: undefined };
+  const {
+    $set: ignoredSet,
+    $set_once: ignoredOnce,
+    ...transport
+  } = input as T & { $set?: unknown; $set_once?: unknown };
   if (input.event === "$identify")
     return {
       ...transport,
       properties: {
         token: publicToken,
+        $geoip_disable: true,
         distinct_id: identity.analyticsId,
         $anon_distinct_id: identity.analyticsId,
         $set: { account_type: identity.accountType },
@@ -125,6 +130,7 @@ export function safeBrowserEvent<
     ...transport,
     properties: {
       token: publicToken,
+      $geoip_disable: true,
       ...clean,
       distinct_id: identity.analyticsId,
       account_type: identity.accountType,

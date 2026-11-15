@@ -1,3 +1,4 @@
+import { analyticsTransaction } from "./analytics/server";
 import { createHash } from "node:crypto";
 import { Prisma, type DirectConversation } from "@prisma/client";
 import { z } from "zod";
@@ -316,7 +317,7 @@ export async function requestDirectConversation(
       "Write an introduction of 1–500 characters and confirm the chat's readers.",
     );
   const data = parsed.data;
-  return db.$transaction(async (tx) => {
+  return analyticsTransaction(accountId, async (tx, record) => {
     const { pair, people } = await lockPair(tx, accountId, targetAccountId);
     await assertUnblocked(tx, people);
     assertPosting(assertParticipant(accountId, people));
@@ -393,6 +394,12 @@ export async function requestDirectConversation(
     });
     await attention(tx, c, accountId, message.id, true, people);
     await recordActivity(accountId, { client: tx, force: true });
+    record(
+      "direct_request_created",
+      {},
+      `direct-request:${c.id}:${c.requestVersion}`,
+      message.createdAt,
+    );
     return summary(c, people, accountId);
   });
 }
@@ -404,7 +411,7 @@ export async function respondToDirectRequest(
   const parsed = decisionSchema.safeParse(input);
   if (!parsed.success) fail("Choose a valid request decision and version.");
   const data = parsed.data;
-  return db.$transaction(async (tx) => {
+  return analyticsTransaction(accountId, async (tx, record) => {
     const { conversation: c, people } = await lockDirectConversation(
       tx,
       conversationId,
@@ -444,6 +451,13 @@ export async function respondToDirectRequest(
       data: { readAt: new Date() },
     });
     await recordActivity(accountId, { client: tx, force: true });
+    if (data.decision === "accept")
+      record(
+        "direct_request_accepted",
+        {},
+        `direct-accept:${changed.id}:${changed.requestVersion}`,
+        changed.updatedAt,
+      );
     return summary(changed, people, accountId);
   });
 }
@@ -481,7 +495,7 @@ export async function postDirectMessage(
   const parsed = messageSchema.safeParse(input);
   if (!parsed.success) fail(parsed.error.issues[0].message);
   const data = parsed.data;
-  return db.$transaction(async (tx) => {
+  return analyticsTransaction(accountId, async (tx, record) => {
     const { conversation: c, people } = await lockDirectConversation(
       tx,
       conversationId,
@@ -539,6 +553,22 @@ export async function postDirectMessage(
     });
     await attention(tx, c, accountId, message.id, false, people);
     await recordActivity(accountId, { client: tx, force: true });
+    record(
+      "message_posted",
+      {
+        conversation_kind: "direct",
+        is_reply_to_other:
+          data.replyToId !== undefined &&
+          (
+            await await tx.directMessage.findUnique({
+              where: { id: data.replyToId },
+              select: { senderAccountId: true },
+            })
+          )?.senderAccountId !== accountId,
+      },
+      `direct:${message.id}`,
+      message.createdAt,
+    );
     return serialize(message);
   });
 }

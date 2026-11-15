@@ -1,4 +1,4 @@
-import { randomUUID, createHash } from "node:crypto";
+import { randomUUID, createHmac } from "node:crypto";
 import { after } from "next/server";
 import { PostHog } from "posthog-node";
 import type { Prisma } from "@prisma/client";
@@ -7,6 +7,7 @@ import { analyticsConfig } from "./config";
 import { analyticsIdentity } from "./preferences";
 import {
   eventProperties,
+  eventSchemas,
   type EventName,
   type EventProperties,
   type AnalyticsIdentity,
@@ -26,53 +27,82 @@ type PendingEvent = {
 };
 let active = 0;
 const pending = new Set<Promise<void>>();
-function eventUuid(key: string) {
-  const h = createHash("sha256").update(key).digest("hex");
-  return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
-}
-async function deliver(
-  accountId: string,
-  identity: AnalyticsIdentity,
-  events: PendingEvent[],
+let sdk: PostHog | null = null;
+let sdkHost = "";
+async function clientFor(
+  config: NonNullable<ReturnType<typeof analyticsConfig>>,
 ) {
-  const config = analyticsConfig();
-  const current = config ? await analyticsIdentity(accountId) : null;
-  if (!config || current?.analyticsId !== identity.analyticsId) return;
-  const client = new PostHog(config.token, {
+  if (sdk && sdkHost === config.host) return sdk;
+  const previous = sdk;
+  if (previous) await previous.shutdown(750).catch(() => {});
+  sdkHost = config.host;
+  sdk = new PostHog(config.token, {
     host: config.host,
     disableGeoip: true,
     disableCompression: true,
-    flushAt: 20,
     flushInterval: 0,
     requestTimeout: 500,
     fetchRetryCount: 0,
     enableLocalEvaluation: false,
     before_send: (message) => {
-      const clean = events.find(
-        (e) => e.event === message.event && e.uuid === message.uuid,
+      if (!Object.hasOwn(eventSchemas, message.event)) return null;
+      const props = message.properties ?? {};
+      const fields = Object.fromEntries(
+        Object.keys(eventSchemas[message.event as EventName].shape).map(
+          (key) => [key, props[key]],
+        ),
       );
-      return clean
-        ? {
-            ...message,
-            properties: {
-              ...clean.properties,
-              account_type: identity.accountType,
-              schema_version: 1,
-              environment: config.environment,
-              capture_source: "server",
-            },
-          }
-        : null;
+      const clean = eventProperties(message.event, fields);
+      if (!clean || !["person", "agent"].includes(String(props.account_type)))
+        return null;
+      return {
+        ...message,
+        $set: undefined,
+        $set_once: undefined,
+        properties: {
+          ...clean,
+          account_type: props.account_type,
+          schema_version: 1,
+          environment: "test",
+          capture_source: "server",
+          $geoip_disable: true,
+        },
+      };
     },
   });
-  client.on("error", () => {});
-  try {
-    for (const event of events)
-      client.capture({ distinctId: identity.analyticsId, ...event });
-    await client.shutdown(750);
-  } catch {
-    /* Best effort: never replace the domain result or log payloads. */
-  }
+  sdk.on("error", () => {});
+  return sdk;
+}
+function eventUuid(key: string) {
+  const h = createHmac("sha256", process.env.AUTH_SECRET ?? "local-mock")
+    .update(key)
+    .digest("hex");
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
+}
+async function deliver(
+  accountId: string,
+  identity: AnalyticsIdentity & { consentVersion: number },
+  events: PendingEvent[],
+) {
+  const config = analyticsConfig();
+  const current = config ? await analyticsIdentity(accountId) : null;
+  if (
+    !config ||
+    current?.analyticsId !== identity.analyticsId ||
+    current.consentVersion !== identity.consentVersion
+  )
+    return;
+  const client = await clientFor(config);
+  // No SDK background queue: all sends are awaited by Next's post-response work.
+  await Promise.allSettled(
+    events.map((event) =>
+      client.captureImmediate({
+        distinctId: identity.analyticsId,
+        ...event,
+        properties: { ...event.properties, account_type: identity.accountType },
+      }),
+    ),
+  );
 }
 export async function analyticsOperation<T>(
   accountId: string,
@@ -131,4 +161,11 @@ export function analyticsTransaction<T>(
 }
 export async function flushMockAnalytics() {
   await Promise.allSettled([...pending]);
+}
+export async function shutdownMockAnalytics() {
+  await flushMockAnalytics();
+  const client = sdk;
+  sdk = null;
+  sdkHost = "";
+  if (client) await client.shutdown(750).catch(() => {});
 }

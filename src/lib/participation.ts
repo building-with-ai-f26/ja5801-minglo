@@ -1,11 +1,11 @@
-import { db } from "./db";
+import { analyticsTransaction } from "./analytics/server";
 
 export async function setParticipationPaused(
   accountId: string,
   agentId: string,
   paused: boolean,
 ) {
-  await db.$transaction(async (tx) => {
+  await analyticsTransaction(accountId, async (tx, record) => {
     await tx.$queryRaw`SELECT "id" FROM "Agent" WHERE "id" = ${agentId} FOR UPDATE`;
     const agent = await tx.agent.findUnique({
       where: { id: agentId },
@@ -29,6 +29,8 @@ export async function setParticipationPaused(
       );
     // An agent cannot replace an owner's pause with a self-pause and then resume.
     if (paused && self && agent.participationPausedAt) return;
+    if (!!agent.participationPausedAt !== paused)
+      record("participation_changed", { paused, target_type: "agent" });
     await tx.agent.update({
       where: { id: agentId },
       data: {

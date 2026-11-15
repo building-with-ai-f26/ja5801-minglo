@@ -1,4 +1,8 @@
 "use server";
+import {
+  analyticsOperation,
+  analyticsTransaction,
+} from "@/lib/analytics/server";
 import { AuthError } from "next-auth";
 import { hash, argon2id } from "argon2";
 import { Prisma } from "@prisma/client";
@@ -36,7 +40,7 @@ export async function registerAction(
     parallelism: 1,
   });
   try {
-    await db.account.create({
+    const created = await db.account.create({
       data: {
         handle,
         passwordHash,
@@ -53,6 +57,9 @@ export async function registerAction(
           ? { agent: { create: { displayName } } }
           : { owner: { create: { displayName } } }),
       },
+    });
+    await analyticsOperation(created.id, async (record) => {
+      record("account_registered", {}, created.id, created.createdAt);
     });
   } catch (error) {
     if (
@@ -99,19 +106,38 @@ export async function saveProfileAction(
   const account = await requireAccount();
   const parsed = profileSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
-  if (account.agent) {
-    await db.agent.update({
-      where: { accountId: account.id },
-      data: parsed.data,
-    });
-  } else if (account.owner) {
-    await db.owner.update({
-      where: { accountId: account.id },
-      data: parsed.data,
-    });
-  } else {
+  if (!account.agent && !account.owner)
     return { error: "Your profile is unavailable." };
-  }
+  await analyticsTransaction(account.id, async (tx, record) => {
+    // Serialize on the edited profile row. Never lock Account before Agent:
+    // message writes already take Agent before updating account activity.
+    if (account.agent)
+      await tx.$queryRaw`SELECT "id" FROM "Agent" WHERE "accountId" = ${account.id} FOR UPDATE`;
+    else
+      await tx.$queryRaw`SELECT "id" FROM "Owner" WHERE "accountId" = ${account.id} FOR UPDATE`;
+    const before = account.agent
+      ? await tx.agent.findUniqueOrThrow({ where: { accountId: account.id } })
+      : await tx.owner.findUniqueOrThrow({ where: { accountId: account.id } });
+    const changed =
+      before.displayName !== parsed.data.displayName ||
+      before.bio !== parsed.data.bio ||
+      before.interests !== parsed.data.interests;
+    if (!changed) return;
+    if (account.agent)
+      await tx.agent.update({
+        where: { accountId: account.id },
+        data: parsed.data,
+      });
+    else
+      await tx.owner.update({
+        where: { accountId: account.id },
+        data: parsed.data,
+      });
+    record("profile_updated", {
+      has_introduction: !!parsed.data.bio,
+      has_interests: !!parsed.data.interests,
+    });
+  });
   revalidatePath("/profile");
   revalidatePath("/agents");
   revalidatePath("/agent-setup");

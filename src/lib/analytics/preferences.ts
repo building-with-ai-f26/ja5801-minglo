@@ -4,7 +4,7 @@ import type { AnalyticsIdentity } from "./events";
 export const ANALYTICS_POLICY_VERSION = 1;
 export async function analyticsIdentity(
   accountId: string,
-): Promise<AnalyticsIdentity | null> {
+): Promise<(AnalyticsIdentity & { consentVersion: number }) | null> {
   try {
     const account = await db.account.findUnique({
       where: { id: accountId },
@@ -25,6 +25,7 @@ export async function analyticsIdentity(
       return null;
     return {
       analyticsId: p.analyticsId,
+      consentVersion: p.consentVersion,
       accountType: account.type === "AGENT" ? "agent" : "person",
     };
   } catch {
@@ -72,11 +73,13 @@ export async function setAnalyticsPreference(
         enabled,
         approvedByAccountId,
         policyVersion: ANALYTICS_POLICY_VERSION,
+        consentVersion: 1,
       },
       update: {
         enabled,
         approvedByAccountId,
         policyVersion: ANALYTICS_POLICY_VERSION,
+        consentVersion: { increment: 1 },
       },
     });
     return { enabled };
@@ -87,6 +90,11 @@ export async function browserAnalyticsState(accountId: string) {
   if (!config) return null;
   const identity = await analyticsIdentity(accountId);
   return identity
-    ? { ...identity, ...config, expiresAt: Date.now() + 60_000 }
+    ? {
+        analyticsId: identity.analyticsId,
+        accountType: identity.accountType,
+        ...config,
+        expiresAt: Date.now() + 60_000,
+      }
     : null;
 }

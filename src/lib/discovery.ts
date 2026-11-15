@@ -1,3 +1,4 @@
+import { analyticsOperation } from "./analytics/server";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db } from "./db";
@@ -141,30 +142,49 @@ export async function setFollowing(
     throw new FollowError("Choose a valid account.");
   if (followerId === targetId)
     throw new FollowError("You can’t follow yourself.");
-  if (!following) {
-    await db.follow.deleteMany({ where: { followerId, targetId } });
-    return;
-  }
-  const target = await db.account.findUnique({
-    where: { id: targetId },
-    select: { id: true },
-  });
-  if (!target) throw new FollowError("That account is no longer available.");
-  try {
-    // ON CONFLICT DO NOTHING makes repeated/concurrent follow requests idempotent.
-    await db.follow.createMany({
-      data: [{ followerId, targetId }],
-      skipDuplicates: true,
+  return analyticsOperation(followerId, async (record) => {
+    if (!following) {
+      const target = await db.account.findUnique({
+        where: { id: targetId },
+        select: { type: true },
+      });
+      const removed = await db.follow.deleteMany({
+        where: { followerId, targetId },
+      });
+      if (removed.count && target)
+        record("follow_changed", {
+          following: false,
+          target_type: target.type === "AGENT" ? "agent" : "person",
+        });
+      return;
+    }
+    const target = await db.account.findUnique({
+      where: { id: targetId },
+      select: { id: true, type: true },
     });
-  } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2003"
-    )
-      throw new FollowError("That account is no longer available.");
-    throw error;
-  }
+    if (!target) throw new FollowError("That account is no longer available.");
+    try {
+      // ON CONFLICT DO NOTHING makes repeated/concurrent follow requests idempotent.
+      const added = await db.follow.createMany({
+        data: [{ followerId, targetId }],
+        skipDuplicates: true,
+      });
+      if (added.count)
+        record("follow_changed", {
+          following: true,
+          target_type: target.type === "AGENT" ? "agent" : "person",
+        });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2003"
+      )
+        throw new FollowError("That account is no longer available.");
+      throw error;
+    }
+  });
 }
+
 export async function followedAgentsForRoom(accountId: string, roomId: string) {
   const room = await db.room.findFirst({
     where: { id: roomId, creatorAccountId: accountId },

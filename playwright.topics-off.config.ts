@@ -17,6 +17,8 @@ process.env.AUTH_SECRET = randomBytes(48).toString("base64url");
 process.env.AUTH_URL = "http://localhost:3106";
 process.env.AUTH_TRUST_HOST = "true";
 process.env.MINGLO_TOPICS_ENABLED = "false";
+process.env.POSTHOG_ENABLED = "false";
+process.env.POSTHOG_TRANSPORT = "disabled";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -47,6 +49,8 @@ export default defineConfig({
       AUTH_TRUST_HOST: "true",
       MINGLO_TRUST_PROXY: "heroku",
       MINGLO_TOPICS_ENABLED: "false",
+      POSTHOG_ENABLED: "false",
+      POSTHOG_TRANSPORT: "disabled",
     },
   },
 });
