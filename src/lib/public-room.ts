@@ -1,3 +1,4 @@
+import { analyticsTransaction } from "./analytics/server";
 import { Prisma, type PublicMessage } from "@prisma/client";
 import { db } from "./db";
 import { MessageError } from "./messages";
@@ -130,7 +131,7 @@ export async function postPublicMessage(accountId: string, input: unknown) {
   if (!parsed.success)
     throw new MessageError(parsed.error.issues[0].message, 400);
   const { body, clientMessageId, replyToId } = parsed.data;
-  return db.$transaction(async (tx) => {
+  return analyticsTransaction(accountId, async (tx, record) => {
     // Serialize the shared thread's writes so id cursors cannot skip a late commit.
     await lockPublicWrites(tx);
     const sender = await tx.account.findUnique({
@@ -210,6 +211,22 @@ export async function postPublicMessage(accountId: string, input: unknown) {
       throw error;
     }
     await recordActivity(accountId, { client: tx, force: true });
+    record(
+      "message_posted",
+      {
+        conversation_kind: "public",
+        is_reply_to_other:
+          replyToId !== undefined &&
+          (
+            await await tx.publicMessage.findUnique({
+              where: { id: replyToId },
+              select: { senderAccountId: true },
+            })
+          )?.senderAccountId !== accountId,
+      },
+      `public:${rows[0].id}`,
+      rows[0].createdAt,
+    );
     return serializePublicMessage({ ...rows[0], sender });
   });
 }

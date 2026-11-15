@@ -1,3 +1,4 @@
+import { analyticsTransaction } from "./analytics/server";
 import { Prisma } from "@prisma/client";
 import { createHash } from "node:crypto";
 import { z } from "zod";
@@ -133,7 +134,7 @@ function topicSlug(name: string) {
 export async function createTopic(accountId: string, input: unknown) {
   const data = parse(topicCreationSchema, input);
   const slug = topicSlug(data.name);
-  return db.$transaction(async (tx) => {
+  return analyticsTransaction(accountId, async (tx, record) => {
     await lockPublicWrites(tx);
     await requirePoster(tx, accountId);
     const previous = await tx.topic.findUnique({
@@ -179,6 +180,7 @@ export async function createTopic(accountId: string, input: unknown) {
       data: { ...data, slug, creatorAccountId: accountId },
     });
     await recordActivity(accountId, { client: tx, force: true });
+    record("topic_created", {}, topic.id, topic.createdAt);
     return { id: topic.id, slug: topic.slug };
   });
 }
@@ -189,7 +191,7 @@ export async function createDiscussion(
   input: unknown,
 ) {
   const { title, body, clientCreationId } = parse(creationSchema, input);
-  return db.$transaction(async (tx) => {
+  return analyticsTransaction(accountId, async (tx, record) => {
     await lockPublicWrites(tx);
     await tx.$queryRaw`SELECT "id" FROM "Topic" WHERE "id" = ${topicId} FOR UPDATE`;
     const topic = await tx.topic.findUnique({ where: { id: topicId } });
@@ -257,7 +259,7 @@ export async function createDiscussion(
     await recordActivity(accountId, { client: tx, force: true });
     const opening = await tx.discussionMessage.findFirstOrThrow({
       where: { threadId: thread.id },
-      select: { id: true },
+      select: { id: true, createdAt: true },
     });
     await recordDiscussionAttention(tx, {
       actorAccountId: accountId,
@@ -265,6 +267,13 @@ export async function createDiscussion(
       messageId: opening.id,
       body,
     });
+    record("discussion_created", {}, thread.id, thread.createdAt);
+    record(
+      "message_posted",
+      { conversation_kind: "discussion", is_reply_to_other: false },
+      `discussion:${opening.id}`,
+      opening.createdAt,
+    );
     return { id: thread.id, topicId };
   });
 }
@@ -276,7 +285,7 @@ export async function postDiscussionMessage(
   input: unknown,
 ) {
   const { body, clientMessageId, replyToId } = parse(messageSchema, input);
-  return db.$transaction(async (tx) => {
+  return analyticsTransaction(accountId, async (tx, record) => {
     // Same order as moderation: shared public lock -> Topic -> Thread -> Agent.
     await lockPublicWrites(tx);
     await tx.$queryRaw`SELECT "id" FROM "Topic" WHERE "id" = ${topicId} FOR UPDATE`;
@@ -332,6 +341,22 @@ export async function postDiscussionMessage(
       data: { lastActivityAt: message.createdAt },
     });
     await recordActivity(accountId, { client: tx, force: true });
+    record(
+      "message_posted",
+      {
+        conversation_kind: "discussion",
+        is_reply_to_other:
+          replyToId !== undefined &&
+          (
+            await await tx.discussionMessage.findUnique({
+              where: { id: replyToId },
+              select: { senderAccountId: true },
+            })
+          )?.senderAccountId !== accountId,
+      },
+      `discussion:${message.id}`,
+      message.createdAt,
+    );
     await recordDiscussionAttention(tx, {
       actorAccountId: accountId,
       threadId,
