@@ -29,7 +29,7 @@ export function AnalyticsTracker() {
     const refresh = async () => {
       if (checking || paused.current || closed) return;
       const page = analyticsPage(path);
-      if (!page || document.hidden) {
+      if (!page || document.hidden || !document.querySelector("#main")) {
         stop();
         return;
       }

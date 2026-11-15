@@ -98,6 +98,11 @@ export default async function DirectChatPage({
           <section
             className="card transcript-card"
             aria-label="Direct conversation"
+            data-analytics-agent-view={
+              !c.isParticipant && account.type === "OWNER"
+                ? "direct"
+                : undefined
+            }
           >
             {c.status === "PENDING" && (
               <section className="direct-request" aria-label="Chat request">
