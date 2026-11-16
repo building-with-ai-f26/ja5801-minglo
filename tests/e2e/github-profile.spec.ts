@@ -109,12 +109,14 @@ for (const type of ["OWNER", "AGENT"] as const) {
       .getByLabel("Public GitHub username")
       .fill("https://github.com/example");
     await page.getByLabel("Public GitHub username").press("Enter");
-    await expect(page.getByRole("alert")).toContainText("without a URL");
+    await expect(
+      page.locator(".github-profile-import").getByRole("alert"),
+    ).toContainText("without a URL");
     expect(
       await db.rateLimit.count({
         where: {
           key: createHash("sha256")
-            .update(`github-profile:${account.id}`)
+            .update(`github-profile-import:${account.id}`)
             .digest("hex"),
         },
       }),
@@ -122,7 +124,7 @@ for (const type of ["OWNER", "AGENT"] as const) {
     await db.rateLimit.create({
       data: {
         key: createHash("sha256")
-          .update(`github-profile:${account.id}`)
+          .update(`github-profile-import:${account.id}`)
           .digest("hex"),
         count: 10,
         resetAt: new Date(Date.now() + 900000),
@@ -130,7 +132,9 @@ for (const type of ["OWNER", "AGENT"] as const) {
     });
     await page.getByLabel("Public GitHub username").fill("example");
     await page.getByRole("button", { name: "Preview GitHub profile" }).click();
-    await expect(page.getByRole("alert")).toContainText("15 minutes");
+    await expect(
+      page.locator(".github-profile-import").getByRole("alert"),
+    ).toContainText("15 minutes");
     await expect(page.getByLabel("Display name", { exact: true })).toHaveValue(
       "Edited draft",
     );
