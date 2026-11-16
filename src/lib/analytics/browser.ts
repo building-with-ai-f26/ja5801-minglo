@@ -3,6 +3,7 @@ import { safeBrowserEvent, type AnalyticsIdentity } from "./events";
 let identity: AnalyticsIdentity | null = null;
 let initialized = false;
 let publicToken = "";
+let environment: "test" | "production" = "test";
 export function stopBrowserAnalytics() {
   identity = null;
   if (initialized) {
@@ -11,11 +12,16 @@ export function stopBrowserAnalytics() {
   }
 }
 export function startBrowserAnalytics(
-  next: AnalyticsIdentity & { host: string; token: string },
+  next: AnalyticsIdentity & {
+    host: string;
+    token: string;
+    environment: "test" | "production";
+  },
 ) {
   stopBrowserAnalytics();
   identity = next;
   publicToken = next.token;
+  environment = next.environment;
   if (!initialized) {
     posthog.init(next.token, {
       api_host: next.host,
@@ -47,7 +53,7 @@ export function startBrowserAnalytics(
       bootstrap: { distinctID: next.analyticsId, isIdentifiedID: true },
       before_send: (event) =>
         identity && event
-          ? safeBrowserEvent(event, identity, publicToken)
+          ? safeBrowserEvent(event, identity, publicToken, environment)
           : null,
     });
     initialized = true;

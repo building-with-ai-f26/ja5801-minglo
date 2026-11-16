@@ -47,7 +47,7 @@ export function AnalyticsTracker() {
           stop();
           return;
         }
-        // Server returns only loopback mock configuration in PH0–PH3.
+        // Configuration is supplied only after current server eligibility checks.
         const module = sdk.current ?? (await import("@/lib/analytics/browser"));
         if (
           closed ||

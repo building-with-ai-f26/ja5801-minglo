@@ -28,14 +28,15 @@ type PendingEvent = {
 let active = 0;
 const pending = new Set<Promise<void>>();
 let sdk: PostHog | null = null;
-let sdkHost = "";
+let sdkConfig = "";
 async function clientFor(
   config: NonNullable<ReturnType<typeof analyticsConfig>>,
 ) {
-  if (sdk && sdkHost === config.host) return sdk;
+  const key = `${config.host}:${config.token}:${config.environment}`;
+  if (sdk && sdkConfig === key) return sdk;
   const previous = sdk;
   if (previous) await previous.shutdown(750).catch(() => {});
-  sdkHost = config.host;
+  sdkConfig = key;
   sdk = new PostHog(config.token, {
     host: config.host,
     disableGeoip: true,
@@ -63,7 +64,7 @@ async function clientFor(
           ...clean,
           account_type: props.account_type,
           schema_version: 1,
-          environment: "test",
+          environment: config.environment,
           capture_source: "server",
           $geoip_disable: true,
         },
@@ -142,11 +143,13 @@ export async function analyticsOperation<T>(
     try {
       after(send);
     } catch {
-      // Direct domain tests/CLI have no Next request lifecycle. Track their work
-      // explicitly so tests can await it; this fallback remains mock-only.
-      const task = send();
-      pending.add(task);
-      void task.finally(() => pending.delete(task));
+      // Only mock tests may send without a request lifecycle. Production CLI or
+      // build work never starts an unowned live delivery.
+      if (analyticsConfig()?.environment === "test") {
+        const task = send();
+        pending.add(task);
+        void task.finally(() => pending.delete(task));
+      } else active--;
     }
   }
   return result;
@@ -166,6 +169,6 @@ export async function shutdownMockAnalytics() {
   await flushMockAnalytics();
   const client = sdk;
   sdk = null;
-  sdkHost = "";
+  sdkConfig = "";
   if (client) await client.shutdown(750).catch(() => {});
 }

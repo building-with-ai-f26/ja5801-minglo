@@ -1,9 +1,10 @@
 # Optional usage analytics
 
 PH1–PH3 implements the approved PostHog plan with official, pinned browser and Node
-SDKs. **Live collection is disabled and cannot be activated by this code's mock
-configuration.** Jonas has created US Cloud project 739580; dashboard setup and
-live ingestion remain pending.
+SDKs. Jonas has created US Cloud project 739580 and approved activation. The Cloud
+adapter requires explicit production configuration; default collection stays off.
+See the handoff for actual deployment and ingestion status; project creation alone
+does not establish delivery.
 
 ## Choices and ownership
 
@@ -20,7 +21,8 @@ revision so queued work cannot survive withdrawal followed by re-authorization.
 Neither migration opts existing accounts in or changes existing conversations.
 
 The privacy notice is `/privacy`. It records the user-confirmed one-year event
-retention and deletion contact `ja5801@stern.nyu.edu`; collection remains inactive.
+retention and deletion contact `ja5801@stern.nyu.edu`; its status reads the current
+server configuration on each request.
 Publish this notice with the approved release before activating production capture.
 Browser eligibility is session-derived, private/no-store,
 checked on navigation/focus and every 50 seconds while visible, and expires after
@@ -83,10 +85,28 @@ POSTHOG_TRANSPORT=disabled
 # POSTHOG_MOCK_HOST=http://127.0.0.1:3150
 ```
 
-Only `POSTHOG_ENABLED=true` plus `POSTHOG_TRANSPORT=mock` and an HTTP loopback host
-enable the mock transport. Remote hosts, credentials in a host URL, paths and all
-Heroku dynos are rejected. This is a deliberate PH0–PH3 boundary, not a production
-ingestion proxy. No `NEXT_PUBLIC_*` key or personal PostHog API credential is needed.
+`POSTHOG_ENABLED=true` plus `POSTHOG_TRANSPORT=mock` and an HTTP loopback host
+enable the mock transport. Mock mode rejects remote hosts, URL credentials/paths
+and Heroku dynos.
+
+Approved production configuration requires all of:
+
+```dotenv
+POSTHOG_ENABLED=true
+POSTHOG_TRANSPORT=cloud
+POSTHOG_PROJECT_TOKEN=<public token from the chosen US project>
+POSTHOG_HOST=https://us.i.posthog.com
+POSTHOG_ENVIRONMENT=production
+```
+
+Cloud mode additionally requires `NODE_ENV=production`, a Heroku `DYNO` and the
+existing `AUTH_SECRET` of at least 32 characters. It rejects other ingestion hosts,
+including EU, lookalikes, credentials and paths. Local tests cannot accidentally
+enable Cloud mode. Both SDKs label events with the server-selected environment.
+Production delivery without a Next request lifecycle is suppressed; only mock
+tests can use the tracked direct-call fallback. No `NEXT_PUBLIC_*` key or personal
+PostHog API credential is needed. Disabling `POSTHOG_ENABLED` stops server sends
+and causes browser eligibility to fail closed within the documented lease.
 
 Ordinary tests explicitly disable capture. The mock suite is separate:
 
@@ -107,14 +127,17 @@ after verification.
 1. US project 739580, its public token, one-year retention and the deletion contact
    are supplied. Verify project access and the operator deletion procedure, then
    publish the completed notice. No personal API key is needed for normal ingestion.
-2. Review live configuration support against that project; the current adapter
-   rejects remote hosts and `DYNO` intentionally. Do not remove these guards merely
-   to make a test pass or enable capture without approval.
+2. Verify the guarded Cloud adapter against that project. Keep mock/local guards
+   intact and never put the real token into tests or source.
 3. Configure IP discard and disabled location enrichment, budget/limits and the
    three dashboards from the plan. Save their actual links and definitions.
-4. Obtain Jonas's live activation approval. Run the documented release checks,
+4. Jonas has approved activation. Run the documented release checks,
    additive migration/backup process, deployment and a genuine authorized opt-in
    ingestion check. Test the kill switch in an open browser. Do not impersonate
    production users, create social activity for charts, or claim autonomous returns.
+
+Dashboard definitions and the deletion procedure are in
+[the dashboard runbook](MINGLO_POSTHOG_DASHBOARDS.md). Jonas relays project-side
+settings and ingestion checks from Muse; a separate personal API key is unnecessary.
 
 Evidence and implementation status: [PostHog handoff](handoffs/posthog.md).

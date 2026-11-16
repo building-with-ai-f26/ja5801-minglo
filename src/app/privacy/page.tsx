@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { PublicHeader } from "@/components/ui";
-export default function PrivacyPage() {
+import { analyticsConfig } from "@/lib/analytics/config";
+export default async function PrivacyPage() {
+  await connection();
+  const active = analyticsConfig()?.environment === "production";
   return (
     <div className="public-page">
       <PublicHeader />
@@ -43,8 +47,8 @@ export default function PrivacyPage() {
           <h2>Retention and deletion</h2>
           <p>
             The PostHog project is hosted in US Cloud and its event-retention
-            setting is one year. To ask about your analytics or request deletion,
-            contact{" "}
+            setting is one year. To ask about your analytics or request
+            deletion, contact{" "}
             <a className="text-link" href="mailto:ja5801@stern.nyu.edu">
               ja5801@stern.nyu.edu
             </a>
@@ -52,8 +56,9 @@ export default function PrivacyPage() {
           </p>
           <h2>Current status</h2>
           <p>
-            Live PostHog collection has not been activated. Saved choices can be
-            used after activation.
+            {active
+              ? "Optional usage analytics is active for accounts that have authorized it."
+              : "Live PostHog collection is off. Saved choices can be used after activation."}
           </p>
           <p>
             An analytics identity is pseudonymous, not fully anonymous. If

@@ -95,6 +95,74 @@ test("mock capture cannot use remote hosts or run on a Heroku dyno", () => {
     });
   }
 });
+test("cloud capture requires all production guards and labels sanitized events", () => {
+  const names = [
+    "POSTHOG_ENABLED",
+    "POSTHOG_TRANSPORT",
+    "POSTHOG_HOST",
+    "POSTHOG_PROJECT_TOKEN",
+    "POSTHOG_ENVIRONMENT",
+    "NODE_ENV",
+    "DYNO",
+    "AUTH_SECRET",
+  ] as const;
+  const saved = names.map((name) => process.env[name]);
+  const valid = {
+    POSTHOG_ENABLED: "true",
+    POSTHOG_TRANSPORT: "cloud",
+    POSTHOG_HOST: "https://us.i.posthog.com",
+    POSTHOG_PROJECT_TOKEN: `phc_${"x".repeat(40)}`,
+    POSTHOG_ENVIRONMENT: "production",
+    NODE_ENV: "production",
+    DYNO: "web.1",
+    AUTH_SECRET: "local-test-secret-that-is-long-enough",
+  };
+  try {
+    Object.assign(process.env, valid);
+    expect(analyticsConfig()).toMatchObject({ environment: "production" });
+    for (const name of names) {
+      delete process.env[name];
+      expect(analyticsConfig(), name).toBeNull();
+      Object.assign(process.env, valid);
+    }
+    for (const host of [
+      "https://eu.i.posthog.com",
+      "https://us.i.posthog.com/",
+      "https://us.i.posthog.com.evil.example",
+      "http://us.i.posthog.com",
+      "https://user:password@us.i.posthog.com",
+      "https://us.i.posthog.com/path",
+    ]) {
+      process.env.POSTHOG_HOST = host;
+      expect(analyticsConfig(), host).toBeNull();
+    }
+    Object.assign(process.env, valid);
+    process.env.POSTHOG_PROJECT_TOKEN = "phx_personal_key";
+    expect(analyticsConfig()).toBeNull();
+    Object.assign(process.env, valid);
+    Object.assign(process.env, { NODE_ENV: "test" });
+    expect(analyticsConfig()).toBeNull();
+    const event = safeBrowserEvent(
+      {
+        event: "page_viewed",
+        properties: { page_name: "home", $current_url: "SECRET" },
+      },
+      { analyticsId: randomUUID(), accountType: "person" },
+      valid.POSTHOG_PROJECT_TOKEN,
+      "production",
+    );
+    expect(event?.properties).toMatchObject({
+      environment: "production",
+      $geoip_disable: true,
+    });
+    expect(JSON.stringify(event)).not.toContain("SECRET");
+  } finally {
+    names.forEach((name, index) => {
+      if (saved[index] === undefined) delete process.env[name];
+      else Object.assign(process.env, { [name]: saved[index] });
+    });
+  }
+});
 test("missing preferences stay off; only current owners authorize agents", async () => {
   const suffix = randomUUID().slice(0, 8);
   const owner = await db.account.create({
