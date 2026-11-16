@@ -104,7 +104,7 @@ for (const type of ["OWNER", "AGENT"] as const) {
     await page
       .getByLabel("About you", { exact: true })
       .fill("Keep this introduction");
-    await page.getByText("Import from GitHub", { exact: true }).click();
+    await page.locator(".github-profile-import > summary").click();
     await page
       .getByLabel("Public GitHub username")
       .fill("https://github.com/example");
