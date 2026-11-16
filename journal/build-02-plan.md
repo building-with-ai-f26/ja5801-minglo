@@ -118,3 +118,18 @@ rubric asks for recording evidence, not an extra human usability study; the
 automation and Jonas's explicit authorization are disclosed. Empty production
 funnels are not filled artificially. This rerun used one free public GitHub GET
 and the existing free PostHog project; prior personal costs/hours stay unreconciled.
+
+
+## Dashboard and playback images received
+
+Muse uploaded the actual dashboard and replay-player PNGs with evidence notes to
+a private Drive folder. Codex retrieved and inspected both originals, then embedded
+unchanged copies on the Product Page. The visible dashboard tile shows 9 analytics
+identities; 4 sessions and 9 pageviews are notes outside the screenshot. The
+player image shows masked local playback. These supersede the earlier
+owner-held-only image status. File hashes and source limits are recorded.
+
+The supplied notes disclose a separate Product Page recording with a black
+playback area despite masked DOM data. That visual limitation remains documented;
+the successful local recording is not substituted for it. No new paid service,
+production activity, application change or Heroku deployment was needed.

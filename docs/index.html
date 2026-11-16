@@ -326,6 +326,9 @@
         <a class="build-evidence-link" href="#api-demo"
           >See the real API demo</a
         >
+        <a class="build-evidence-link" href="#analytics-evidence"
+          >PostHog dashboard and replay</a
+        >
       </header>
 
       <section class="analytics-note" aria-labelledby="page-analytics-heading">
@@ -684,8 +687,70 @@
           <a href="evidence/build2-live-replay.json"
             >Replay verification record</a
           >. Muse confirmed actual masked playback: two seconds, four clicks and
-          two keys. Jonas has the dashboard screenshot for the submission; it is
-          not embedded here.
+          two keys. The actual dashboard and replay-player screenshots are
+          below.
+        </p>
+      </section>
+      <section id="analytics-evidence">
+        <h2>Analytics and masked replay</h2>
+        <p>
+          These original PostHog screenshots were captured by Muse on November
+          16, around 10:49–10:50 Eastern, and inspected before publication. They
+          show the actual project dashboard and the local recording player,
+          rather than reconstructed metrics or sample rows.
+        </p>
+        <figure class="api-evidence">
+          <a href="images/build2-posthog-dashboard.png"
+            ><img
+              src="images/build2-posthog-dashboard.png"
+              alt="Actual PostHog starter dashboard showing 9 active identities over the last 30 days"
+              width="1020"
+              height="1320"
+              loading="lazy"
+          /></a>
+          <figcaption class="meta">
+            The visible tile reports 9 “active users,” meaning analytics
+            identities that can include test and anonymous visits. This is not
+            nine proven registered users. The starter dashboard uses each
+            insight’s own period, with no dashboard date override. Muse’s notes
+            also report 4 sessions and 9 pageviews; those tiles are outside this
+            image.
+            <a href="https://us.posthog.com/project/739580/dashboard/2360648"
+              >Open the source dashboard</a
+            >
+            (project access required).
+          </figcaption>
+        </figure>
+        <figure class="api-evidence">
+          <a href="images/build2-posthog-replay.png"
+            ><img
+              src="images/build2-posthog-replay.png"
+              alt="PostHog replay player painting the localhost demo with all page text and input values masked as asterisks"
+              width="1020"
+              height="1320"
+              loading="lazy"
+          /></a>
+          <figcaption class="meta">
+            The approved automated localhost recording plays for about 1–2
+            seconds. Its viewport paints and all text and inputs remain masked.
+            This is real playback, not the DOM Inspector or a human usability
+            study. Masking reduces visual fidelity.
+          </figcaption>
+        </figure>
+        <p>
+          The local pageview, import clicks and recording were verified
+          separately, including opt-out with the tab kept open. The production
+          onboarding funnels remain empty; no artificial registrations or agent
+          connections were created to fill them. A separate 2:18 Product Page
+          recording had masked DOM data but a black playback area, according to
+          Muse; that public-page visual check remains a disclosed limitation.
+        </p>
+        <p>
+          <a href="evidence/build2-posthog-images.md"
+            >Evidence notes, dates and original-file checksums</a
+          >. Event retention is one year; Muse reports 30-day recording
+          retention. Chats and other private app screens remain excluded from
+          replay.
         </p>
       </section>
       <section id="build-notes">
@@ -746,12 +811,11 @@
               demo now offer separately consented, fully masked recordings. The
               real SDK privacy checks pass. The explicitly approved automated
               localhost demo produced a masked snapshot accepted by PostHog;
-              Muse confirmed masked playback. I have the dashboard screenshot
-              for the submission; it is not embedded here. This is a technical
-              demo, not a human usability trial. Private conversations and
-              sensitive inputs stay excluded. The full hosted kill-switch
-              observation was stopped at my request; the local lease and opt-out
-              checks passed.
+              Muse confirmed masked playback. The original dashboard and player
+              screenshots are embedded above. This is a technical demo, not a
+              human usability trial. Private conversations and sensitive inputs
+              stay excluded. The full hosted kill-switch observation was stopped
+              at my request; the local lease and opt-out checks passed.
             </dd>
             <dt>Costs and dependencies</dt>
             <dd>
@@ -766,8 +830,8 @@
             <dd id="build2-evidence-status">
               The published pageview and product-button click each received HTTP
               200 from the real PostHog ingestion endpoint. Muse confirmed the
-              local replay paints correctly and keeps all text/inputs masked. I
-              have the real dashboard screenshot to attach to the submission.
+              local replay paints correctly and keeps all text/inputs masked.
+              The original dashboard and replay screenshots are published above.
               Links below open the actual dashboards; verification identities
               and sample tiles are not evidence of adoption.
             </dd>
@@ -784,8 +848,7 @@
             <figcaption class="meta">
               Published Product Page, captured November 15 during the controlled
               verification. Pageview and button capture received HTTP 200. This
-              is the public page; the actual dashboard screenshot is held
-              separately for the submission.
+              is the public page; the separate PostHog dashboard image is above.
             </figcaption>
           </figure>
           <p>

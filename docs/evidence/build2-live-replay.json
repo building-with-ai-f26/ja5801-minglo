@@ -71,13 +71,17 @@
   "allTextAndInputsMaskedInPlayback": true,
   "viewportPainted": true,
   "dashboardReportedMetrics": {
-    "source": "Jonas relay of Muse project inspection; screenshot file not yet received",
+    "source": "Muse notes supplied through Drive; 9 active identities visible in screenshot; 4 sessions and 9 pageviews are outside the captured area",
     "active_users_label": 9,
     "sessions": 4,
     "pageviews": 9,
     "interpretation": "May include verification and anonymous identities; not nine proven distinct people"
   },
   "dashboardScreenshotHeldByJonas": true,
-  "dashboardScreenshotReceivedByCodex": false,
-  "dashboardScreenshotEmbedded": false
+  "dashboardScreenshotReceivedByCodex": true,
+  "dashboardScreenshotEmbedded": true,
+  "dashboardScreenshotPath": "images/build2-posthog-dashboard.png",
+  "playbackScreenshotPath": "images/build2-posthog-replay.png",
+  "playbackScreenshotInspected": true,
+  "publicProductPagePlaybackLimitation": "Muse reports masked DOM but a black player area for a separate 2:18 recording; local playback screenshot does not verify that public recording"
 }

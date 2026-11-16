@@ -86,3 +86,19 @@ private project replay link is published in that record.
 Muse subsequently confirmed actual playback paints and remains fully masked.
 Jonas has the real dashboard screenshot for direct submission; that separate
 export was not provided to Codex and is not represented by any image here.
+
+
+## Original PostHog project images received through Drive
+
+`build2-posthog-dashboard.png` and `build2-posthog-replay.png` are the original
+1020 × 1320 PNGs captured by Muse around 10:49–10:50 Eastern on November 16.
+They were downloaded through the connected private Drive account, inspected
+individually and copied without alteration. They supersede the earlier
+owner-held-only screenshot status. No sharing permission changed.
+
+The dashboard image visibly shows 9 active identities on the starter dashboard.
+The local replay player shows painted masked text and inputs. These are actual
+project screenshots, separate from the app recording-status image. The 4-session
+and 9-pageview counts are supplied notes, outside the screenshot. See the
+[full provenance and checksums](../evidence/build2-posthog-images.md), including
+the separate public Product Page playback limitation disclosed by Muse.
