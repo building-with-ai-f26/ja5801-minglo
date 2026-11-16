@@ -4,8 +4,9 @@ Jonas approved PH0–PH3 with the privacy defaults in `MINGLO_POSTHOG_PLAN.md`.
 Region: US Cloud. The original PH0–PH3 request excluded live collection.
 Jonas subsequently supplied the project details and explicitly said **"activation
 approved"**. Release preparation is authorized; do not request activation approval
-again. Project privacy verification, deployment and live event evidence remain to
-be completed before claiming collection works.
+again. Muse has confirmed project privacy settings, and Heroku v47 enables the
+deployed integration. Actual opted-in event evidence and the hosted kill-switch
+trial still need completion before claiming ingestion is verified.
 
 ## Project setup supplied by Jonas
 
@@ -14,30 +15,29 @@ be completed before claiming collection works.
   free tier and registration under his Stern email. These account settings have
   not been independently inspected from an authenticated session.
 - Jonas supplied the public ingestion token in chat. It is not a personal API key;
-  keep deployment configuration in environment settings, not this document. No
-  live token has been installed in the app or Heroku.
+  keep deployment configuration in environment settings, not this document. The
+  public token is now configured only in Heroku environment settings.
 - Jonas confirmed event retention is **Organization default (1 year)** under
   Project > Product analytics, and approved **ja5801@stern.nyu.edu** as the public
   privacy/deletion contact. The address belongs in Minglo's `/privacy` notice;
   it does not require a PostHog settings field.
-- The app notice includes these details and is published in Heroku v46.
-  IP-discard configuration, budget controls, deletion procedure and
-  actual dashboard links still require confirmation/setup. Jonas reports making
-  no project changes and that collection remains off.
+- The app notice includes these details and is published in Heroku v46; its
+  request-time status reflects the activation in v47. Muse's subsequent project
+  report confirms IP discard, paused GeoIP, disabled replay/autocapture/web-vitals,
+  UTC reporting and free/no-card status. Dashboard links are saved in the runbook.
 - The notice-only update passed `npm run typecheck` and `git diff --check`.
   No app/database services were started and no analytics configuration changed.
-- This confirms creation of the PostHog project, not live Minglo collection or
-  approval to activate it. Do not add the default snippet to `docs/index.html`:
+- Do not add the default snippet to `docs/index.html`:
   that separate marketing page is outside the approved signed-in app scope.
 
 | Batch | Status |
 | --- | --- |
-| PH0 | Project details, one-year retention and public deletion contact supplied. IP/GeoIP/budget controls and deletion procedure still need verification. No collection enabled. |
+| PH0 | Project settings verified by Muse and relayed by Jonas: IP discard on; GeoIP paused; replay/autocapture/web-vitals capture off; one-year retention; free/no card; UTC. Deletion procedure documented. No separate $0 billing cap configured. |
 | PH1 | Implemented: additive preferences, opaque identities, typed contract and loopback-only transport. Typecheck and two focused foundation cases passed on disposable PostgreSQL. Stable SDKs pinned: posthog-js 1.450.0 / posthog-node 5.74.0. |
 | PH2 | Implemented. Production build/typecheck and three SDK mock-browser cases pass: sanitized pages, cross-tab withdrawal/account switching, and agent authorization/disconnect/reclaim. The user approved continuing after the two-failed-fixes pause. Required public token retained; SDK bot filtering disabled for authorized agent browsers; local collector accepts the test helper’s synthetic router header. |
 | PH3 | Implemented: committed onboarding/social/conversation/routine events, retry deduplication, consent revisions and owner observations. Final validation is recorded below. |
-| PH4 | Dashboard definitions and operator runbook prepared in `docs/MINGLO_POSTHOG_DASHBOARDS.md`. Muse is handling authenticated project setup; actual dashboard links/settings evidence pending. |
-| PH5 | Activation approved. Guarded adapter deployed as Heroku v46, source `c9e3d8e`, with capture explicitly disabled. Waiting for Muse's project privacy confirmation before enabling; genuine opted-in event and hosted kill-switch evidence remain pending. |
+| PH4 | Muse reports all three dashboards created with production filters/person-agent splits; links saved in the dashboard runbook. Repeat-interest cohort awaits real events; full saved insight semantics still need inspection. |
+| PH5 | Code deployed as Heroku v46, source `c9e3d8e`; approved capture enabled by config-only v47. Health/privacy/anonymous eligibility verified. Genuine opted-in event and authenticated hosted kill-switch evidence remain pending. |
 
 Existing accounts start disabled. A human's choice does not opt their agents in.
 Current owners authorize individual connected agents; agents may withdraw. Owner
@@ -154,23 +154,51 @@ not evidence that Minglo events have arrived.
   genuine account opt in and visit Home, and coordinate event/kill-switch checks.
   No user preference was changed and no fake social activity was generated.
 
+## Approved activation — Heroku v47
+
+- Muse's settings report, relayed by Jonas, confirmed all requested project
+  privacy controls, including the final web-vitals autocapture sub-toggle after
+  reload. Reporting timezone is **UTC**. Retention remains one year, the free
+  plan has no card, and the cycle runs to December 15. A separate $0 billing
+  limit was not set because the UI required a card; no cap/alert is invented.
+- Three dashboard URLs are saved in `docs/MINGLO_POSTHOG_DASHBOARDS.md`. Muse
+  reports production filters and person/agent splits. Tiles remain sample/empty;
+  the repeat-interest cohort needs actual events. These are project-side reports,
+  not independently authenticated Codex reads or proof of live ingestion.
+- Config-only **v47 succeeded** on the existing v46 application. Heroku has
+  `POSTHOG_ENABLED=true`, `POSTHOG_TRANSPORT=cloud`, the exact US ingestion host,
+  the supplied public token and `POSTHOG_ENVIRONMENT=production`. No account's
+  preference, session secret, domain setting, Topics flag or paid resource changed.
+- Health returned 200 / `{"ok":true}`; `/privacy` returned 200 with active status,
+  one-year retention/contact and no-store. Anonymous eligibility remains 401/null.
+- Six hosted anonymous privacy renders in both themes at 1440/390/320px passed
+  with no overflow, page errors or PostHog requests while production was enabled.
+  The browser was closed; local services remain off. Evidence:
+  `.local/posthog/activation-hosted-live.json`.
+- Jonas was asked to opt his own human account in, save and open Home. Muse
+  should inspect the actual `page_viewed` event and report sanitized properties,
+  then keep the Minglo tab open for the coordinated live disable/restore check.
+  This user action/result is pending; do not claim PH5 fully verified yet.
+
 ## Remaining work and limits
 
-- US project ID/token, one-year retention and operator deletion contact have been
-  supplied. Project privacy settings and dashboard links remain unconfirmed.
-  PH0 project configuration is pending; the policy decisions are already approved
-  and must not be asked again.
-- PH1–PH3 verification above remains mock-only evidence. Production deployment and
-  genuine event ingestion are not yet verified. No paid resource, credential
-  rotation or social activity is authorized merely to populate charts.
+- Project details/settings/dashboard links have been supplied through Muse, not
+  independently inspected by Codex. Existing privacy decisions and activation
+  approval must not be asked again.
+- Production code deployment and configuration activation are verified. Genuine
+  opted-in ingestion is still pending; SDK mock results and an active privacy page
+  do not prove it. No paid resource, credential rotation or social activity is
+  authorized merely to populate charts.
 - The production adapter accepts only the exact US ingestion host with an explicit
   Cloud transport, production environment, Heroku dyno, valid public token and
   existing session secret. Mock capture still rejects remote hosts and dynos.
   All local suites remain isolated and must never use the real token.
-- Publish the updated privacy notice and complete project IP/GeoIP/budget settings,
-  deletion procedure and dashboard definitions, then verify genuine opted-in
-  ingestion and the live kill switch under the approval already supplied.
-  Review docs/ANALYTICS.md.
+- Jonas has been asked to opt his own human account in and open Home; Muse should
+  inspect that actual event. Keep the tab open for a coordinated temporary disable
+  and restore. Do not change anyone's preferences or synthesize a production event.
+- Add the repeat-interest cohort after events exist, and compare all saved insights
+  against the dashboard specification (including schema-version filtering). No
+  dashboard is claimed to contain real data until its events are inspected.
 - Collection is best effort and excludes opted-out accounts; dashboards must show
   coverage/cohort limits. Existing no-backfill and separate human/agent identity
   rules remain. Analytics does not prove personal-agent autonomy.

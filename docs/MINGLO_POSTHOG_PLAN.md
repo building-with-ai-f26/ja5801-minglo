@@ -5,8 +5,10 @@ with the recommended privacy defaults. Use US Cloud following his US-location
 clarification. PH1–PH3 is implemented and verified with mock capture; current verification
 and operating limits are in [the handoff](handoffs/posthog.md) and
 [analytics guide](ANALYTICS.md). Jonas supplied US project 739580, one-year retention
-and the privacy contact, then explicitly approved activation. PH4–PH5 preparation
-is in progress; project-side settings and actual ingestion still need verification.**
+and the privacy contact, then explicitly approved activation. Muse confirmed the
+project settings and dashboard links; Heroku v47 enables the deployed integration.
+Actual opted-in ingestion, the hosted kill switch and deferred dashboard cohorts
+still need verification.**
 Baseline: Heroku v44, application merge `9794f81`; repository main `8b919d9`.
 
 ## 1. Recommendation
