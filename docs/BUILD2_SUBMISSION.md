@@ -42,7 +42,7 @@ complete local product action with a real external API.
 | PRD v2 | Risk/architecture and estimate basis are documented. The real-host return risk remains partly untested; cost/run must distinguish variable API cost, fixed hosting allocation and unreconciled actual spend. |
 | AGENTS.md | Structure, install, database, migration, run and verification commands are present, with [local real API/capture setup](BUILD2_LOCAL_DEMO.md) and the approved bounded replay exception. |
 | Commits on two non-class days | **Met:** Friday Nov 13 (`361d336`, profile follow counts) and Sunday Nov 15 (`377b125`, guarded Cloud analytics), verified from Git dates in America/New_York. |
-| Build log | Progress, lessons and problems are published. Actual coding costs, invoices and hours still require Jonas; no personal records are invented. |
+| Build log | Progress, lessons and problems are published. Jonas reports approximately **12 hours** and a **$100/month ChatGPT subscription**. Current hosting adds $12/month at list rates; a seven-day allocation is about **$26**, with explicit assumptions/exclusions. This is an allocation, not an invoice. |
 
 No new Heroku deployment or configuration change is authorized by this follow-up.
 Jonas explicitly approved the GitHub import and bounded replay demo on November 16.
@@ -60,7 +60,7 @@ authenticated project evidence stays labeled.
 | Product Page view and button click | Both events exercised on the actual published page using explicit consent and `environment=verification`; both real ingestion requests received HTTP 200. PostHog UI inspection of these new events remains pending. Isolated tests separately inspect complete outgoing payloads. |
 | Session replay with consent | **Verified:** explicitly authorized automated local demo; real snapshot accepted, and Muse inspected actual masked playback. Two-second duration is disclosed. No human usability trial is claimed. |
 | Dashboard screenshot | **Received, inspected and embedded:** [actual starter dashboard](images/build2-posthog-dashboard.png), captured by Muse around 10:49 Eastern. It visibly shows 9 active identities, not nine proven distinct people. Muse’s supplied notes report 4 sessions and 9 pageviews; those tiles are outside the image. [Actual replay-player image](images/build2-posthog-replay.png) shows masked local playback. Original bytes and limits are documented in [image provenance](evidence/build2-posthog-images.md). |
-| Costs, hours, podmate critique | Actual invoices/coding-agent spend/hours require Jonas's reconciliation. Podmate sign-off is not in the exact five-item rubric supplied November 16 and is not treated as a separate submission blocker. No values or participation are fabricated. |
+| Costs, hours, podmate critique | Jonas-reported time: **12 hours**. ChatGPT: **$100/month**; current hosting list rate: **$12/month**. Seven-day allocation using a 30-day month: **$26.13**, rounded to $26. Domain/taxes/credits/extra usage are excluded; invoices were not audited. Podmate sign-off is not a separate item in the supplied rubric and is not fabricated. |
 
 ## Where to inspect
 
@@ -229,7 +229,9 @@ recounted as fresh Product Page evidence.
 
 The Product Page contains a Build 2 log and links to PRD v2. Its architecture
 explanation is prepared for Jonas to review; it is not evidence that a tutoring
-exercise or episode was completed. Reconcile actual spend/hours and review the
+exercise or episode was completed. Time and subscription cost now reflect Jonas's
+reported 12 hours and $100/month; the hosting/week allocation stays explicitly
+labeled. Review the
 published original dashboard/replay images. Local replay is verified; retain the
 disclosed limitation that a separate Product Page recording had a black player
 area despite masked DOM data. No Icerynk submission, email
@@ -250,3 +252,14 @@ The notes also disclose a separate 2:18 public Product Page recording with maske
 DOM but a black playback area, plus an earlier recording that never appeared.
 Those public-player observations remain a limitation; the successful local image
 is not used as proof that the separate public recording rendered correctly.
+
+## Builder-reported time and budget
+
+Jonas supplied approximately **12 hours** and confirmed **$100/month** for ChatGPT.
+Those replace the earlier provisional time estimate/unknown subscription amount.
+Read-only plan checks confirm Basic plus Essential-0; current list rates total
+$12/month. Combined reference: $112/month, or $26.13 allocated to seven days
+using a 30-day month. This is not an invoice or incremental API charge. Domain,
+taxes/credits, other subscriptions and extra usage are excluded. The demonstrated
+GitHub API and PostHog usage added $0 usage charges. No additional paid resource
+was provisioned or Heroku deployment performed.
