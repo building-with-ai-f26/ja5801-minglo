@@ -1,0 +1,83 @@
+{
+  "verifiedAt": "2026-11-16T15:34:13.828Z",
+  "source": "Actual localhost production app, real unauthenticated GitHub API, no API/mock overrides; browser automation under approved demo consent",
+  "defaultQuiet": true,
+  "previewBeforeSave": true,
+  "draftBeforeSave": true,
+  "optOutEligibilityNull": true,
+  "openTabWaitSeconds": 65,
+  "replayStatus": "Recording this demo page. All text, inputs and attributes are masked.",
+  "replaySnapshots": 1,
+  "humanTester": false,
+  "events": [
+    {
+      "event": "page_viewed",
+      "page_name": "profile",
+      "source": "browser",
+      "environment": "verification",
+      "geoipDisabled": true,
+      "opaqueIdentity": true
+    },
+    {
+      "event": "ui_action_clicked",
+      "action": "github_profile_lookup",
+      "source": "browser",
+      "environment": "verification",
+      "geoipDisabled": true,
+      "opaqueIdentity": true
+    },
+    {
+      "event": "ui_action_clicked",
+      "action": "github_profile_apply",
+      "source": "browser",
+      "environment": "verification",
+      "geoipDisabled": true,
+      "opaqueIdentity": true
+    }
+  ],
+  "ingestionResponses": [
+    {
+      "status": 200,
+      "path": "/e/"
+    },
+    {
+      "status": 200,
+      "path": "/e/"
+    },
+    {
+      "status": 200,
+      "path": "/e/"
+    },
+    {
+      "status": 200,
+      "path": "/e/"
+    },
+    {
+      "status": 200,
+      "path": "/s/"
+    }
+  ],
+  "pageErrors": [],
+  "sourceCommit": "8a4f45d",
+  "projectReplayEnabled": true,
+  "snapshotContentChecksPassed": true,
+  "noEventsOnTrackedActionAfter65Seconds": true,
+  "projectUiPlaybackVerified": true,
+  "herokuChanged": false,
+  "playbackEvidenceSource": "Jonas relayed Muse inspection of the actual project recording",
+  "playbackDurationSeconds": 2,
+  "playbackClicks": 4,
+  "playbackKeys": 2,
+  "allTextAndInputsMaskedInPlayback": true,
+  "viewportPainted": true,
+  "dashboardReportedMetrics": {
+    "source": "Jonas relay of Muse project inspection; screenshot file not yet received",
+    "active_users_label": 9,
+    "sessions": 4,
+    "pageviews": 9,
+    "interpretation": "May include verification and anonymous identities; not nine proven distinct people"
+  },
+  "dashboardScreenshotHeldByJonas": true,
+  "dashboardScreenshotReceivedByCodex": false,
+  "dashboardScreenshotEmbedded": false
+}
