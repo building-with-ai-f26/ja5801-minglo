@@ -310,3 +310,12 @@ Eastern: session recording was still disabled. Zero live snapshots or consenting
 human sessions are claimed. Muse still needs the project-side replay change,
 actual dashboard export and event/replay UI inspection. Jonas's actual prior
 hours/tool invoices remain unreconciled; no fabricated values or testimonials.
+
+Publication completed: branches pushed and merged with separate merge commits
+`c626870` (GitHub import), `096d7ad` (bounded local analytics) and `732dc21`
+(evidence/docs). GitHub Pages built `732dc21` successfully. Published API evidence
+assets matched source bytes; a fresh published consent/pageview/product-click
+check received two real HTTP 200 ingestion acknowledgments, with no page errors
+or overflow at four widths. This is wire evidence, not authenticated PostHog UI
+inspection. Read-only Heroku inspection still reports healthy **v49**; no deploy
+or configuration change occurred. Local app/test/database services are off.
