@@ -1,38 +1,52 @@
-# Plan.md — Optional Risk, Architecture & Budget Draft (Build 2)
+# Minglo — Build 2 architecture, risk and budget
 
-Use this as a scratchpad if helpful. Publish PRD v2 and the Build 2 log on `docs/index.html`; this file is not a separate hand-in.
+Builder: Jonas Al-Taher. Due November 16, 2026 at noon Eastern.
 
-**Due:** Monday, Nov 16, 2026 at 12:00 PM (Noon)  
-**Builder:** [Your Name]
+The published hand-in is the Product Page's **Build notes and analytics evidence**
+section, linked to [PRD v2](docs/PRD_V2.md) and the
+[evidence checklist](docs/BUILD2_SUBMISSION.md). This file remains an optional
+working summary.
 
----
+## Main risk
 
-## 1. What is the riskiest part?
-*What is the single most likely reason this product fails to work for a real user (e.g., model hallucination on messy PDFs, latency, auth, bad data, third-party API limits)? How does your smallest local version test that risk first?*
+An external personal agent may not have a supported way to return unattended.
+Saved context and reliable permissions are implemented; host scheduling/activation
+and real unattended returns must be observed separately. The smallest useful
+real-agent experiment is an exchange, quiet period, actual return and verified stop.
+Local automated browser tests do not establish that result.
 
-- **#1 Technical / Product Risk:** 
-- **How Build 2 tests it right now:** 
+## Architecture
 
-## 2. The Smallest Working Version (Architecture)
-*Use AI to understand the main components, data flow, and risks, then explain them in your own words.*
+- Static Product Page on GitHub Pages; optional page analytics has its own consent.
+- One Next.js/TypeScript/React app on Heroku; Auth.js sessions, Argon2id passwords,
+  Prisma and PostgreSQL; no model API or replacement hosted agent.
+- Browser form → Server Action validation/current permission → database commit →
+  authorized response. Analytics runs after success and cannot reverse the commit.
+- Opted-in page visits obtain current eligibility before loading the browser SDK.
+  App account identities and anonymous Product Page identities never merge.
+- Local commands: `npm ci`, `npm run db:local`, `npm run db:migrate`, `npm run dev`;
+  http://localhost:3000. Local services stay off when idle; static-page verification
+  requires neither a local app server nor a database.
 
-- **Stack (Frontend / Backend / DB):** 
-- **Local run command:** 
-- **Local URL (Build 2):** 
-- **Models used (via OpenRouter or provider):** 
+## Budget
 
-## 3. Time & Money Budget
-*Estimate what it will cost to build and what it costs each time a user runs a job.*
+Hosting reference: about $12/month if the existing Basic dyno ($7) and Essential-0
+database ($5) remain unchanged, based on [Heroku list prices](https://www.heroku.com/pricing/).
+This excludes the domain, taxes/credits and external agent subscriptions; invoices
+remain unreconciled. Minglo makes no model calls. PostHog is free/no card; a
+separate $0 billing cap was not set because the provider required a card.
 
-| Item | Estimate | Notes |
-| :--- | :--- | :--- |
-| **Build budget (coding agent / OpenRouter)** | `$` | |
-| **Unit cost per user action (inference/API)** | `$ / run` | |
-| **Hosting cost (monthly)** | `$ / mo` | |
-| **Your engineering time budget** | `hrs/wk` | |
+Coding-tool actuals, the builder's personal spending/time budget and weekly hours
+have not been supplied. They remain a hand-in review item; no zeros are invented.
 
-## 4. Security & Recovery Checklist
-- [ ] `.env` and API keys are excluded via `.gitignore`
-- [ ] Spending limits or alerts are configured where the provider supports them
-- [ ] Least-privilege permissions on any external data/APIs
-- [ ] Git save point for undoing a broken local change; add a cloud rollback path in Build 5
+## Security and recovery
+
+- Environment files/secrets are ignored; only the explicitly public PostHog
+  ingestion token belongs in static HTML. No personal API key is included.
+- Optional account consent, separate owner authorization for each agent, revocation
+  on claim changes, payload allowlists and bounded delivery remain in place.
+- Replay, automatic click capture and sensitive-field collection remain off.
+- Small branches/commits and merge commits provide source save points. The live app
+  has its existing Heroku rollback path and additive migration policy.
+- This Build 2 Product Page update publishes GitHub Pages only. It does not push to
+  Heroku, change its configuration, provision paid resources or submit to Icerynk.

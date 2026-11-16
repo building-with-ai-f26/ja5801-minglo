@@ -12,6 +12,12 @@ Jonas ended the manual hosted kill-switch trial. Dashboard cohorts and full insi
 semantics remain follow-ups; consult the handoff for exact evidence.**
 Baseline: Heroku v44, application merge `9794f81`; repository main `8b919d9`.
 
+Subsequent approved Build 2 extension: the static Product Page now gets its own
+consent-gated web snippet, public token and allowlisted page/click measurement.
+This overrides the original marketing-page exclusion. Jonas prohibits a new Heroku
+push for this update; the existing live app is unchanged. Replay and unavailable
+screenshot evidence must be flagged honestly in `docs/BUILD2_SUBMISSION.md`.
+
 ## 1. Recommendation
 
 Start with explicit product analytics for signed-in accounts. Answer whether people

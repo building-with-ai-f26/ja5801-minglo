@@ -1,38 +1,69 @@
-# Build 2: Plan.md & Smallest Local Version & PostHog
+# Build 2 — architecture and optional analytics
 
-Optional working notes. Publish your required build log on `docs/index.html`; no separate journal submission is required.
+November 15, 2026. Due November 16 at noon Eastern.
 
-**Build due:** Monday, Nov 16, 2026 at 12:00 PM (Noon)
+The published log is in the Product Page's **How it’s being built** section.
+[PRD v2](../docs/PRD_V2.md) describes the current scope and the unresolved return-visit
+risk. [Submission evidence](../docs/BUILD2_SUBMISSION.md) records exactly which
+checks are complete and which need personal or authenticated evidence.
 
----
+## What was built
 
-## 1. What you made
-- **PRs / Commits shipped:** 
-- **Product Page URL / local demo evidence:** 
-- **Summary of what works now:** 
+The app already has profiles/discovery, Topics, direct requests/chats, agent rooms,
+owner read-only views, participation controls and optional tours. The PostHog
+foundation/preferences/events were implemented in focused branches, verified with
+real SDKs against a mock collector, then explicitly activated for US project 739580.
+Muse inspected two actual opted-in Home events. This update adds the separate
+Product Page snippet and explicit Open Minglo click measurement, with its own
+consent and redaction; it does not deploy Heroku.
 
-## 2. Metacognition ("Learn with AI"): Requests, APIs, `.env` & Analytics
-- **End-to-end trace of one user action in your app (explaining the main components and data flow):** 
-- **3 "What would break if..." questions your AI tutor asked about your architecture (and your answers):**
-  1. 
-  2. 
-  3. 
+## Architecture explanation prepared for review
 
-## 3. What the agent did
-- **Agent(s) & Model(s) used:** 
-- **How you briefed/directed it (key prompts or `AGENTS.md` updates):** 
-- **Where you had to step in, edit by hand, or reset context:** 
+Opening Home sends an authenticated, no-store eligibility request. The server
+checks the session, saved choice and current owner authorization for an agent.
+Only then does the browser load analytics. It sends a coarse page category and
+opaque ID. A message is different: the server validates access, commits it to
+PostgreSQL, then schedules analytics after the response. Failed operations and
+idempotent retries do not emit new successes.
 
-## 4. What didn't work
-- **Bugs, agent loops, or broken assumptions:** 
-- **How you diagnosed and fixed (or rolled back) them:** 
+Three checks to be able to explain:
 
-## 5. What it cost
-- **Agent / Token spend this week:** `$___`
-- **Hosting / API runtime spend this week:** `$___`
-- **Your hours spent this week:** `___ hrs`
-- **Cumulative project spend to date:** `$___`
+1. **What breaks if the database disappears?** Registration, authorization and
+   conversations need PostgreSQL. Analytics permission reads fail closed; telemetry
+   cannot substitute for stored conversation state.
+2. **What breaks if PostHog is unreachable?** Some analytics is lost. Core messages
+   and navigation still work; bounded best-effort delivery cannot roll back a
+   committed social action.
+3. **What breaks if an agent's owner changes?** Current owner/read permissions are
+   rechecked, and analytics authorization is invalidated. Old owner consent never
+   becomes the new owner's authorization.
 
-## 6. Pod Critique Sign-off
-- **Tested by podmate(s):** 
-- **Key feedback to address next:**
+These are prepared explanations, not a claim that Jonas completed a tutor-led
+exercise. His own review/answers remain part of the hand-in review.
+
+## Agent work and human decisions
+
+Codex implemented the app and page work under AGENTS.md; Muse handled the
+PostHog browser setup and event inspection through Jonas. Jonas selected US Cloud,
+opt-in defaults and owner authorization for agents, approved activation, and ended
+the full hosted kill-switch observation after the first live browser events were
+verified. Exact historical model names/token bills are not available here.
+
+The strict filter once removed the SDK's required public token; headless bot
+filtering and local mock CORS also needed correction. The stop-after-two-fixes
+rule prompted an explicit approval before continuing. The actual SDK checks then
+passed. An empty live project later turned out to have no saved app opt-in yet.
+
+## Costs, hours and critique
+
+Minglo makes no model API calls; external hosts carry their own agent costs.
+Heroku uses existing app/database resources; PostHog is free/no card. Actual weekly
+and cumulative invoices, coding-agent spend, Jonas's hours and podmate feedback
+have not been supplied and are not claimed as zero or completed.
+
+## Evidence limits
+
+Browser test accounts are not autonomous personal agents or outside-user trials.
+Replay remains off. A consenting human session recording and an actual dashboard
+screenshot are still required evidence or must remain explicitly flagged in the
+submission. No testimonials, podmate sign-off or billing figures are invented.
