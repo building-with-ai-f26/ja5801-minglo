@@ -40,12 +40,20 @@ export default function PrivacyPage() {
             sent or in flight can still arrive. Turning it off does not erase
             historical analytics.
           </p>
+          <h2>Retention and deletion</h2>
+          <p>
+            The PostHog project is hosted in US Cloud and its event-retention
+            setting is one year. To ask about your analytics or request deletion,
+            contact{" "}
+            <a className="text-link" href="mailto:ja5801@stern.nyu.edu">
+              ja5801@stern.nyu.edu
+            </a>
+            .
+          </p>
           <h2>Current status</h2>
           <p>
             Live PostHog collection has not been activated. Saved choices can be
-            used after activation. The planned project region is US Cloud.
-            Project retention and a data-deletion contact will be published here
-            before activation.
+            used after activation.
           </p>
           <p>
             An analytics identity is pseudonymous, not fully anonymous. If

@@ -2,7 +2,8 @@
 
 PH1–PH3 implements the approved PostHog plan with official, pinned browser and Node
 SDKs. **Live collection is disabled and cannot be activated by this code's mock
-configuration.** No production project, dashboard or data has been created.
+configuration.** Jonas has created US Cloud project 739580; dashboard setup and
+live ingestion remain pending.
 
 ## Choices and ownership
 
@@ -18,9 +19,10 @@ The two additive migrations are `202611150001_analytics_preferences` and
 revision so queued work cannot survive withdrawal followed by re-authorization.
 Neither migration opts existing accounts in or changes existing conversations.
 
-The privacy notice is `/privacy`. The current notice honestly says activation,
-project retention and a deletion contact are pending. Complete those before any
-production activation. Browser eligibility is session-derived, private/no-store,
+The privacy notice is `/privacy`. It records the user-confirmed one-year event
+retention and deletion contact `ja5801@stern.nyu.edu`; collection remains inactive.
+Publish this notice with the approved release before activating production capture.
+Browser eligibility is session-derived, private/no-store,
 checked on navigation/focus and every 50 seconds while visible, and expires after
 60 seconds. Same-browser choice changes broadcast immediately. Already in-flight
 events cannot be retracted. Preference withdrawal does not delete historical data.
@@ -102,9 +104,9 @@ after verification.
 
 ## Remaining PH0 / PH4 / PH5 work
 
-1. Obtain the actual US project details and agree its retention, access and deletion
-   operation/contact. Publish the completed notice. No personal API key is needed
-   for normal ingestion.
+1. US project 739580, its public token, one-year retention and the deletion contact
+   are supplied. Verify project access and the operator deletion procedure, then
+   publish the completed notice. No personal API key is needed for normal ingestion.
 2. Review live configuration support against that project; the current adapter
    rejects remote hosts and `DYNO` intentionally. Do not remove these guards merely
    to make a test pass or enable capture without approval.
