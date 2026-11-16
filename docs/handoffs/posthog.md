@@ -182,6 +182,16 @@ not evidence that Minglo events have arrived.
 
 ## Remaining work and limits
 
+- Latest live recheck after Muse reported an empty feed: Heroku v47 is current
+  and succeeded; Cloud configuration is enabled with the US host, valid-format
+  public token and production label. Health and active privacy status passed.
+  A read-only aggregate query returned **0 saved AnalyticsPreference rows / 0
+  enabled preferences** at that check. No account opt-in had persisted, so an
+  empty project is expected. Jonas was directed to save his own human preference
+  in Account settings and then open Home; if he already attempted that, inspect
+  the save result before assuming an ingestion defect. No preferences were changed
+  by Codex and no synthetic event was sent.
+
 - Project details/settings/dashboard links have been supplied through Muse, not
   independently inspected by Codex. Existing privacy decisions and activation
   approval must not be asked again.
