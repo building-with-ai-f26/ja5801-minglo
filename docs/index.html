@@ -88,7 +88,10 @@
             }),
             (e.__SV = 1));
         })(document, window.posthog || []);
-        posthog.init(window.MINGLO_POSTHOG_PUBLIC_TOKEN, options);
+        posthog.init(window.MINGLO_POSTHOG_PUBLIC_TOKEN, {
+          ...options,
+          api_host: "https://us.i.posthog.com",
+        });
       };
     </script>
     <script src="product-analytics.js" defer></script>
@@ -658,13 +661,29 @@
             </dd>
             <dt>Evidence to finish</dt>
             <dd id="build2-evidence-status">
-              The Product Page pageview and product-button click need
-              verification in the real project. A real dashboard screenshot
-              still needs export from the authenticated project. Links below
-              open the actual dashboards; sample tiles are not evidence of
-              usage.
+              The published pageview and product-button click each received HTTP
+              200 from the real PostHog ingestion endpoint. Inspection of these
+              new events inside the project and a real dashboard screenshot
+              still need authenticated access. Links below open the actual
+              dashboards; sample tiles are not evidence of usage.
             </dd>
           </dl>
+          <figure>
+            <a href="images/product-page-analytics.png"
+              ><img
+                src="images/product-page-analytics.png"
+                alt="Published Minglo Product Page with optional analytics allowed for a labeled verification visit"
+                width="1440"
+                height="1100"
+                loading="lazy"
+            /></a>
+            <figcaption class="meta">
+              Published Product Page, captured November 15 during the controlled
+              verification. Pageview and button capture received HTTP 200. This
+              is the public page; a PostHog dashboard screenshot remains
+              pending.
+            </figcaption>
+          </figure>
           <p>
             <a href="https://us.posthog.com/project/739580/dashboard/2360739"
               >Getting started dashboard</a
