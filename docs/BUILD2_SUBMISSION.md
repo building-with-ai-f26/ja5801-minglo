@@ -13,8 +13,9 @@ Due **Monday, November 16, 2026 at noon Eastern**. Updated November 16.
 Christian asked for the full PostHog web snippet in the Product Page head,
 publication, real pageview/button-click verification, a consenting session-replay
 check and a dashboard screenshot. Jonas authorized the work and GitHub publishing,
-with **no new Heroku push/deployment**. The app's existing live configuration stays
-unchanged.
+initially with **no new Heroku push/deployment**. After submitting, Jonas
+explicitly approved the deployment; Heroku **v50**, source `865cfc6`, is now live.
+Existing configuration was preserved; the local demo remains unavailable on Heroku.
 
 ## Exact rubric supplied by Jonas — November 16
 
@@ -44,7 +45,8 @@ complete local product action with a real external API.
 | Commits on two non-class days | **Met:** Friday Nov 13 (`361d336`, profile follow counts) and Sunday Nov 15 (`377b125`, guarded Cloud analytics), verified from Git dates in America/New_York. |
 | Build log | Progress, lessons and problems are published. Jonas reports approximately **12 hours** and a **$100/month ChatGPT subscription**. Current hosting adds $12/month at list rates; a seven-day allocation is about **$26**, with explicit assumptions/exclusions. This is an allocation, not an invoice. |
 
-No new Heroku deployment or configuration change is authorized by this follow-up.
+The original deployment hold was subsequently lifted by Jonas's explicit approval.
+Heroku v50 is deployed; no configuration change was made.
 Jonas explicitly approved the GitHub import and bounded replay demo on November 16.
 Independent documentation/cadence verification is complete; missing personal and
 authenticated project evidence stays labeled.
@@ -55,7 +57,7 @@ authenticated project evidence stays labeled.
 | --- | --- |
 | Full web snippet in Product Page head | Complete PostHog bootstrap and initialization use the existing public project token and US host. SDK version 1.450.0 is pinned; the SDK waits for this page's own opt-in. No personal API key is included. |
 | Product Page published | Published from merge `4f8d8a7`; GitHub Pages build succeeded. The live head/bootstrap and opt-in controls were exercised on the published URL. |
-| App configuration and activation | Already complete before this update: app source `c9e3d8e`, active Heroku v49 after approved activation. Safeguards remain. No Heroku mutation is part of this task. |
+| App configuration and activation | Originally activated in v49; Jonas subsequently approved v50 deploying source `865cfc6`. GitHub import and coarse click tracking are now live. Backup b026 completed; no pending migrations or config changes. Hosted health, privacy, authentication and local-demo exclusion checks passed. |
 | Real app page events | Muse inspected two opted-in Home `page_viewed` events in US project 739580. Expected production/person/browser/schema/GeoIP fields matched; identity was opaque and private fields were absent. This is relayed Muse evidence. |
 | Product Page view and button click | Both events exercised on the actual published page using explicit consent and `environment=verification`; both real ingestion requests received HTTP 200. PostHog UI inspection of these new events remains pending. Isolated tests separately inspect complete outgoing payloads. |
 | Session replay with consent | **Verified:** explicitly authorized automated local demo; real snapshot accepted, and Muse inspected actual masked playback. Two-second duration is disclosed. No human usability trial is claimed. |
@@ -263,3 +265,15 @@ using a 30-day month. This is not an invoice or incremental API charge. Domain,
 taxes/credits, other subscriptions and extra usage are excluded. The demonstrated
 GitHub API and PostHog usage added $0 usage charges. No additional paid resource
 was provisioned or Heroku deployment performed.
+
+## Approved Heroku deployment after hand-in
+
+After Jonas confirmed submission, he explicitly approved deploying main. Heroku
+**v50** successfully released source **865cfc6**. Backup **b026** completed first.
+Application code was unchanged from the already verified 194-case/restart baseline;
+a fresh typecheck and Heroku production build passed. The release command found
+23 committed migrations and **no pending migrations**. Seven hosted checks passed:
+canonical/direct health, privacy status, login redirect, signed-out analytics
+exclusion and local-demo unavailability. No production fixture/social activity
+was created. Existing secrets/configuration/plans were preserved. The signed-in
+GitHub import flow was verified locally; hosted checks did not impersonate a user.

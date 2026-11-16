@@ -168,9 +168,14 @@ checklist for the remaining live replay/dashboard and actual-budget gaps.
 The app release has 176 distinct checked cases, build/typecheck, both restart
 checks and additive migration preservation evidence. Muse inspected two actual
 opted-in production Home events with an opaque identity and redacted properties.
-That existing core release is deployed. The GitHub import, local verification
-mode and bounded replay extension are in GitHub/workstation source; they have
-not been deployed to Heroku. Publishing the Product Page does not change Heroku.
+Jonas subsequently approved deployment. Heroku v50 deploys source `865cfc6`,
+including GitHub profile import and consented coarse import-click tracking. Its
+application code matches the version covered by 194 distinct checks and both
+restart checks. A fresh typecheck, Heroku production build and seven hosted
+health/authorization checks passed. No migrations were pending; existing config
+was preserved. The local demo remains unavailable on Heroku, and ordinary app
+replay remains disabled. Publishing the separate Product Page does not itself
+deploy the app.
 
 The [Build 2 evidence record](BUILD2_SUBMISSION.md) distinguishes SDK/browser wire
 checks, live project inspection, dashboard screenshots, replay and personal
