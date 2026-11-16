@@ -38,7 +38,7 @@ complete local product action with a real external API.
 | --- | --- |
 | Local complete action with real AI/API call + image | **Verified November 16:** real public GitHub lookup → preview → apply to draft → Save → reload. Database checks confirm preview/apply did not persist and Save did. Genuine [preview](images/build2-github-preview.png) and [saved](images/build2-github-saved.png) screenshots are included on the Product Page. Disposable account and browser automation are disclosed. |
 | Product Page + local-app PostHog | Published-page capture has real accepted requests. The new named `cloud-local` mode preserves production guards and requires explicit disposable-local setup and consent. The actual localhost demo emitted `page_viewed` plus both `ui_action_clicked` categories; real ingestion requests received HTTP 200. [Sanitized record](evidence/build2-local-api.json). |
-| Pageviews, clicks and replay | Pageviews/clicks have real wire evidence on both surfaces. Separately consented bounded replay is implemented and the real recorder passes redaction checks with intercepted ingestion. **Live replay remains incomplete:** project configuration was still off during the local demo; zero snapshots were emitted. No consenting human session or live-project replay inspection is claimed. |
+| Pageviews, clicks and replay | Real pageview/click requests accepted on both surfaces. The approved local recording produced a masked snapshot with HTTP 200. Muse confirmed actual playback: 2 seconds, 4 clicks, 2 keys; viewport paints, all text/inputs remain masked. Same-tab opt-out was checked after 65 seconds; a further tracked click sent no new events and eligibility returned null. [Live record](evidence/build2-live-replay.json). Automated technical demo; no human usability study is claimed. |
 | PRD v2 | Risk/architecture and estimate basis are documented. The real-host return risk remains partly untested; cost/run must distinguish variable API cost, fixed hosting allocation and unreconciled actual spend. |
 | AGENTS.md | Structure, install, database, migration, run and verification commands are present, with [local real API/capture setup](BUILD2_LOCAL_DEMO.md) and the approved bounded replay exception. |
 | Commits on two non-class days | **Met:** Friday Nov 13 (`361d336`, profile follow counts) and Sunday Nov 15 (`377b125`, guarded Cloud analytics), verified from Git dates in America/New_York. |
@@ -58,8 +58,8 @@ authenticated project evidence stays labeled.
 | App configuration and activation | Already complete before this update: app source `c9e3d8e`, active Heroku v49 after approved activation. Safeguards remain. No Heroku mutation is part of this task. |
 | Real app page events | Muse inspected two opted-in Home `page_viewed` events in US project 739580. Expected production/person/browser/schema/GeoIP fields matched; identity was opaque and private fields were absent. This is relayed Muse evidence. |
 | Product Page view and button click | Both events exercised on the actual published page using explicit consent and `environment=verification`; both real ingestion requests received HTTP 200. PostHog UI inspection of these new events remains pending. Isolated tests separately inspect complete outgoing payloads. |
-| Session replay with a consenting tester | **Not completed live.** The separately approved recorder works in intercepted real-SDK tests, with all text/inputs/attributes masked and private URLs excluded. The real local run still received project-side replay OFF and emitted zero snapshots. No consenting human recording was observed; this remains a submission gap. |
-| Dashboard screenshot | **Pending authenticated export.** Actual dashboard links are below. No screenshot has been invented from sample rows or reconstructed metrics. |
+| Session replay with consent | **Verified:** explicitly authorized automated local demo; real snapshot accepted, and Muse inspected actual masked playback. Two-second duration is disclosed. No human usability trial is claimed. |
+| Dashboard screenshot | **Jonas confirms he has the actual screenshots for submission.** No image/link was supplied to Codex, so the export is not embedded here. Attach the screenshot to the hand-in. Muse reported 9 active users, 4 sessions and 9 pageviews; these are analytics labels and can include verification/anonymous identities, not nine proven distinct people. |
 | Costs, hours, podmate critique | Actual invoices/coding-agent spend/hours require Jonas's reconciliation. Podmate sign-off is not in the exact five-item rubric supplied November 16 and is not treated as a separate submission blocker. No values or participation are fabricated. |
 
 ## Where to inspect
@@ -103,12 +103,24 @@ consent. It masks all text, inputs and attributes; blocks scripts/images/hidden
 fields/embeds; drops plugin/custom events; and stops on withdrawal, tab switch,
 leaving or expiry. Ordinary app analytics never enables its recorder.
 
-The local run at 09:16 Eastern showed “Waiting for PostHog replay configuration”
-and no snapshots. Muse still needs to enable the approved project-side replay
-scope and export the real dashboard image. A consenting human must perform the
-bounded interaction and its replay must be inspected before claiming that check.
-An automated privacy check is not an outside-human trial. No admin key is needed
-in the app or Product Page, and no such key was requested or stored.
+The first local run at 09:16 Eastern had no snapshots because project-side replay
+was disabled. At 10:31 Eastern the public project configuration showed replay
+enabled, with URL triggers and autocapture opted out. A fresh explicitly approved
+local demo at 10:33–10:34 started recording and its masked snapshot received HTTP
+200. The same tab remained open for 65 seconds after opting out; a further tracked
+click produced no new events, and session-derived eligibility returned null.
+The [original recording-status screenshot](images/build2-live-replay.png) and
+[sanitized wire record](evidence/build2-live-replay.json) are genuine evidence.
+
+Muse subsequently inspected actual playback: two seconds, four clicks and two
+keys; frames paint and all text/inputs remain masked. Jonas confirms he has the
+real dashboard screenshots and can attach them directly to the submission. No
+image/link was supplied to Codex, so the export is not embedded on this page. The
+demo was authorized by Jonas and automated. The rubric does not separately ask
+for a human usability study; no such study is claimed. Do not create production
+registrations or agent connections merely to fill funnels. Verification events
+are labeled separately, so empty production funnels can be expected. No admin
+key is needed in the app or Product Page. No Heroku setting/account was changed.
 
 ## November 16 local action evidence
 

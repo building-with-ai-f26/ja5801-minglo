@@ -103,3 +103,18 @@ Time record for this follow-up: Codex execution was observed from **08:47 to
 and documentation, excluding later publication. This is measured agent/session
 elapsed time, not a claim about Jonas's hands-on hours or earlier work. Earlier
 builder hours and coding-tool invoices were not supplied.
+
+At 10:33–10:34 Eastern, after project-side replay was enabled, the explicitly
+approved automated localhost demo recorded successfully. PostHog accepted a
+masked snapshot with HTTP 200. The same tab stayed open for 65 seconds after
+opting out; another tracked-button click sent no new events and eligibility
+returned null. This used a disposable account, not the production verification
+owner. Local services were stopped afterward and Heroku remained unchanged.
+
+The live recording resolves the earlier disabled-project blocker. Muse subsequently confirmed actual playback: two seconds, four clicks and two
+keys, with painted frames and masked text/inputs. Jonas has the dashboard screenshots
+for the submission; the files were not supplied to Codex or embedded. The
+rubric asks for recording evidence, not an extra human usability study; the
+automation and Jonas's explicit authorization are disclosed. Empty production
+funnels are not filled artificially. This rerun used one free public GitHub GET
+and the existing free PostHog project; prior personal costs/hours stay unreconciled.

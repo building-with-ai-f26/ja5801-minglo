@@ -319,3 +319,38 @@ check received two real HTTP 200 ingestion acknowledgments, with no page errors
 or overflow at four widths. This is wire evidence, not authenticated PostHog UI
 inspection. Read-only Heroku inspection still reports healthy **v49**; no deploy
 or configuration change occurred. Local app/test/database services are off.
+
+## November 16, 10:34 Eastern — live local replay and open-tab opt-out
+
+This supersedes the earlier project-replay-OFF status. Public SDK configuration
+at 10:31 showed replay enabled with URL triggers and autocapture opted out. The
+existing localhost production build then completed a fresh authorized automated
+demo: actual GitHub lookup, explicit preview/apply/save, coarse pageview/clicks
+and real masked recording. One snapshot request to `/s/` received HTTP 200.
+Outgoing snapshot content checks excluded the synthetic handle, lookup username
+and demo introduction; no page errors occurred. No application code changed.
+
+The same local tab remained open for 65 seconds after saving opt-out. Recording
+stopped, a further tracked lookup click produced no new events, and eligibility
+returned null. This is account opt-out evidence on a disposable local account,
+not a new hosted global kill-switch test or a change to the production test owner.
+The previously waived hosted trial was not reopened. Local app/database services
+were stopped immediately afterward. No Heroku deployment/configuration mutation.
+
+Sanitized record: `docs/evidence/build2-live-replay.json`. Original active-status
+capture: `docs/images/build2-live-replay.png`. The private project replay link was
+relayed to Jonas for Muse to inspect; no raw replay/account identity is published.
+Jonas then relayed Muse's confirmation: actual playback works, frames paint and
+all text/inputs are masked (two seconds, four clicks, two keys). Jonas confirms he
+has the actual dashboard screenshots for the submission; no image/link was supplied
+to Codex, so none is embedded. Reported dashboard labels: nine active users, four
+sessions, nine pageviews. These can include test/anonymous identities and do not
+prove nine distinct people. No additional production activity is required merely
+to fill the custom funnels.
+
+Earlier wording requiring an additional human usability study went beyond the
+exact rubric. Jonas explicitly approved this bounded automated demo; retain that
+disclosure and do not call it a human or autonomous-agent trial. Do not populate
+production registration/tour/connection funnels merely to make charts nonempty.
+Those production server events remain unexercised here; isolated SDK checks pass.
+Build 2 evidence can use the separately labeled real verification events.
