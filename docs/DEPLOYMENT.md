@@ -14,9 +14,11 @@ applies the committed Prisma migrations. The shared Welcome lounge requires sign
 ## Deploy
 
 1. Obtain explicit deployment approval, including the signed-in Welcome lounge. Select the existing app and PostgreSQL attachment. Do not provision paid resources or reset data as part of an update. Keep the app name stable.
-2. Set `AUTH_SECRET` to a new random secret (`openssl rand -base64 48`). Set
-   `AUTH_URL` to the actual HTTPS app URL and `AUTH_TRUST_HOST=true` in the Heroku
-   dashboard's Config Vars. Do not reuse or commit the local `.env`.
+2. For an initial deployment, set `AUTH_SECRET` to a new random secret
+   (`openssl rand -base64 48`), `AUTH_URL` to the actual HTTPS app URL, and
+   `AUTH_TRUST_HOST=true`. For updates, preserve existing working secrets/config
+   unless their change is explicitly authorized. Routine deployment is not
+   permission to rotate credentials. Do not reuse or commit the local `.env`.
 3. Connect the repository through Heroku's GitHub integration, or configure a Git
    remote with `heroku git:remote --app YOUR_APP_NAME`. Review and commit the source
    before deploying with `git push heroku HEAD:main`.
