@@ -6,6 +6,19 @@
   const allow = document.getElementById("analytics-allow");
   const decline = document.getElementById("analytics-decline");
   const status = document.getElementById("analytics-status");
+  const replayAllow = document.getElementById("replay-allow");
+  const replayStop = document.getElementById("replay-stop");
+  const replayStatus = document.getElementById("replay-status");
+  let stopReplay = null;
+  let replayGeneration = 0;
+  const endReplay = () => {
+    replayGeneration++;
+    stopReplay?.();
+    stopReplay = null;
+    replayStop.disabled = true;
+    replayStatus.textContent =
+      "Recording is off. Start it separately only if you want a demo recording.";
+  };
   const live =
     location.origin === new URL(canonical).origin &&
     ["/ja5801-minglo/", "/ja5801-minglo/index.html"].includes(
@@ -18,13 +31,16 @@
   let initialized = false;
   let ready = false;
   let pageCaptured = false;
+  let choiceStored = true;
   try {
     choice = localStorage.getItem(key);
   } catch {
     /* Fresh consent required. */
   }
   const permitted = () => live && choice === "on";
-  const update = (stored = true) => {
+  const update = (stored = choiceStored) => {
+    choiceStored = stored;
+    replayAllow.disabled = !permitted() || !ready || !!stopReplay;
     status.textContent = permitted()
       ? `Page analytics is allowed${verification ? " for a labeled verification visit" : ""}.${stored ? "" : " Your browser could not remember this choice."}`
       : live
@@ -126,10 +142,12 @@
         }
         posthog.opt_in_capturing({ captureEventName: false });
         pageview();
+        update();
       },
     });
   };
   const stop = () => {
+    endReplay();
     if (initialized && ready) {
       window.posthog.opt_out_capturing();
       window.posthog.reset();
@@ -149,6 +167,39 @@
   };
   allow.addEventListener("click", () => save("on"));
   decline.addEventListener("click", () => save("off"));
+  replayAllow.addEventListener("click", async () => {
+    if (!permitted() || !ready || stopReplay) return;
+    endReplay();
+    const generation = replayGeneration;
+    replayAllow.disabled = true;
+    replayStatus.textContent = "Preparing the separately authorized recording…";
+    try {
+      const { startBoundedReplay } = await import("./bounded-replay.js");
+      if (generation !== replayGeneration || !permitted()) return;
+      stopReplay = startBoundedReplay(
+        window.posthog,
+        window.MINGLO_POSTHOG_PUBLIC_TOKEN,
+        () => permitted() && generation === replayGeneration,
+        (message) => {
+          replayStatus.textContent = message;
+          if (message.startsWith("Recording stopped")) {
+            stopReplay = null;
+            replayStop.disabled = true;
+            update();
+          }
+        },
+      );
+      replayStop.disabled = false;
+    } catch {
+      replayStatus.textContent =
+        "Recording could not start on this page. Analytics and product links still work.";
+      update();
+    }
+  });
+  replayStop.addEventListener("click", () => {
+    endReplay();
+    update();
+  });
   window.addEventListener("storage", (event) => {
     if (event.key !== key && event.key !== null) return;
     choice = event.key === null ? null : event.newValue;

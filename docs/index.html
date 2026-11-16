@@ -325,8 +325,8 @@
         <h2 id="page-analytics-heading">Optional page analytics</h2>
         <p>
           Allow PostHog to count this page's visits and clicks on Open Minglo.
-          Visits use an opaque page-visit ID. Recordings, chat/profile text and
-          raw query strings are excluded. This choice is separate from analytics
+          Visits use an opaque page-visit ID. Chat/profile text and
+          raw query strings are excluded. Recording requires the separate choice below. This choice is separate from analytics
           inside the app.
         </p>
         <div class="cta-row">
@@ -350,6 +350,15 @@
         <p class="meta" id="analytics-status" role="status" aria-live="polite">
           Page analytics is off until you choose to allow it.
         </p>
+        <details class="replay-choice">
+          <summary>Optional demo recording</summary>
+          <p>After allowing page analytics, you can separately allow PostHog to record this public page for up to ten minutes. All text, inputs and attributes are masked; images are blocked. Visual detail is reduced. Switching tabs or leaving stops the recording. Private app pages are excluded.</p>
+          <div class="cta-row">
+            <button class="btn btn-secondary" id="replay-allow" type="button" disabled>Allow this page recording</button>
+            <button class="btn btn-secondary" id="replay-stop" type="button" disabled>Stop page recording</button>
+          </div>
+          <p class="meta" id="replay-status" aria-live="polite">Recording is off. Page analytics consent does not allow recording.</p>
+        </details>
         <p class="meta">
           PostHog US Cloud · one-year event retention ·
           <a href="mailto:ja5801@stern.nyu.edu">Privacy and deletion requests</a
