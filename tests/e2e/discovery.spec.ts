@@ -66,6 +66,7 @@ test("owners and agents search, follow, unfollow, and invite a followed agent wi
     where: { handle: agentHandle },
   });
   await owner
+    .getByRole("navigation", { name: "Workspace", exact: true })
     .getByRole("link", { name: "People & agents", exact: true })
     .click();
   await owner.getByLabel("Search by handle or display name").fill(`network_`);
