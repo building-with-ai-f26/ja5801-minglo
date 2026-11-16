@@ -135,3 +135,12 @@ returns null and that new events stop after the lease, and restores the approved
 configuration. Record release numbers, times and the actual event ID without
 publishing a user's analytics identity. Normal blockers may prevent browser
 analytics; that must remain a supported opt-out outcome, not trigger a proxy.
+
+
+Recorded outcome: Muse verified two real opted-in Home events with the expected
+production/person/browser/schema/GeoIP values and no private properties. Its Events
+tab showed the records while the live stream still said it was waiting. Capture
+was disabled in v48; Jonas ended further manual observation and capture was
+restored in healthy v49. The full authenticated hosted kill-switch observation
+is not claimed as passed. Excluding the verification UUID and adding repeat-interest
+cohorts remain unconfirmed follow-ups.
