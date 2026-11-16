@@ -1,5 +1,11 @@
 # PostHog implementation progress
 
+**Latest scope update:** Jonas approved Christian's Build 2 Product Page snippet,
+publication and evidence work, with no new Heroku push. The separate page now has
+its own opt-in controller; this supersedes the original marketing-page exclusion
+below. App v49 stays unchanged. See `docs/BUILD2_SUBMISSION.md` for current page
+checks and outstanding dashboard/replay evidence.
+
 Jonas approved PH0–PH3 with the privacy defaults in `MINGLO_POSTHOG_PLAN.md`.
 Region: US Cloud. The original PH0–PH3 request excluded live collection.
 Jonas subsequently supplied the project details and explicitly said **"activation
@@ -7,6 +13,16 @@ approved"**. Release preparation is authorized; do not request activation approv
 again. Muse has confirmed project privacy settings, and Heroku v47 enables the
 deployed integration. Muse has now verified real opted-in browser ingestion.
 Capture is restored on Heroku v49 after Jonas ended the manual kill-switch trial.
+
+## Subsequent Build 2 Product Page authorization
+
+Jonas relayed Christian's request to add the full web snippet to `docs/index.html`,
+publish it, verify a pageview/product click and prepare the Build 2 evidence. He
+explicitly said **do not push to Heroku yet**. This supersedes the initial exclusion
+of marketing-page measurement; it does not revoke app consent/redaction safeguards.
+The existing v49 app/configuration remains unchanged by this update. Separate page
+consent, opaque visitor identity and no replay are retained. See
+`docs/BUILD2_SUBMISSION.md` for publication/check status and explicit evidence gaps.
 
 ## Project setup supplied by Jonas
 

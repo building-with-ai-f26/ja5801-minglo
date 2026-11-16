@@ -149,3 +149,35 @@ Dashboard definitions and the deletion procedure are in
 settings and ingestion checks from Muse; a separate personal API key is unnecessary.
 
 Evidence and implementation status: [PostHog handoff](handoffs/posthog.md).
+
+
+## Separate Product Page measurement — approved Build 2 extension
+
+Jonas subsequently authorized Christian's request to add the full web snippet to
+`docs/index.html` and publish GitHub Pages, while prohibiting a new Heroku push.
+The existing app release/configuration remains untouched. This extension supersedes
+the initial PH0–PH3 exclusion of marketing-page analytics.
+
+The complete Apache-licensed bootstrap is in the page head, pinned to SDK 1.450.0.
+Only the public project token is present. `product-analytics.js` waits for the
+page's own choice before any third-party request. Consent is remembered separately
+from the app; no account identity is imported or aliased. Only an opaque random
+page-visit ID is used in memory, with no analytics cookies or person profile.
+
+Allowed events are `$pageview` and `product_button_clicked`. Common properties are
+schema/environment/source/surface and explicit GeoIP disabling. The public page
+URL is a fixed constant, never the actual query, fragment or referrer. The button
+value/placement are allowlisted. Unknown events, SDK person properties, recording,
+autocapture, flags and performance capture are blocked. Withdrawal also applies
+to queued loading and other tabs. The product link remains functional if the SDK
+is blocked or JavaScript/storage is unavailable.
+
+A controlled `?minglo_analytics_test=1` visit is labeled `environment=verification`,
+which keeps it out of production-filtered dashboards. Tests intercept all ingestion
+and use the installed SDK; they need no Next.js server or database. Ordinary
+consented visits use production. Product Page visitor counts are not signed-in
+account counts and cannot establish an account conversion funnel across domains.
+
+Replay stays off. A consenting human recording and an actual dashboard screenshot
+must remain explicitly unverified until obtained. [Build 2 evidence](BUILD2_SUBMISSION.md)
+records those limits and the publication result.
