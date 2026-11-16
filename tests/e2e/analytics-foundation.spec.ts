@@ -14,6 +14,93 @@ import {
 test.afterAll(async () => {
   await db.$disconnect();
 });
+test("approved local cloud mode requires every disposable-local guard", () => {
+  const names = [
+    "POSTHOG_ENABLED",
+    "POSTHOG_TRANSPORT",
+    "POSTHOG_HOST",
+    "POSTHOG_PROJECT_TOKEN",
+    "POSTHOG_ENVIRONMENT",
+    "NODE_ENV",
+    "DYNO",
+    "AUTH_SECRET",
+    "AUTH_URL",
+    "DATABASE_URL",
+    "MINGLO_LOCAL_DEMO_ENABLED",
+  ] as const;
+  const saved = names.map((name) => process.env[name]);
+  const valid = {
+    POSTHOG_ENABLED: "true",
+    POSTHOG_TRANSPORT: "cloud-local",
+    POSTHOG_HOST: "https://us.i.posthog.com",
+    POSTHOG_PROJECT_TOKEN: `phc_${"x".repeat(40)}`,
+    POSTHOG_ENVIRONMENT: "verification",
+    NODE_ENV: "production",
+    AUTH_SECRET: "local-verification-secret-at-least-32-characters",
+    AUTH_URL: "http://localhost:3000",
+    DATABASE_URL: "postgresql://minglo@127.0.0.1:55442/minglo_demo_test",
+    MINGLO_LOCAL_DEMO_ENABLED: "true",
+  };
+  try {
+    delete process.env.DYNO;
+    Object.assign(process.env, valid);
+    expect(analyticsConfig()).toMatchObject({ environment: "verification" });
+    for (const name of Object.keys(valid)) {
+      delete process.env[name];
+      expect(analyticsConfig(), name).toBeNull();
+      Object.assign(process.env, valid);
+    }
+    for (const override of [
+      { DYNO: "web.1" },
+      { DATABASE_URL: "postgresql://minglo@db.example/minglo_demo_test" },
+      { DATABASE_URL: "postgresql://minglo@localhost/minglo" },
+      { AUTH_URL: "https://www.minglo.club" },
+      { POSTHOG_HOST: "https://eu.i.posthog.com" },
+    ]) {
+      Object.assign(process.env, override);
+      expect(analyticsConfig()).toBeNull();
+      delete process.env.DYNO;
+      Object.assign(process.env, valid);
+    }
+    const event = safeBrowserEvent(
+      {
+        event: "ui_action_clicked",
+        properties: {
+          action: "github_profile_lookup",
+          username: "PRIVATE",
+          $current_url: "PRIVATE",
+        },
+      },
+      { analyticsId: randomUUID(), accountType: "person" },
+      valid.POSTHOG_PROJECT_TOKEN,
+      "verification",
+    );
+    expect(event?.properties).toMatchObject({
+      action: "github_profile_lookup",
+      environment: "verification",
+    });
+    expect(JSON.stringify(event)).not.toContain("PRIVATE");
+    expect(
+      safeBrowserEvent(
+        { event: "ui_action_clicked", properties: { action: "PRIVATE" } },
+        { analyticsId: randomUUID(), accountType: "person" },
+      ),
+    ).toBeNull();
+  } finally {
+    names.forEach((name, index) => {
+      if (saved[index] === undefined) delete process.env[name];
+      else Object.assign(process.env, { [name]: saved[index] });
+    });
+  }
+});
+
+test("local demo is absent from the ordinary application", async ({ page }) => {
+  const response = await page.goto("/demo/github-profile");
+  expect(response?.status()).toBe(404);
+  await expect(
+    page.getByRole("heading", { name: "Bring your introduction along" }),
+  ).toHaveCount(0);
+});
 test("analytics defaults closed and strips SDK URL/person properties", () => {
   expect(analyticsConfig()).toBeNull();
   const identity = {

@@ -107,10 +107,24 @@ export function AnalyticsTracker() {
         stop();
       }
     };
+    const click = (event: MouseEvent) => {
+      if (!identity || paused.current || document.hidden) return;
+      const target =
+        event.target instanceof Element
+          ? event.target.closest<HTMLElement>("[data-analytics-action]")
+          : null;
+      const action = target?.dataset.analyticsAction;
+      if (
+        action === "github_profile_lookup" ||
+        action === "github_profile_apply"
+      )
+        sdk.current?.captureBrowserAction(action);
+    };
     window.addEventListener("minglo-analytics-choice", onChoice);
     window.addEventListener("focus", visibility);
     document.addEventListener("visibilitychange", visibility);
     document.addEventListener("submit", submit, true);
+    document.addEventListener("click", click);
     const timer = setInterval(() => {
       void refresh();
     }, 50_000);
@@ -125,6 +139,7 @@ export function AnalyticsTracker() {
       window.removeEventListener("focus", visibility);
       document.removeEventListener("visibilitychange", visibility);
       document.removeEventListener("submit", submit, true);
+      document.removeEventListener("click", click);
     };
   }, [path]);
   return null;
