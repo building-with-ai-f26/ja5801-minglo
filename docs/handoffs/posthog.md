@@ -20,8 +20,8 @@ be completed before claiming collection works.
   Project > Product analytics, and approved **ja5801@stern.nyu.edu** as the public
   privacy/deletion contact. The address belongs in Minglo's `/privacy` notice;
   it does not require a PostHog settings field.
-- The app notice now includes these details; publication awaits an approved
-  deployment. IP-discard configuration, budget controls, deletion procedure and
+- The app notice includes these details and is published in Heroku v46.
+  IP-discard configuration, budget controls, deletion procedure and
   actual dashboard links still require confirmation/setup. Jonas reports making
   no project changes and that collection remains off.
 - The notice-only update passed `npm run typecheck` and `git diff --check`.
@@ -37,7 +37,7 @@ be completed before claiming collection works.
 | PH2 | Implemented. Production build/typecheck and three SDK mock-browser cases pass: sanitized pages, cross-tab withdrawal/account switching, and agent authorization/disconnect/reclaim. The user approved continuing after the two-failed-fixes pause. Required public token retained; SDK bot filtering disabled for authorized agent browsers; local collector accepts the test helper’s synthetic router header. |
 | PH3 | Implemented: committed onboarding/social/conversation/routine events, retry deduplication, consent revisions and owner observations. Final validation is recorded below. |
 | PH4 | Dashboard definitions and operator runbook prepared in `docs/MINGLO_POSTHOG_DASHBOARDS.md`. Muse is handling authenticated project setup; actual dashboard links/settings evidence pending. |
-| PH5 | Activation approved. Guarded US Cloud adapter and release checks in progress on `feature/posthog-live-activation`; deployment and live event verification not yet complete. |
+| PH5 | Activation approved. Guarded adapter deployed as Heroku v46, source `c9e3d8e`, with capture explicitly disabled. Waiting for Muse's project privacy confirmation before enabling; genuine opted-in event and hosted kill-switch evidence remain pending. |
 
 Existing accounts start disabled. A human's choice does not opt their agents in.
 Current owners authorize individual connected agents; agents may withdraw. Owner
@@ -131,6 +131,28 @@ not evidence that Minglo events have arrived.
   browser, collector and database processes were stopped afterward.
 - Heroku remains v44 until the actual deployment is recorded below. No Cloud
   configuration or live event verification is claimed at this checkpoint.
+
+## Deployment checkpoint — Heroku v46
+
+- Feature branch `feature/posthog-live-activation` was pushed and merged as
+  `f1f37fa`; dashboard/runbook branch `docs/posthog-dashboards` was pushed and merged
+  as `c9e3d8e`. The application is deployed from `c9e3d8e`.
+- Standard backup **b025** completed. Config-only v45 explicitly set
+  `POSTHOG_ENABLED=false`. Heroku **v46 succeeded** at 2026-11-16 03:02 UTC; both
+  additive analytics migrations applied successfully (23 total migrations).
+- `https://www.minglo.club/api/health` returned 200 / `{"ok":true}`. `/privacy`
+  returned 200, no-store, the correct retention/contact and inactive status.
+  Anonymous `/api/analytics/eligibility` returned 401/null with private/no-store.
+- Six hosted anonymous privacy renders (1440/390/320px in both themes) passed
+  content, no-overflow and no-browser-error checks. No PostHog request occurred.
+  Evidence: `.local/posthog/activation-hosted.json`; the browser was closed.
+- The Cloud host/token/environment are not configured on Heroku yet, and capture
+  is **off**. This is a completed code deployment, not a completed activation.
+  Jonas's activation approval remains valid; no second approval is needed.
+- Next required input is Muse's confirmation of IP discard / GeoIP controls and
+  project setup. Then configure approved US ingestion, enable capture, have a
+  genuine account opt in and visit Home, and coordinate event/kill-switch checks.
+  No user preference was changed and no fake social activity was generated.
 
 ## Remaining work and limits
 
