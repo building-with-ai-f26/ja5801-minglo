@@ -672,8 +672,20 @@
           Real local PostHog requests accepted the profile pageview and both
           import-button clicks with HTTP 200. Events used opaque IDs and coarse
           action names; the GitHub username and profile text were excluded.
-          Opting out returned analytics eligibility to null. Project-side replay
-          was still off during this run, so no live recording is claimed.
+          Opting out returned analytics eligibility to null. A later run at
+          10:33–10:34 Eastern also recorded the approved masked localhost demo;
+          PostHog accepted its snapshot with HTTP 200. After opt-out, the same
+          tab stayed open for 65 seconds and a further tracked click sent no
+          events.
+          <a href="images/build2-live-replay.png"
+            >See the live recording status</a
+          >
+          ·
+          <a href="evidence/build2-live-replay.json"
+            >Replay verification record</a
+          >. Muse confirmed actual masked playback: two seconds, four clicks and
+          two keys. Jonas has the dashboard screenshot for the submission; it is
+          not embedded here.
         </p>
       </section>
       <section id="build-notes">
@@ -732,12 +744,14 @@
             <dd>
               Ordinary app replay stays off. This page and a disposable local
               demo now offer separately consented, fully masked recordings. The
-              real SDK privacy checks pass, but project-side replay was still
-              off during the local run; a consenting human recording remains
-              unverified and is an explicit submission gap. Private
-              conversations and sensitive inputs stay excluded. The full hosted
-              kill-switch observation was stopped at my request; the local lease
-              and opt-out checks passed.
+              real SDK privacy checks pass. The explicitly approved automated
+              localhost demo produced a masked snapshot accepted by PostHog;
+              Muse confirmed masked playback. I have the dashboard screenshot
+              for the submission; it is not embedded here. This is a technical
+              demo, not a human usability trial. Private conversations and
+              sensitive inputs stay excluded. The full hosted kill-switch
+              observation was stopped at my request; the local lease and opt-out
+              checks passed.
             </dd>
             <dt>Costs and dependencies</dt>
             <dd>
@@ -751,10 +765,11 @@
             <dt>Evidence to finish</dt>
             <dd id="build2-evidence-status">
               The published pageview and product-button click each received HTTP
-              200 from the real PostHog ingestion endpoint. Inspection of these
-              new events inside the project and a real dashboard screenshot
-              still need authenticated access. Links below open the actual
-              dashboards; sample tiles are not evidence of usage.
+              200 from the real PostHog ingestion endpoint. Muse confirmed the
+              local replay paints correctly and keeps all text/inputs masked. I
+              have the real dashboard screenshot to attach to the submission.
+              Links below open the actual dashboards; verification identities
+              and sample tiles are not evidence of adoption.
             </dd>
           </dl>
           <figure>
@@ -769,8 +784,8 @@
             <figcaption class="meta">
               Published Product Page, captured November 15 during the controlled
               verification. Pageview and button capture received HTTP 200. This
-              is the public page; a PostHog dashboard screenshot remains
-              pending.
+              is the public page; the actual dashboard screenshot is held
+              separately for the submission.
             </figcaption>
           </figure>
           <p>

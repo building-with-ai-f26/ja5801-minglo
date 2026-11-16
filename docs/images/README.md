@@ -73,3 +73,16 @@ PostHog ingestion with HTTP 200; opting out returned eligibility `null`. Replay
 was separately requested but project-side configuration was still off, as the
 visible status states. These are API/UI screenshots, not a dashboard export or
 human recording. See the [sanitized local record](../evidence/build2-local-api.json).
+
+`build2-live-replay.png` (1440 × 2199) is the original unedited localhost capture
+from the subsequent approved run at 10:33 Eastern. It shows active recording;
+the real snapshot was accepted with HTTP 200. The source image was visually
+inspected before publication. It is a recording-status screenshot, not a
+dashboard export or proof of playback inside PostHog. The same synthetic-account
+and public-GitHub-source disclosures apply. The [live replay record](../evidence/build2-live-replay.json)
+also describes the 65-second open-tab opt-out check. No raw analytics identity or
+private project replay link is published in that record.
+
+Muse subsequently confirmed actual playback paints and remains fully masked.
+Jonas has the real dashboard screenshot for direct submission; that separate
+export was not provided to Codex and is not represented by any image here.
