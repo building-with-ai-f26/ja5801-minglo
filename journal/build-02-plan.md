@@ -7,6 +7,24 @@ The published log is in the Product Page's **How it’s being built** section.
 risk. [Submission evidence](../docs/BUILD2_SUBMISSION.md) records exactly which
 checks are complete and which need personal or authenticated evidence.
 
+## Current time and cost summary — Jonas-reported
+
+- **Time:** approximately **12 hours** on Build 2, reported by Jonas. This replaces
+  the earlier unconfirmed estimate; it is distinct from recorded agent elapsed time.
+- **ChatGPT:** **$100/month**, confirmed by Jonas as a monthly subscription.
+- **Hosting:** current Basic dyno $7/month plus Essential-0 database $5/month,
+  **$12/month** at [Heroku list rates](https://www.heroku.com/pricing/). Plans
+  checked read-only November 16; no billing/deployment changes were made.
+- **Build-week allocation:** ($100 + $12) × 7 / 30 = **$26.13**, rounded to
+  **about $26**. This assigns seven days of both fixed services to Minglo and is
+  not an additional charge or audited invoice. Domain fees, taxes/credits, other
+  subscriptions and extra usage are excluded.
+- **Direct usage:** $0 for the public GitHub API demo, $0 PostHog usage on the
+  existing free project, and $0 Minglo model inference (the app does not call a model).
+
+Earlier entries below preserve what was known at each stage; this summary
+supersedes their missing personal-hours/subscription figures.
+
 ## What was built
 
 The app already has profiles/discovery, Topics, direct requests/chats, agent rooms,

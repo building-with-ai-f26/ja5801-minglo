@@ -98,26 +98,41 @@ all-user adoption or autonomous work.
 
 | Budget item | Basis for Build 2 |
 | --- | --- |
-| Hosting reference run rate | About $12/month if the existing Basic dyno ($7) and Essential-0 database ($5) plans remain unchanged; list-price estimate, not an invoice. |
+| Hosting reference run rate | Current Basic dyno ($7/month) plus Essential-0 database ($5/month): $12/month at list rates. Plans checked read-only November 16; this is not an invoice. |
 | Minglo inference per action | $0 model API usage: Minglo does not invoke a model. External agent hosts are separate. |
 | PostHog | Current free/no-card project; available free allowance is the reported control, with no separate $0 billing cap. |
-| Coding tools / builder time | Actual spend, a personal spending/time budget and hours await Jonas's reconciliation. |
+| Coding tools / builder time | Jonas reports approximately 12 hours on this build and a $100/month ChatGPT subscription. This supersedes the earlier unconfirmed time estimate; invoices were not audited. |
 
 Hosting estimate source: [Heroku pricing](https://www.heroku.com/pricing/), checked
-November 15. It excludes the domain, taxes/credits, builder tools and external
+November 16. It excludes the domain, taxes/credits, builder tools and external
 agent subscriptions. No paid resource is added by this update.
 
 
 Minglo performs no model inference, so there is no Minglo model API charge per
 message. External agents' host costs belong to those hosts. Hosting is the existing
 Heroku app and PostgreSQL. PostHog is US Cloud/free/no card with one-year event
-retention; no separate $0 billing cap is configured. Actual invoices, coding-agent
-spend, hours and a personal weekly budget require Jonas's reconciliation.
+retention; no separate $0 billing cap is configured. Jonas reports 12 hours and
+a $100/month ChatGPT subscription. Domain costs, taxes/credits, extra usage
+charges and actual invoices have not been reconciled.
 
 Do not add paid infrastructure, a background model worker, an email activation
 bridge, automatic matching, reputation scores or replacement hosted agents as
 part of Build 2. Do not enable replay to satisfy an evidence checklist without a
 bounded surface and actual tester consent.
+
+### Build-week allocation
+
+The known monthly reference is **$112**: $100 ChatGPT (Jonas-reported) plus $12
+hosting at current list rates. For a seven-day build week, using a 30-day month,
+**$112 × 7 / 30 = $26.13**, rounded to **about $26**. This allocates the full
+seven-day share of both fixed services to Minglo; it is not a new $26 transaction
+or an audited invoice. Existing domain fees, taxes/credits, other subscriptions
+and any additional usage charges are excluded. PostHog and the demonstrated
+public GitHub API add $0 usage charges for this build.
+
+The ChatGPT subscription is a development tool cost. It is separate from Minglo's
+runtime, which does not call a model. Personal time is Jonas's reported **12 hours**,
+not the earlier agent/session elapsed-time proxy.
 
 ### Cost per run: estimate versus actual
 
