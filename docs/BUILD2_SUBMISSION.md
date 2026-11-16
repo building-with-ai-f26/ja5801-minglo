@@ -21,10 +21,10 @@ unchanged.
 | Requirement | Current evidence / limitation |
 | --- | --- |
 | Full web snippet in Product Page head | Complete PostHog bootstrap and initialization use the existing public project token and US host. SDK version 1.450.0 is pinned; the SDK waits for this page's own opt-in. No personal API key is included. |
-| Product Page published | Pending GitHub Pages publication verification for this update; final commit/build evidence will be recorded below. |
+| Product Page published | Published from merge `4f8d8a7`; GitHub Pages build succeeded. The live head/bootstrap and opt-in controls were exercised on the published URL. |
 | App configuration and activation | Already complete before this update: app source `c9e3d8e`, active Heroku v49 after approved activation. Safeguards remain. No Heroku mutation is part of this task. |
 | Real app page events | Muse inspected two opted-in Home `page_viewed` events in US project 739580. Expected production/person/browser/schema/GeoIP fields matched; identity was opaque and private fields were absent. This is relayed Muse evidence. |
-| Product Page view and button click | Implemented as `$pageview` and `product_button_clicked`; isolated tests use the real SDK with ingestion intercepted. Live capture acceptance and authenticated project inspection must be recorded separately. |
+| Product Page view and button click | Both events exercised on the actual published page using explicit consent and `environment=verification`; both real ingestion requests received HTTP 200. PostHog UI inspection of these new events remains pending. Isolated tests separately inspect complete outgoing payloads. |
 | Session replay with a consenting tester | **Not completed.** Replay remains off under the approved privacy policy. No consenting human recording was observed in this session. This is an explicit exception/gap against the requested replay evidence, not a passing check. |
 | Dashboard screenshot | **Pending authenticated export.** Actual dashboard links are below. No screenshot has been invented from sample rows or reconstructed metrics. |
 | Costs, hours, podmate critique | Actual invoices/coding-agent spend/hours and podmate sign-off require Jonas's reconciliation. No values or participation are fabricated. |
@@ -91,6 +91,32 @@ npx playwright test --config=playwright.product-page.config.ts
 They intercept all ingestion and use the installed pinned SDK. The ordinary app
 suite does not include them and its 176-case historical evidence is not rerun or
 recounted as fresh Product Page evidence.
+
+## Published-page verification — November 15
+
+- Source merge `4f8d8a7` published successfully through GitHub Pages (`main` → `/docs`).
+  The full head bootstrap loads pinned SDK 1.450.0 only after a page-specific opt-in.
+- A controlled automated browser explicitly allowed analytics on the published
+  `?minglo_analytics_test=1` URL, then opened Minglo through the actual product CTA.
+  No third-party request occurred before consent. Real `$pageview` and click
+  capture requests each received HTTP 200; both were labeled verification.
+- The pageview was inspected from the browser request body; the click was observed
+  through the real SDK's captured-event callback and its Beacon acknowledgment.
+  Chromium's request observer did not expose the Beacon body, which caused the
+  first verifier assertion to fail despite a successful send. Diagnostic evidence
+  confirmed the request/callback and both HTTP acknowledgments. No tracking code
+  was relaxed to address that verifier limitation.
+- The real CDN SDK and installed test SDK had identical SHA-256 hashes. Four
+  published viewport checks passed with no overflow or page errors; no replay,
+  flags or recorder requests were observed. The browser was closed afterward.
+- [Published-page screenshot](images/product-page-analytics.png) is genuine public
+  browser evidence, **not a PostHog dashboard screenshot**. The dashboard export
+  and authenticated inspection of these new Product Page records remain pending.
+- No Heroku push, release, config change or database change occurred in this task.
+  The prior app activation and two Muse-inspected Home events remain valid evidence.
+- Ignored evidence: `.local/build2/product-tests.log`, `typecheck.log`,
+  `live-page.json`, `live-diagnostic.json` and `published-*.png`.
+  These contain transport/verification results, not a consenting-human replay.
 
 ## Personal review before hand-in
 

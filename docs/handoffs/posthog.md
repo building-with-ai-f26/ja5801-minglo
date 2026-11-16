@@ -250,3 +250,23 @@ not evidence that Minglo events have arrived.
 - Collection is best effort and excludes opted-out accounts; dashboards must show
   coverage/cohort limits. Existing no-backfill and separate human/agent identity
   rules remain. Analytics does not prove personal-agent autonomy.
+
+
+## Build 2 Product Page publication
+
+Jonas authorized Christian's Product Page follow-up and explicitly prohibited a
+new Heroku push. Branch `feature/product-page-posthog` includes focused source,
+test (`0cac0ca`) and documentation commits; merge `4f8d8a7` published successfully
+through GitHub Pages. See `docs/BUILD2_SUBMISSION.md` for the final record and
+remaining external evidence. No Heroku or database mutation occurred.
+
+Nine focused real-SDK cases, typecheck, JavaScript syntax, formatting and diff
+checks passed. The actual published page stayed quiet before consent; a controlled
+verification visit and real Open Minglo click each received HTTP 200 from the US
+project ingestion endpoint. Full pageview payload and the captured click callback
+matched the redacted contract. Browser diagnostics established that Beacon body
+visibility caused the initial verifier failure; both requests had succeeded.
+No SDK safeguards were removed. The published-page screenshot is genuine public
+UI evidence, not an exported PostHog dashboard. Actual dashboard export, new-event
+UI inspection, consenting human replay and personal budget/critique evidence remain
+explicitly unverified. Replay stays off; the page does not record private chats.
