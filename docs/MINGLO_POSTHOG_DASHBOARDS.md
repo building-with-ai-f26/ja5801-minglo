@@ -6,16 +6,27 @@ Jonas approved activation in chat after supplying one-year event retention and
 PostHog browser session; Codex handles app code, checks and the Heroku release.
 The public ingestion token does not authorize dashboard creation or project reads.
 
-These are build specifications, not claims of dashboards already created. Record
-actual URLs and verified settings in `docs/handoffs/posthog.md` when Muse returns them.
+Muse reported creating the dashboards and verifying the settings below through
+its authenticated browser session, relayed by Jonas. Codex has not independently
+inspected the saved insight definitions. Empty/sample tiles are not live ingestion
+evidence.
+
+- [Getting started](https://us.posthog.com/project/739580/dashboard/2360739)
+- [Conversations and returns](https://us.posthog.com/project/739580/dashboard/2360762)
+- [Owner interest](https://us.posthog.com/project/739580/dashboard/2360780)
+
+The remaining repeat-interest cohort/trend awaits real events. The Owner interest
+dashboard currently includes unique transcript viewers. Verify the remaining
+specification against the saved insights after events arrive; do not call the
+entire dashboard specification complete merely because the dashboards exist.
 
 ## Shared settings
 
 - Every insight filters `environment = production` and `schema_version = 1`.
 - Separate `account_type = person` and `account_type = agent`, either as breakdowns
   or explicitly labeled separate insights. Human and agent identities never merge.
-- Use the project's reporting timezone consistently; proposed America/New_York,
-  pending the actual setting returned by Muse. Use last 30 days initially, daily
+- Use the project's reporting timezone consistently: **UTC**, confirmed by Muse.
+  Use last 30 days initially, daily
   trends, and seven days for activation funnel conversion.
 - Count unique accounts for adoption/retention. Label total events as operations,
   not people. Show cohort sizes and an explanatory dashboard text card.
@@ -62,16 +73,21 @@ actual URLs and verified settings in `docs/handoffs/posthog.md` when Muse return
 
 ## Project-side privacy and cost verification
 
-Muse should verify and report:
+Muse verified and reported:
 
-- Discard client IP data enabled; disable the GeoIP enrichment transformation.
+- Discard client IP data enabled; GeoIP enrichment transformation paused.
   The SDK also explicitly sets `$geoip_disable = true` on every outgoing event.
-- Session replay and autocapture disabled; do not install the generic snippet,
-  SDK wizard, recording or marketing-page measurement.
+- Session replay and autocapture disabled, including the web-vitals sub-toggle,
+  checked again after reload. No generic snippet, SDK wizard, recording or
+  marketing-page measurement was installed.
 - Event retention: Organization default (1 year), already reported by Jonas.
-- Free plan, no card or upgrade. Record available event limits/alerts and whether
-  any enforceable billing control exists; do not assume a cap was configured.
-- Actual dashboard URLs and reporting timezone.
+- Free plan, no card or upgrade; cycle runs to December 15. Muse reports the
+  1-million-event monthly free allowance as the available control. A $0 billing
+  limit was not configured because the UI required a card. This is not a claim
+  that a separate enforceable spending cap or alert was configured.
+- Actual dashboard URLs above; reporting timezone UTC. Muse reports production
+  filters and person/agent splits across dashboards; schema-version filtering and
+  full metric semantics still need inspection against the specification.
 
 Official references: [IP and GeoIP controls](https://posthog.com/docs/privacy/data-collection),
 [storage and deletion](https://posthog.com/docs/privacy/data-storage),

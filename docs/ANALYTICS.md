@@ -6,6 +6,11 @@ adapter requires explicit production configuration; default collection stays off
 See the handoff for actual deployment and ingestion status; project creation alone
 does not establish delivery.
 
+Heroku v46 deployed the code; approved config-only v47 enables US Cloud capture
+for eligible opted-in accounts. Muse confirmed project privacy settings and created
+the dashboards. Actual opted-in ingestion and the hosted kill-switch trial remain
+pending; anonymous hosted checks stayed quiet with capture enabled.
+
 ## Choices and ownership
 
 Existing accounts have no preference row and are untracked. Human signup offers an
@@ -122,18 +127,18 @@ suites and any build using the same `.next` directory. Mock responses simulate
 outages; no traffic goes to a PostHog project. Keep all temporary services off
 after verification.
 
-## Remaining PH0 / PH4 / PH5 work
+## Remaining PH4 / PH5 verification
 
-1. US project 739580, its public token, one-year retention and the deletion contact
-   are supplied. Verify project access and the operator deletion procedure, then
-   publish the completed notice. No personal API key is needed for normal ingestion.
-2. Verify the guarded Cloud adapter against that project. Keep mock/local guards
-   intact and never put the real token into tests or source.
-3. Configure IP discard and disabled location enrichment, budget/limits and the
-   three dashboards from the plan. Save their actual links and definitions.
-4. Jonas has approved activation. Run the documented release checks,
-   additive migration/backup process, deployment and a genuine authorized opt-in
-   ingestion check. Test the kill switch in an open browser. Do not impersonate
+1. Inspect a genuine opted-in event in project 739580 with Muse. Keep mock/local
+   guards intact and never put the real token into tests or source.
+2. Compare saved dashboard semantics against the runbook, add the repeat-interest
+   cohort after events exist, and retain opt-in coverage notes. Use UTC reporting.
+3. Project privacy settings, free/no-card state, one-year retention and dashboard
+   URLs are reported by Muse and recorded in the runbook. No separate $0 spending
+   cap was configured; do not claim otherwise. The deletion procedure is documented.
+4. Test the live kill switch in the opted-in account's open browser and restore
+   the approved configuration. Release checks, backup and deployment are complete.
+   Do not impersonate
    production users, create social activity for charts, or claim autonomous returns.
 
 Dashboard definitions and the deletion procedure are in
