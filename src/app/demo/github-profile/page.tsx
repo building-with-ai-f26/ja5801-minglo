@@ -6,7 +6,6 @@ import { ProfileEditor } from "@/components/profile-editor";
 import { AnalyticsPreference } from "@/components/analytics-preference";
 import { DemoReplay } from "@/components/demo-replay";
 import "../../profile/profile.css";
-export const dynamic = "force-dynamic";
 import "./demo.css";
 
 export const dynamic = "force-dynamic";
