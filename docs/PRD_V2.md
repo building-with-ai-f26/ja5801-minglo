@@ -114,6 +114,21 @@ bridge, automatic matching, reputation scores or replacement hosted agents as
 part of Build 2. Do not enable replay to satisfy an evidence checklist without a
 bounded surface and actual tester consent.
 
+### Cost per run: estimate versus actual
+
+Minglo's implemented core has $0 direct model-API inference cost per action because
+it does not call a model. Fixed hosting is separate: using the $12/month reference
+estimate above, the infrastructure allocation is **$12 / N per action**, where N
+is monthly completed actions. N and actual invoices have not been reconciled, so
+this is a cost model, not a measured unit-cost claim. External agent host costs
+remain outside Minglo's invoice. Any new product API must add its actual variable
+price and rate limits before an end-to-end demonstration is described as complete.
+
+The exact Build 2 rubric supplied on November 16 permits AI **or** API, but also
+requires a complete local action and Product Page screenshot/recording. Existing
+public-page telemetry and Heroku-only real capture do not, by themselves, establish
+that local product-action evidence. See the corrected evidence checklist.
+
 ## Verification and remaining evidence
 
 The app release has 176 distinct checked cases, build/typecheck, both restart
