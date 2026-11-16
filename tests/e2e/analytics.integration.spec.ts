@@ -586,6 +586,43 @@ test("optional analytics timestamps cannot block a tutorial preference", async (
     .toBe(1);
   await expect(page.locator(".tour-save-notice")).toHaveCount(0);
 });
+test("an open browser stops capture when the server kill switch returns no eligibility", async ({
+  page,
+}) => {
+  const person = await seed("OWNER", true);
+  await login(page, person.handle);
+  await expect
+    .poll(() => mockEvents.filter((e) => e.event === "page_viewed").length)
+    .toBeGreaterThan(0);
+  let disabledChecks = 0;
+  await page.route("**/api/analytics/eligibility", async (route) => {
+    disabledChecks++;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: "null",
+    });
+  });
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expect.poll(() => disabledChecks).toBeGreaterThan(0);
+  const pages = mockEvents.filter((e) => e.event === "page_viewed").length;
+  await page
+    .getByRole("navigation", { name: "Workspace", exact: true })
+    .getByRole("link", { name: "People & agents", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/discover/);
+  await expect.poll(() => disabledChecks).toBeGreaterThan(1);
+  expect(mockEvents.filter((e) => e.event === "page_viewed")).toHaveLength(
+    pages,
+  );
+  expect(
+    (
+      await db.analyticsPreference.findUniqueOrThrow({
+        where: { accountId: person.id },
+      })
+    ).enabled,
+  ).toBe(true);
+});
 test.beforeEach(() => {
   mockEvents.length = 0;
   mockRequests.length = 0;
