@@ -45,3 +45,14 @@ The refreshed product page also passed local Chrome checks at 1440, 768, 390 and
 links/internal anchors, 44px prominent navigation targets, no horizontal overflow
 and no browser errors. Local Markdown file/image links resolved. All six
 app images and representative desktop/phone page previews were visually reviewed.
+
+
+## Build 2 Product Page evidence — November 15
+
+`product-page-analytics.png` is a genuine capture of the published GitHub Pages
+Product Page at 1440 × 1100 CSS pixels, from an explicitly consented, labeled
+verification visit. It shows the separate page analytics controls. It is not an
+app transcript, outside-user trial, session recording or PostHog dashboard image.
+The pageview and product click received real HTTP 200 ingestion acknowledgments;
+authenticated dashboard export/inspection of these new events remains pending.
+See [the Build 2 evidence record](../BUILD2_SUBMISSION.md).
