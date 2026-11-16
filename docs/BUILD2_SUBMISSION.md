@@ -59,13 +59,14 @@ authenticated project evidence stays labeled.
 | Real app page events | Muse inspected two opted-in Home `page_viewed` events in US project 739580. Expected production/person/browser/schema/GeoIP fields matched; identity was opaque and private fields were absent. This is relayed Muse evidence. |
 | Product Page view and button click | Both events exercised on the actual published page using explicit consent and `environment=verification`; both real ingestion requests received HTTP 200. PostHog UI inspection of these new events remains pending. Isolated tests separately inspect complete outgoing payloads. |
 | Session replay with consent | **Verified:** explicitly authorized automated local demo; real snapshot accepted, and Muse inspected actual masked playback. Two-second duration is disclosed. No human usability trial is claimed. |
-| Dashboard screenshot | **Jonas confirms he has the actual screenshots for submission.** No image/link was supplied to Codex, so the export is not embedded here. Attach the screenshot to the hand-in. Muse reported 9 active users, 4 sessions and 9 pageviews; these are analytics labels and can include verification/anonymous identities, not nine proven distinct people. |
+| Dashboard screenshot | **Received, inspected and embedded:** [actual starter dashboard](images/build2-posthog-dashboard.png), captured by Muse around 10:49 Eastern. It visibly shows 9 active identities, not nine proven distinct people. Muse’s supplied notes report 4 sessions and 9 pageviews; those tiles are outside the image. [Actual replay-player image](images/build2-posthog-replay.png) shows masked local playback. Original bytes and limits are documented in [image provenance](evidence/build2-posthog-images.md). |
 | Costs, hours, podmate critique | Actual invoices/coding-agent spend/hours require Jonas's reconciliation. Podmate sign-off is not in the exact five-item rubric supplied November 16 and is not treated as a separate submission blocker. No values or participation are fabricated. |
 
 ## Where to inspect
 
 Project [739580 — US Cloud](https://us.posthog.com/project/739580/home):
 
+- [Starter dashboard — source of the published image](https://us.posthog.com/project/739580/dashboard/2360648)
 - [Getting started](https://us.posthog.com/project/739580/dashboard/2360739)
 - [Conversations and returns](https://us.posthog.com/project/739580/dashboard/2360762)
 - [Owner interest](https://us.posthog.com/project/739580/dashboard/2360780)
@@ -114,8 +115,10 @@ The [original recording-status screenshot](images/build2-live-replay.png) and
 
 Muse subsequently inspected actual playback: two seconds, four clicks and two
 keys; frames paint and all text/inputs remain masked. Jonas confirms he has the
-real dashboard screenshots and can attach them directly to the submission. No
-image/link was supplied to Codex, so the export is not embedded on this page. The
+real dashboard screenshots, which were subsequently retrieved from his private
+Drive folder and inspected. Both the [dashboard](images/build2-posthog-dashboard.png)
+and [replay player](images/build2-posthog-replay.png) are now embedded on the Product
+Page, with original bytes preserved and sharing unchanged. The
 demo was authorized by Jonas and automated. The rubric does not separately ask
 for a human usability study; no such study is claimed. Do not create production
 registrations or agent connections merely to fill funnels. Verification events
@@ -226,7 +229,24 @@ recounted as fresh Product Page evidence.
 
 The Product Page contains a Build 2 log and links to PRD v2. Its architecture
 explanation is prepared for Jonas to review; it is not evidence that a tutoring
-exercise or episode was completed. Reconcile actual spend/hours, attach the genuine dashboard screenshot, and retain
-the explicit replay
-exception if a consenting recording is unavailable. No Icerynk submission, email
+exercise or episode was completed. Reconcile actual spend/hours and review the
+published original dashboard/replay images. Local replay is verified; retain the
+disclosed limitation that a separate Product Page recording had a black player
+area despite masked DOM data. No Icerynk submission, email
 to Christian or other outbound message has been sent by this coding session.
+
+## Original project images received through Drive
+
+Muse’s original dashboard and replay-player PNGs and evidence notes were retrieved
+from the private Drive folder supplied by Jonas. Both images were inspected
+individually and copied without changes. The dashboard visibly shows 9 active
+identities; the 4-session and 9-pageview totals are relayed notes, outside the image.
+The replay image paints a fully masked page in the actual player. Original sizes,
+SHA-256 checksums, capture times and source distinctions are in
+[the image record](evidence/build2-posthog-images.md). No Drive sharing changed,
+no application code changed, no local service started and no Heroku deployment.
+
+The notes also disclose a separate 2:18 public Product Page recording with masked
+DOM but a black playback area, plus an earlier recording that never appeared.
+Those public-player observations remain a limitation; the successful local image
+is not used as proof that the separate public recording rendered correctly.

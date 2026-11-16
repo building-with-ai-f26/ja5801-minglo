@@ -354,3 +354,25 @@ disclosure and do not call it a human or autonomous-agent trial. Do not populate
 production registration/tour/connection funnels merely to make charts nonempty.
 Those production server events remain unexercised here; isolated SDK checks pass.
 Build 2 evidence can use the separately labeled real verification events.
+
+
+## Original dashboard and replay-player screenshots received
+
+Jonas supplied a private Drive folder containing Muse's original `dashboard.png`,
+`replay.png` and `evidence.txt`. The connected account now has access. Both PNGs
+were retrieved, inspected individually and copied unchanged into
+`docs/images/build2-posthog-dashboard.png` and `build2-posthog-replay.png`.
+Drive sharing was preserved. The raw notes stay in ignored local storage;
+`docs/evidence/build2-posthog-images.md` records public provenance/checksums.
+
+The visible dashboard is **Your starter dashboard**, ID 2360648, showing 9 active
+identities over 30 days with no dashboard date override. The reported 4 sessions
+and 9 pageviews are outside the image. These are not nine verified human users.
+The replay screenshot shows actual painted masked playback, around 1–2 seconds.
+Both images are embedded on the Product Page; the dashboard-image gap is closed.
+
+Muse's notes disclose an additional 2:18 public Product Page recording with masked
+DOM but a black player area, and an earlier recording that never appeared. Keep
+that limitation; do not claim the successful local player proves that public
+recording rendered. Reported recording retention is 30 days (events: one year).
+No additional production activity, app source change or Heroku deployment.
