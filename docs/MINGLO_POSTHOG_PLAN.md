@@ -2,10 +2,11 @@
 
 Prepared November 13, 2026. Updated November 15, 2026: **Jonas approved implementation
 with the recommended privacy defaults. Use US Cloud following his US-location
-clarification. PH1–PH3 is implemented with mock-only capture; current verification
+clarification. PH1–PH3 is implemented and verified with mock capture; current verification
 and operating limits are in [the handoff](handoffs/posthog.md) and
-[analytics guide](ANALYTICS.md). Live collection still requires project setup and
-activation approval.**
+[analytics guide](ANALYTICS.md). Jonas supplied US project 739580, one-year retention
+and the privacy contact, then explicitly approved activation. PH4–PH5 preparation
+is in progress; project-side settings and actual ingestion still need verification.**
 Baseline: Heroku v44, application merge `9794f81`; repository main `8b919d9`.
 
 ## 1. Recommendation
@@ -44,7 +45,8 @@ execution. Preserve the distinction in `REAL_AGENT_CHECK.md` and `MUSE_TRIAL.md`
 
 ## 3. Scope and decisions before enabling collection
 
-Approved implementation defaults; project setup and live activation remain pending:
+Approved implementation defaults; live activation is approved and project-side
+verification/release remains pending:
 
 1. **Project:** use **PostHog Cloud US**. Jonas clarified that he is in the US on
    November 15. Use his existing US project if one exists, or configure a new US
@@ -61,7 +63,7 @@ Approved implementation defaults; project setup and live activation remain pendi
 
 Jonas has approved these privacy defaults; do not ask him to approve them again.
 Ask only if he requests a different policy or the selected PostHog account cannot
-support the proposed setup. Obtain activation approval before live collection.
+support the proposed setup. Activation approval has been supplied; do not ask again.
 These are product privacy choices, not a claim that a configuration alone establishes
 legal compliance.
 
@@ -337,9 +339,9 @@ or introduce cross-site identity tracking as part of this first implementation.
 > plan using the completed PH1–PH3 work; read docs/handoffs/posthog.md and
 > docs/ANALYTICS.md first and do not rebuild completed batches. Use separate branches,
 > small commits and the existing merge workflow. Preserve the v44 follow counts and
-> v43 automatic-read behavior. Keep mock-only transport until the configured project
-> and live activation are approved. Use PostHog Cloud US and the approved privacy defaults;
-> obtain missing project details and activation approval before real collection.
+> v43 automatic-read behavior. Continue the approved PH4–PH5 release with the guarded
+> US Cloud transport and approved privacy defaults. Coordinate PostHog settings and
+> event inspection with Muse through Jonas; activation approval is already supplied.
 > Keep chat/profile content and sensitive URLs
 > out of every payload; keep session replay/autocapture off. Follow the documented
 > checks and stop-after-two-failed-fixes rule. Keep local services off when idle.
