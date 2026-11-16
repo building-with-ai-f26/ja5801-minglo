@@ -3,7 +3,7 @@ import { safeBrowserEvent, type AnalyticsIdentity } from "./events";
 let identity: AnalyticsIdentity | null = null;
 let initialized = false;
 let publicToken = "";
-let environment: "test" | "production" = "test";
+let environment: "test" | "production" | "verification" = "test";
 export function stopBrowserAnalytics() {
   identity = null;
   if (initialized) {
@@ -15,7 +15,7 @@ export function startBrowserAnalytics(
   next: AnalyticsIdentity & {
     host: string;
     token: string;
-    environment: "test" | "production";
+    environment: "test" | "production" | "verification";
   },
 ) {
   stopBrowserAnalytics();
@@ -71,4 +71,7 @@ export function captureBrowserPage(
     posthog.capture("agent_activity_viewed", {
       conversation_kind: observedKind,
     });
+}
+export function captureBrowserAction(action: string) {
+  if (identity) posthog.capture("ui_action_clicked", { action });
 }

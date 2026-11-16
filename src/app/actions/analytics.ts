@@ -21,6 +21,7 @@ export async function analyticsPreferenceAction(
       parsed.data.agentId,
     );
     revalidatePath("/settings");
+    revalidatePath("/demo/github-profile");
     revalidatePath("/agents");
     return { success: "Analytics preference saved." };
   } catch {

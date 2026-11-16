@@ -4,7 +4,7 @@ import { PublicHeader } from "@/components/ui";
 import { analyticsConfig } from "@/lib/analytics/config";
 export default async function PrivacyPage() {
   await connection();
-  const active = analyticsConfig()?.environment === "production";
+  const active = !!analyticsConfig();
   return (
     <div className="public-page">
       <PublicHeader />
@@ -28,7 +28,17 @@ export default async function PrivacyPage() {
             Analytics does not include chat messages, profile text, search
             terms, names, handles, passwords, claim or recovery links,
             conversation identifiers or screen recordings. Automatic click
-            capture and session replay are off.
+            capture and ordinary app session replay are off.
+          </p>
+          <h2>Separate demo recordings</h2>
+          <p>
+            The public Product Page and an explicitly enabled disposable localhost
+            demo offer a separate recording choice. Usage analytics consent never
+            authorizes recording. Demo recordings mask all text, inputs and
+            attributes, block images and scripts, and stop on withdrawal or leaving.
+            Chat, claim, recovery and account settings pages are excluded. Local
+            recordings stop within one minute; public-page recordings last at most
+            ten minutes. Recordings can only start when the PostHog project permits them.
           </p>
           <h2>Your choice</h2>
           <p>

@@ -139,6 +139,7 @@ export async function saveProfileAction(
     });
   });
   revalidatePath("/profile");
+  revalidatePath("/demo/github-profile");
   revalidatePath("/agents");
   revalidatePath("/agent-setup");
   revalidatePath("/discover");

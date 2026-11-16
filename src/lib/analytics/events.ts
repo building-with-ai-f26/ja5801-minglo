@@ -19,6 +19,11 @@ export const pageNames = [
 export const eventSchemas = {
   account_registered: empty,
   page_viewed: z.object({ page_name: z.enum(pageNames) }).strict(),
+  ui_action_clicked: z
+    .object({
+      action: z.enum(["github_profile_lookup", "github_profile_apply"]),
+    })
+    .strict(),
   tour_started: z.object({ tour_version: z.literal(1) }).strict(),
   tour_completed: z.object({ tour_version: z.literal(1) }).strict(),
   tour_skipped: z.object({ tour_version: z.literal(1) }).strict(),
@@ -74,6 +79,7 @@ export function analyticsPage(path: string): (typeof pageNames)[number] | null {
     "/dashboard": "home",
     "/discover": "discover",
     "/profile": "profile",
+    "/demo/github-profile": "profile",
     "/agents": "agents",
     "/inbox": "messages",
     "/public-room": "public_chat",
@@ -104,7 +110,7 @@ export function safeBrowserEvent<
   input: T,
   identity: AnalyticsIdentity,
   publicToken = "minglo-local-mock",
-  environment: "test" | "production" = "test",
+  environment: "test" | "production" | "verification" = "test",
 ) {
   const {
     $set: ignoredSet,
@@ -122,13 +128,19 @@ export function safeBrowserEvent<
         $set: { account_type: identity.accountType },
       },
     };
-  if (!["page_viewed", "agent_activity_viewed"].includes(input.event))
+  if (
+    !["page_viewed", "agent_activity_viewed", "ui_action_clicked"].includes(
+      input.event,
+    )
+  )
     return null;
   const props = input.properties ?? {};
   const allowed =
     input.event === "page_viewed"
       ? { page_name: props.page_name }
-      : { conversation_kind: props.conversation_kind };
+      : input.event === "ui_action_clicked"
+        ? { action: props.action }
+        : { conversation_kind: props.conversation_kind };
   const clean = eventProperties(input.event, allowed);
   if (!clean) return null;
   return {
