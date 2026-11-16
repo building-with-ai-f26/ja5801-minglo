@@ -8,8 +8,9 @@ does not establish delivery.
 
 Heroku v46 deployed the code; approved config-only v47 enables US Cloud capture
 for eligible opted-in accounts. Muse confirmed project privacy settings and created
-the dashboards. Actual opted-in ingestion and the hosted kill-switch trial remain
-pending; anonymous hosted checks stayed quiet with capture enabled.
+the dashboards. Muse verified two real opted-in Home events with redacted properties.
+Capture is restored in healthy v49. Jonas ended the full hosted kill-switch observation;
+its local lease/eligibility tests passed. Anonymous hosted checks stayed quiet.
 
 ## Choices and ownership
 
@@ -129,15 +130,17 @@ after verification.
 
 ## Remaining PH4 / PH5 verification
 
-1. Inspect a genuine opted-in event in project 739580 with Muse. Keep mock/local
-   guards intact and never put the real token into tests or source.
+1. Muse verified genuine opted-in browser events in project 739580. Production
+   server-event delivery remains unexercised by that check. Keep mock/local guards
+   intact and never put the real token into tests or source.
 2. Compare saved dashboard semantics against the runbook, add the repeat-interest
    cohort after events exist, and retain opt-in coverage notes. Use UTC reporting.
 3. Project privacy settings, free/no-card state, one-year retention and dashboard
    URLs are reported by Muse and recorded in the runbook. No separate $0 spending
    cap was configured; do not claim otherwise. The deletion procedure is documented.
-4. Test the live kill switch in the opted-in account's open browser and restore
-   the approved configuration. Release checks, backup and deployment are complete.
+4. Capture is restored in healthy v49. Jonas ended the full authenticated hosted
+   kill-switch observation; do not claim it passed or keep requesting it. Release
+   checks, backup, deployment and browser ingestion are verified.
    Do not impersonate
    production users, create social activity for charts, or claim autonomous returns.
 

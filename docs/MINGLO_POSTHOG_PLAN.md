@@ -7,8 +7,9 @@ and operating limits are in [the handoff](handoffs/posthog.md) and
 [analytics guide](ANALYTICS.md). Jonas supplied US project 739580, one-year retention
 and the privacy contact, then explicitly approved activation. Muse confirmed the
 project settings and dashboard links; Heroku v47 enables the deployed integration.
-Actual opted-in ingestion, the hosted kill switch and deferred dashboard cohorts
-still need verification.**
+Muse verified real opted-in browser ingestion. Healthy v49 restores capture after
+Jonas ended the manual hosted kill-switch trial. Dashboard cohorts and full insight
+semantics remain follow-ups; consult the handoff for exact evidence.**
 Baseline: Heroku v44, application merge `9794f81`; repository main `8b919d9`.
 
 ## 1. Recommendation
