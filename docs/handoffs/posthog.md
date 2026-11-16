@@ -2,8 +2,23 @@
 
 Jonas approved PH0–PH3 with the privacy defaults in `MINGLO_POSTHOG_PLAN.md`.
 Region: US Cloud. Live collection and deployment/activation are not authorized by
-this implementation request. The project ID/token are not supplied; proceed with
-an isolated loopback mock collector, never the real ingestion service.
+this implementation request. Project details have now been supplied (see below);
+continue using the isolated loopback mock collector until activation is approved.
+
+## Project setup supplied by Jonas
+
+- Project: [739580](https://us.posthog.com/project/739580/home), US Cloud.
+- Organization: Minglo; project display name: Default project. Jonas reports the
+  free tier and registration under his Stern email. These account settings have
+  not been independently inspected from an authenticated session.
+- Jonas supplied the public ingestion token in chat. It is not a personal API key;
+  keep deployment configuration in environment settings, not this document. No
+  live token has been installed in the app or Heroku.
+- Project retention, IP-discard configuration, budget controls, public deletion
+  contact and actual dashboard links still require confirmation/setup.
+- This confirms creation of the PostHog project, not live Minglo collection or
+  approval to activate it. Do not add the default snippet to `docs/index.html`:
+  that separate marketing page is outside the approved signed-in app scope.
 
 | Batch | Status |
 | --- | --- |
@@ -69,9 +84,10 @@ shut down after checks; shared local services are not managed by these scripts.
 
 ## Remaining work and limits
 
-- Actual US project ID/token, retention, operator deletion contact and dashboard
-  links remain unknown. PH0 project configuration is pending; the policy decisions
-  are already approved and must not be asked again.
+- US project ID/token have been supplied. Retention, operator deletion contact,
+  project privacy settings and dashboard links remain unconfirmed. PH0 project
+  configuration is pending; the policy decisions are already approved and must
+  not be asked again.
 - PH4 dashboards and PH5 deployment/live activation are outside the completed
   mock-only implementation. No Heroku/config change, real event ingestion,
   production fixture, outbound invitation/post, paid service or credential rotation
