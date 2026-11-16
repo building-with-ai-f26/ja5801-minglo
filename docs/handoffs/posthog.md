@@ -1,9 +1,11 @@
 # PostHog implementation progress
 
 Jonas approved PH0–PH3 with the privacy defaults in `MINGLO_POSTHOG_PLAN.md`.
-Region: US Cloud. Live collection and deployment/activation are not authorized by
-this implementation request. Project details have now been supplied (see below);
-continue using the isolated loopback mock collector until activation is approved.
+Region: US Cloud. The original PH0–PH3 request excluded live collection.
+Jonas subsequently supplied the project details and explicitly said **"activation
+approved"**. Release preparation is authorized; do not request activation approval
+again. Project privacy verification, deployment and live event evidence remain to
+be completed before claiming collection works.
 
 ## Project setup supplied by Jonas
 
@@ -34,7 +36,8 @@ continue using the isolated loopback mock collector until activation is approved
 | PH1 | Implemented: additive preferences, opaque identities, typed contract and loopback-only transport. Typecheck and two focused foundation cases passed on disposable PostgreSQL. Stable SDKs pinned: posthog-js 1.450.0 / posthog-node 5.74.0. |
 | PH2 | Implemented. Production build/typecheck and three SDK mock-browser cases pass: sanitized pages, cross-tab withdrawal/account switching, and agent authorization/disconnect/reclaim. The user approved continuing after the two-failed-fixes pause. Required public token retained; SDK bot filtering disabled for authorized agent browsers; local collector accepts the test helper’s synthetic router header. |
 | PH3 | Implemented: committed onboarding/social/conversation/routine events, retry deduplication, consent revisions and owner observations. Final validation is recorded below. |
-| PH4–PH5 | Outside this implementation scope; dashboards and live activation require the configured project. |
+| PH4 | Dashboard definitions and operator runbook prepared in `docs/MINGLO_POSTHOG_DASHBOARDS.md`. Muse is handling authenticated project setup; actual dashboard links/settings evidence pending. |
+| PH5 | Activation approved. Guarded US Cloud adapter and release checks in progress on `feature/posthog-live-activation`; deployment and live event verification not yet complete. |
 
 Existing accounts start disabled. A human's choice does not opt their agents in.
 Current owners authorize individual connected agents; agents may withdraw. Owner
@@ -90,23 +93,62 @@ Evidence: ignored `.local/posthog/` includes build/test logs, SDK diagnostic tra
 3106, restart 3105 and an independent visual server 3117. Temporary services are
 shut down after checks; shared local services are not managed by these scripts.
 
+## Activation handoff to Muse
+
+Jonas is relaying between Codex (repository/Heroku) and Muse (PostHog browser).
+No new PostHog integration, personal key or invitation to another person is needed.
+Muse should confirm IP discard, GeoIP disabled, replay/autocapture disabled,
+free-plan controls, dashboard URLs and reporting timezone. Exact dashboard event
+names and filters are in `docs/MINGLO_POSTHOG_DASHBOARDS.md`.
+
+Codex handles production code, isolated checks, backup, migration/deployment and
+the kill switch. Muse can inspect the first authorized opted-in event. Do not
+impersonate Jonas or create fake social activity. Project setup being "live" is
+not evidence that Minglo events have arrived.
+
+## Cloud release checks — November 15, 2026
+
+- Guarded production configuration and environment attribution are implemented in
+  `377b125`; request-time privacy status in `ceea53e`. Default/local collection is
+  still off. Cloud sends outside a Next request lifecycle are suppressed.
+- Production build and final typecheck passed. The full production suite had
+  155 passing cases and one discovery journey timeout. Its isolated recheck
+  exposed an existing ambiguous People & agents selector on empty Home; scoping
+  it to Workspace navigation passed all four discovery cases without changing
+  application behavior, assertions or timeouts. No automatic retry or skip.
+- Topics-off **4/4**, real-SDK mock **16/16**, and both production restart checks
+  passed. Including the corrected discovery case, **176 distinct cases** are
+  covered; repeated discovery cases are not added to that total. This is not a
+  claim that the first full run was entirely green.
+- The new tests reject incomplete/malformed/nonproduction Cloud configuration,
+  preserve the production label through browser redaction, and stop an already
+  initialized browser when server eligibility becomes null.
+- Existing pre-analytics upgrade evidence still establishes additive migration
+  preservation; no migration changed in this release. Standard production backup
+  **b025** completed before deployment preparation.
+- Evidence is ignored `.local/posthog/activation-*.log`. Checks used loopback
+  PostgreSQL 55442 and separate disposable `_test` databases; temporary app,
+  browser, collector and database processes were stopped afterward.
+- Heroku remains v44 until the actual deployment is recorded below. No Cloud
+  configuration or live event verification is claimed at this checkpoint.
+
 ## Remaining work and limits
 
 - US project ID/token, one-year retention and operator deletion contact have been
   supplied. Project privacy settings and dashboard links remain unconfirmed.
   PH0 project configuration is pending; the policy decisions are already approved
   and must not be asked again.
-- PH4 dashboards and PH5 deployment/live activation are outside the completed
-  mock-only implementation. No Heroku/config change, real event ingestion,
-  production fixture, outbound invitation/post, paid service or credential rotation
-  was performed.
-- Current code **rejects remote ingestion hosts and Heroku dynos** even if someone
-  sets POSTHOG_ENABLED=true. Actual Cloud configuration support must be reviewed
-  at activation time with the selected US project. Do not silently relax guards.
+- PH1–PH3 verification above remains mock-only evidence. Production deployment and
+  genuine event ingestion are not yet verified. No paid resource, credential
+  rotation or social activity is authorized merely to populate charts.
+- The production adapter accepts only the exact US ingestion host with an explicit
+  Cloud transport, production environment, Heroku dyno, valid public token and
+  existing session secret. Mock capture still rejects remote hosts and dynos.
+  All local suites remain isolated and must never use the real token.
 - Publish the updated privacy notice and complete project IP/GeoIP/budget settings,
-  deletion procedure and dashboard definitions before asking Jonas for live
-  activation approval. Only after that approval, verify genuine opted-in ingestion
-  and the live kill switch. Review docs/ANALYTICS.md.
+  deletion procedure and dashboard definitions, then verify genuine opted-in
+  ingestion and the live kill switch under the approval already supplied.
+  Review docs/ANALYTICS.md.
 - Collection is best effort and excludes opted-out accounts; dashboards must show
   coverage/cohort limits. Existing no-backfill and separate human/agent identity
   rules remain. Analytics does not prove personal-agent autonomy.
