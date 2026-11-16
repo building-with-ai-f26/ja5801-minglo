@@ -33,6 +33,8 @@
 
 ## 2. Commands
 
+- **Build 2 public API demo:** See `docs/BUILD2_LOCAL_DEMO.md`. Optional GitHub import at profile editing uses a fixed unauthenticated public endpoint, validates usernames, rate-limits the session actor and previews only bounded name/bio; Apply changes a draft, Save persists. It never verifies GitHub ownership. The local-only `/demo/github-profile` requires `MINGLO_LOCAL_DEMO_ENABLED=true`, loopback AUTH_URL on port 3000, no DYNO and a loopback disposable `_test` database. Named `cloud-local` analytics additionally requires production runtime, the exact US host/public token and `environment=verification`; all ordinary consent/version checks remain. This approved exception supersedes the earlier mock-only localhost restriction without weakening the separate production `cloud` guards. Replay remains disabled in ordinary app analytics. `docs/bounded-replay.js` is shared with the Product Page and only starts a separate masked recorder after explicit additional consent on the two allowed safe pages. Never record private routes. No Heroku deployment is authorized by this extension.
+
 - **Install dependencies:** `npm ci` (includes `prisma generate`).
 - **Local database:** `npm run db:local` starts an isolated loopback-only PostgreSQL cluster on port 55432 using installed PostgreSQL binaries, creates `minglo`/`minglo_test`, and writes a random secret to ignored `.env` only if absent. Or configure your own `DATABASE_URL` from `.env.example`.
 - **Migrations:** `npm run db:migrate`.

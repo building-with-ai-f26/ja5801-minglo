@@ -1,6 +1,6 @@
 # Build 2 — submission and evidence
 
-Due **Monday, November 16, 2026 at noon Eastern**. Prepared November 15.
+Due **Monday, November 16, 2026 at noon Eastern**. Updated November 16.
 
 - Product Page: https://building-with-ai-f26.github.io/ja5801-minglo/
 - Live app: https://www.minglo.club/
@@ -36,17 +36,18 @@ complete local product action with a real external API.
 
 | Exact requirement | Evidence / remaining gap |
 | --- | --- |
-| Local complete action with real AI/API call + image | Local core workflows and UI fixtures have been tested; a local product action using a real external API and its corresponding image have not yet been demonstrated. An optional public GitHub profile import is proposed for Jonas's decision. |
-| Product Page + local-app PostHog | Published-page capture is implemented and real requests were accepted. Current real app capture is Heroku-only; localhost uses the mock collector. A separate guarded local capture mode is still needed for this rubric. |
-| Pageviews, clicks and replay | Pageviews/click capture have evidence as detailed below; session replay is off. The disclosed exception does not mean the replay check passed. A separate bounded, consenting-tester demo is proposed. |
+| Local complete action with real AI/API call + image | **Verified November 16:** real public GitHub lookup → preview → apply to draft → Save → reload. Database checks confirm preview/apply did not persist and Save did. Genuine [preview](images/build2-github-preview.png) and [saved](images/build2-github-saved.png) screenshots are included on the Product Page. Disposable account and browser automation are disclosed. |
+| Product Page + local-app PostHog | Published-page capture has real accepted requests. The new named `cloud-local` mode preserves production guards and requires explicit disposable-local setup and consent. The actual localhost demo emitted `page_viewed` plus both `ui_action_clicked` categories; real ingestion requests received HTTP 200. [Sanitized record](evidence/build2-local-api.json). |
+| Pageviews, clicks and replay | Pageviews/clicks have real wire evidence on both surfaces. Separately consented bounded replay is implemented and the real recorder passes redaction checks with intercepted ingestion. **Live replay remains incomplete:** project configuration was still off during the local demo; zero snapshots were emitted. No consenting human session or live-project replay inspection is claimed. |
 | PRD v2 | Risk/architecture and estimate basis are documented. The real-host return risk remains partly untested; cost/run must distinguish variable API cost, fixed hosting allocation and unreconciled actual spend. |
-| AGENTS.md | Structure, install, database, migration, run and verification commands are present. Local real-capture/demo instructions will need updating if implemented. |
+| AGENTS.md | Structure, install, database, migration, run and verification commands are present, with [local real API/capture setup](BUILD2_LOCAL_DEMO.md) and the approved bounded replay exception. |
 | Commits on two non-class days | **Met:** Friday Nov 13 (`361d336`, profile follow counts) and Sunday Nov 15 (`377b125`, guarded Cloud analytics), verified from Git dates in America/New_York. |
 | Build log | Progress, lessons and problems are published. Actual coding costs, invoices and hours still require Jonas; no personal records are invented. |
 
 No new Heroku deployment or configuration change is authorized by this follow-up.
-The new feature and replay boundary are material choices presented to Jonas;
-independent documentation/cadence verification does not depend on those answers.
+Jonas explicitly approved the GitHub import and bounded replay demo on November 16.
+Independent documentation/cadence verification is complete; missing personal and
+authenticated project evidence stays labeled.
 
 ## Evidence checklist
 
@@ -57,7 +58,7 @@ independent documentation/cadence verification does not depend on those answers.
 | App configuration and activation | Already complete before this update: app source `c9e3d8e`, active Heroku v49 after approved activation. Safeguards remain. No Heroku mutation is part of this task. |
 | Real app page events | Muse inspected two opted-in Home `page_viewed` events in US project 739580. Expected production/person/browser/schema/GeoIP fields matched; identity was opaque and private fields were absent. This is relayed Muse evidence. |
 | Product Page view and button click | Both events exercised on the actual published page using explicit consent and `environment=verification`; both real ingestion requests received HTTP 200. PostHog UI inspection of these new events remains pending. Isolated tests separately inspect complete outgoing payloads. |
-| Session replay with a consenting tester | **Not completed.** Replay remains off under the approved privacy policy. No consenting human recording was observed in this session. This is an explicit exception/gap against the requested replay evidence, not a passing check. |
+| Session replay with a consenting tester | **Not completed live.** The separately approved recorder works in intercepted real-SDK tests, with all text/inputs/attributes masked and private URLs excluded. The real local run still received project-side replay OFF and emitted zero snapshots. No consenting human recording was observed; this remains a submission gap. |
 | Dashboard screenshot | **Pending authenticated export.** Actual dashboard links are below. No screenshot has been invented from sample rows or reconstructed metrics. |
 | Costs, hours, podmate critique | Actual invoices/coding-agent spend/hours require Jonas's reconciliation. Podmate sign-off is not in the exact five-item rubric supplied November 16 and is not treated as a separate submission blocker. No values or participation are fabricated. |
 
@@ -84,23 +85,67 @@ visits use `environment=production`. No app account or social activity is needed
 The exact payload keeps the public project token, opaque per-document identity,
 GeoIP-disable flag, fixed public canonical URL for `$pageview`, schema version,
 environment, source and surface. A click adds only the fixed button/placement.
-It excludes actual URLs, referrers, searches, text, recordings and person properties.
+Ordinary page analytics excludes actual URLs, referrers, searches, text, recordings
+and person properties. The separately consented recorder has its own opaque ID
+and narrow safe-page contract; ordinary app recording remains disabled.
 
 A successful browser capture request shows transport acceptance. The Events tab
 in PostHog must show the event before claiming actual ingestion. In the earlier
 Muse check, the live stream still said it was waiting while Events contained the
 real app records; sample data is never counted as evidence.
 
-## Replay exception and safe next check
+## Bounded replay and remaining live check
 
 Private conversations and sensitive inputs are excluded from recordings. The
-current implementation records no sessions anywhere. A later public-page-only
-recording would require a separate explicit tester choice, all inputs/text masked,
-network/console capture off, an isolated URL allowlist and an observed human
-session. Do not claim an automated browser is a consenting outside tester.
-No PostHog project replay setting was changed for this task.
+approved implementation can start a separate recorder only on the canonical
+public Product Page or exact disposable localhost demo, after additional per-visit
+consent. It masks all text, inputs and attributes; blocks scripts/images/hidden
+fields/embeds; drops plugin/custom events; and stops on withdrawal, tab switch,
+leaving or expiry. Ordinary app analytics never enables its recorder.
+
+The local run at 09:16 Eastern showed “Waiting for PostHog replay configuration”
+and no snapshots. Muse still needs to enable the approved project-side replay
+scope and export the real dashboard image. A consenting human must perform the
+bounded interaction and its replay must be inspected before claiming that check.
+An automated privacy check is not an outside-human trial. No admin key is needed
+in the app or Product Page, and no such key was requested or stored.
+
+## November 16 local action evidence
+
+Source `42d791b`, production build, isolated loopback database ending `_test`,
+`cloud-local` verification mode, actual public `GET /users/octocat`, no API/mock
+overrides. GitHub returned “The Octocat” and no public bio; the original synthetic
+introduction was preserved. Only Save updated the database and reload retained it.
+Browser requests accepted a redacted profile pageview and lookup/apply clicks
+with HTTP 200. Opt-out was saved and the eligibility endpoint returned `null`.
+The demo browser closed and the local Next server was stopped after capture.
+This is technical integration evidence, not agent autonomy or a human usability
+study. No GitHub key, model API or paid resource was used. Direct API charge: $0.
 
 ## Checks and publication record
+
+### November 16 API and bounded-replay extension
+
+- **162 distinct app checks covered:** 161 passed in the full production-build
+  run; the remaining Public chat journey hit its global time budget at the last
+  read while the separate demo was also running. It passed alone in 18 seconds
+  with the same assertions and 45-second limit. No app correction was needed.
+- **16 analytics mock checks passed** with the official browser/Node SDKs.
+- **4 Topics-off checks passed** against the production build. The initial cold
+  development-server pass had a navigation timeout; assertions and limits stayed
+  unchanged for the production recheck.
+- **12 Product Page checks passed**, including the real recorder, content/attribute/
+  script masking, separate consent, withdrawal and unsafe-URL exclusions.
+- Production build, typecheck, script syntax and diff checks passed. Both real
+  restart checks passed against preserved disposable fixtures. The restart
+  verifier now accepts repeated Public chat fixtures while still requiring both
+  account roles and checking every matched account before/after restart.
+- **194 distinct browser/domain checks** across these suites. Rechecks and
+  restarts are described separately, not counted as extra distinct cases.
+- No new schema/dependency, production database mutation or Heroku push. Temporary
+  demo/test servers and the isolated PostgreSQL cluster were shut down.
+
+The historical November 15 publication/check record follows.
 
 Nine focused real-SDK browser cases passed. They cover no request before consent,
 refusal, sanitized pageview/click, withdrawal/reload, cross-tab withdrawal, withdrawal

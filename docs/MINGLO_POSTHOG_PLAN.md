@@ -1,5 +1,14 @@
 # Minglo PostHog implementation plan
 
+**November 16 approved extension:** Jonas approved optional GitHub profile import
+and a separately consented bounded replay demo for the exact Build 2 rubric.
+See [the local guide](BUILD2_LOCAL_DEMO.md) and [submission record](BUILD2_SUBMISSION.md).
+This supersedes earlier mock-only localhost and blanket replay exclusions only
+for the explicitly activated disposable local verification mode and the two
+safe recording pages. Production guards and private-route replay exclusions
+remain; no Heroku push is authorized. A working recorder is not evidence of a
+consenting human session until that session is actually observed.
+
 Prepared November 13, 2026. Updated November 15, 2026: **Jonas approved implementation
 with the recommended privacy defaults. Use US Cloud following his US-location
 clarification. PH1–PH3 is implemented and verified with mock capture; current verification

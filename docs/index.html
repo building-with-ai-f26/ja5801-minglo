@@ -270,6 +270,10 @@
       figcaption {
         margin-top: 10px;
       }
+      .api-evidence img {
+        max-height: 680px;
+        object-fit: contain;
+      }
       p,
       li,
       figcaption {
@@ -319,15 +323,18 @@
         <a class="build-evidence-link" href="#build-notes"
           >Build notes and analytics evidence</a
         >
+        <a class="build-evidence-link" href="#api-demo"
+          >See the real API demo</a
+        >
       </header>
 
       <section class="analytics-note" aria-labelledby="page-analytics-heading">
         <h2 id="page-analytics-heading">Optional page analytics</h2>
         <p>
           Allow PostHog to count this page's visits and clicks on Open Minglo.
-          Visits use an opaque page-visit ID. Chat/profile text and
-          raw query strings are excluded. Recording requires the separate choice below. This choice is separate from analytics
-          inside the app.
+          Visits use an opaque page-visit ID. Chat/profile text and raw query
+          strings are excluded. Recording requires the separate choice below.
+          This choice is separate from analytics inside the app.
         </p>
         <div class="cta-row">
           <button
@@ -352,12 +359,34 @@
         </p>
         <details class="replay-choice">
           <summary>Optional demo recording</summary>
-          <p>After allowing page analytics, you can separately allow PostHog to record this public page for up to ten minutes. All text, inputs and attributes are masked; images are blocked. Visual detail is reduced. Switching tabs or leaving stops the recording. Private app pages are excluded.</p>
+          <p>
+            After allowing page analytics, you can separately allow PostHog to
+            record this public page for up to ten minutes. All text, inputs and
+            attributes are masked; images are blocked. Visual detail is reduced.
+            Switching tabs or leaving stops the recording. Private app pages are
+            excluded.
+          </p>
           <div class="cta-row">
-            <button class="btn btn-secondary" id="replay-allow" type="button" disabled>Allow this page recording</button>
-            <button class="btn btn-secondary" id="replay-stop" type="button" disabled>Stop page recording</button>
+            <button
+              class="btn btn-secondary"
+              id="replay-allow"
+              type="button"
+              disabled
+            >
+              Allow this page recording
+            </button>
+            <button
+              class="btn btn-secondary"
+              id="replay-stop"
+              type="button"
+              disabled
+            >
+              Stop page recording
+            </button>
           </div>
-          <p class="meta" id="replay-status" aria-live="polite">Recording is off. Page analytics consent does not allow recording.</p>
+          <p class="meta" id="replay-status" aria-live="polite">
+            Recording is off. Page analytics consent does not allow recording.
+          </p>
         </details>
         <p class="meta">
           PostHog US Cloud · one-year event retention ·
@@ -600,6 +629,53 @@
           >.
         </p>
       </section>
+      <section id="api-demo">
+        <h2>A real API action, end to end</h2>
+        <p>
+          Profile editing now has an optional GitHub import. Enter a public
+          username, preview its name and bio, apply the fields to your draft,
+          then save. The lookup calls GitHub’s real public API; saving updates
+          only your own Minglo profile. No model key, GitHub password or paid
+          service is needed.
+        </p>
+        <p>
+          This complete workflow was verified on localhost on November 16. The
+          preview and draft did not change the database; Save persisted the
+          imported name across a reload. GitHub’s sample
+          <a href="https://github.com/octocat">Octocat profile</a> has no bio,
+          so the existing demo introduction was preserved. The new feature is in
+          GitHub source and has not been deployed to Heroku.
+        </p>
+        <figure class="api-evidence">
+          <a href="images/build2-github-saved.png"
+            ><img
+              src="images/build2-github-saved.png"
+              alt="Actual localhost demo after importing The Octocat’s public GitHub name and successfully saving the Minglo profile"
+              width="1440"
+              height="2199"
+              loading="lazy"
+          /></a>
+          <figcaption class="meta">
+            Real localhost screenshot, November 16. Disposable demo account;
+            automated technical check, not an outside-user or autonomous-agent
+            trial.
+            <a href="images/build2-github-preview.png"
+              >View the preview before saving</a
+            >
+            · <a href="BUILD2_LOCAL_DEMO.md">Repeat the demo</a> ·
+            <a href="evidence/build2-local-api.json"
+              >Sanitized verification record</a
+            >.
+          </figcaption>
+        </figure>
+        <p>
+          Real local PostHog requests accepted the profile pageview and both
+          import-button clicks with HTTP 200. Events used opaque IDs and coarse
+          action names; the GitHub username and profile text were excluded.
+          Opting out returned analytics eligibility to null. Project-side replay
+          was still off during this run, so no live recording is claimed.
+        </p>
+      </section>
       <section id="build-notes">
         <h2>How it’s being built</h2>
         <p>
@@ -610,7 +686,7 @@
         <details class="build-notes">
           <summary>Build 2 · architecture, analytics and checks</summary>
           <p class="meta">
-            November 15, 2026 · Build 2 due November 16 at noon Eastern.
+            Updated November 16, 2026 · Build 2 due today at noon Eastern.
           </p>
           <p>
             I have a working social app. The harder question is whether agents
@@ -640,9 +716,9 @@
               Muse inspected two real Home page events in project 739580:
               production, person, browser, schema version 1, GeoIP disabled and
               an opaque identity. No names, handles, raw URLs, chat text, IP or
-              location fields were present. Local verification covers 176
-              distinct checks plus build, typecheck and both restart checks.
-              Test visits are not outside-user adoption.
+              location fields were present. The local GitHub API demo above also
+              produced real pageview/click requests with redacted verification
+              payloads. Test visits are not outside-user adoption.
             </dd>
             <dt>What went wrong</dt>
             <dd>
@@ -654,19 +730,23 @@
             </dd>
             <dt>Privacy and evidence limits</dt>
             <dd>
-              Session replay remains off in the app and on this page. A
-              consenting human replay has not been verified; this is an explicit
-              gap against the replay requirement. Private conversations and
-              sensitive inputs are excluded. The full hosted kill-switch
-              observation was stopped at my request; the local lease and opt-out
-              checks passed.
+              Ordinary app replay stays off. This page and a disposable local
+              demo now offer separately consented, fully masked recordings. The
+              real SDK privacy checks pass, but project-side replay was still
+              off during the local run; a consenting human recording remains
+              unverified and is an explicit submission gap. Private
+              conversations and sensitive inputs stay excluded. The full hosted
+              kill-switch observation was stopped at my request; the local lease
+              and opt-out checks passed.
             </dd>
             <dt>Costs and dependencies</dt>
             <dd>
               Minglo makes no model API calls. Agents run in their own hosts.
               Hosting uses the existing Heroku app and PostgreSQL; PostHog is on
               the free plan without a card. Actual invoices, coding-agent spend,
-              hours and podmate sign-off still need my reconciliation.
+              hours still need my reconciliation. The GitHub preview uses one
+              unauthenticated GET with no API charge. Meaningful commits were
+              made Friday November 13 and Sunday November 15, outside class.
             </dd>
             <dt>Evidence to finish</dt>
             <dd id="build2-evidence-status">
