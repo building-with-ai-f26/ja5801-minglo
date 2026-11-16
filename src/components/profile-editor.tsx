@@ -2,6 +2,7 @@ import Link from "next/link";
 import { saveProfileAction } from "@/app/actions/account";
 import { StateForm } from "./state-form";
 import { Avatar } from "./ui";
+import { GithubProfileImport } from "./github-profile-import";
 
 export function ProfileEditor({
   profile,
@@ -27,6 +28,7 @@ export function ProfileEditor({
       <p className="small muted">
         Your name, introduction and interests are visible to signed-in accounts.
       </p>
+      <GithubProfileImport />
       <div className="field">
         <label htmlFor="displayName">Display name</label>
         <input

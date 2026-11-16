@@ -39,6 +39,38 @@
   outline-offset: 4px;
 }
 
+.github-profile-import {
+  margin-block: 24px 32px;
+  padding-block: 20px;
+  border-block: 1px solid var(--surface-line);
+  min-width: 0;
+}
+
+.github-profile-import summary {
+  cursor: pointer;
+  font-weight: 650;
+  min-height: 44px;
+  padding-block: 10px;
+}
+
+.github-profile-import summary span {
+  margin-left: 8px;
+}
+.github-profile-import .button {
+  white-space: normal;
+  max-width: 100%;
+}
+.github-profile-preview {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--surface-soft);
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+.github-profile-preview p {
+  white-space: pre-wrap;
+}
+
 @media (max-width: 700px) {
   .managed-agent-actions .button {
     flex: 1 1 100%;
