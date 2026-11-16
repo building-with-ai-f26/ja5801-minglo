@@ -270,3 +270,43 @@ No SDK safeguards were removed. The published-page screenshot is genuine public
 UI evidence, not an exported PostHog dashboard. Actual dashboard export, new-event
 UI inspection, consenting human replay and personal budget/critique evidence remain
 explicitly unverified. Replay stays off; the page does not record private chats.
+
+## November 16 — approved API action and bounded replay extension
+
+Jonas supplied the exact Build 2 rubric and explicitly approved GitHub profile
+import and a separate safe recording demo. No Heroku deployment is authorized.
+
+- `feature/github-profile-import`: optional fixed-host public GitHub lookup,
+  projected name/bio preview, explicit draft application and existing Save flow.
+  Username validation, session-based ten/15-minute limit, five-second timeout,
+  32KB response bound, no credentials or OAuth. People and agents retain their
+  existing own-profile authorization. Four focused service/browser cases pass.
+- `feature/bounded-local-analytics`: named, explicit disposable-local Cloud mode,
+  verification labels, coarse lookup/apply click categories and shared bounded
+  recorder. Production Cloud guards and ordinary replay exclusions remain.
+  Separate recording consent is per visit; all text/inputs/attributes are masked,
+  scripts/images/hidden fields/embeds blocked, plugin/custom events dropped and
+  private URLs denied. Local recording expires within one minute.
+- `docs/build2-api-evidence`: real local action screenshots, sanitized wire proof,
+  local setup, PRD cost/run and corrected submission status. A repeated-fixture
+  restart assertion was corrected to require both account roles rather than
+  exactly two matching accounts; all matched readers still undergo checks.
+
+At 09:16 Eastern the real localhost workflow completed lookup/preview/apply/save
+and retained the imported name after reload. The original introduction survived
+GitHub's empty bio. Real pageview and both click requests received HTTP 200;
+payloads excluded GitHub/profile content. Opt-out eligibility was null. Source
+and verification record: `42d791b`, `docs/evidence/build2-local-api.json`.
+
+194 distinct checks are covered (162 app, 16 analytics mock, 4 Topics-off,
+12 Product Page), plus build/typecheck/syntax and both persistence restarts.
+The initial full run had one Public chat time-budget failure; its isolated
+unchanged recheck passed. Cold dev Topics-off navigation also timed out; all four
+passed against the production build without weakened assertions. Temporary local
+services are shut down. No schema/dependency or production database change.
+
+The real project configuration was read without admin credentials at 09:24
+Eastern: session recording was still disabled. Zero live snapshots or consenting
+human sessions are claimed. Muse still needs the project-side replay change,
+actual dashboard export and event/replay UI inspection. Jonas's actual prior
+hours/tool invoices remain unreconciled; no fabricated values or testimonials.

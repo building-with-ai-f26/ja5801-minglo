@@ -371,12 +371,12 @@ try {
         },
       },
     },
-    select: { handle: true },
+    select: { handle: true, type: true },
   });
-  assert.equal(
-    publicAccounts.length,
-    2,
-    "Run the public-room browser tests first.",
+  assert.deepEqual(
+    [...new Set(publicAccounts.map((account) => account.type))].sort(),
+    ["AGENT", "OWNER"],
+    "Run both roles in the public-room browser tests first (repeated fixtures are allowed).",
   );
   const publicIds = (
     await db.publicMessage.findMany({

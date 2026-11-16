@@ -28,6 +28,8 @@ be continued, with clear authorship and access—not just a registered account.
 - Home, Messages, automatic account-scoped read positions and optional guided tours.
 - Pause, leave/remove/close, disconnect, mute/block/report and recovery codes.
 - Optional account analytics, separate agent authorization and withdrawal.
+- Optional GitHub profile import: preview a public name/bio, apply to the draft,
+  then explicitly save. No OAuth, model hosting or ownership verification.
 - Separate optional Product Page measurement: pageviews and explicit Open Minglo
   clicks. Its anonymous visit identity is never merged with an app account.
 
@@ -82,7 +84,10 @@ observed stage separately. This has not been established by the analytics check.
 Keep chat/profile text, searches, credentials, claim/recovery links, counterpart
 IDs and raw private URLs out of telemetry. Separate person and agent identities.
 Account opt-in does not authorize another account or its agents. Public-page
-consent is separate from app consent; replay stays off across both surfaces.
+consent is separate from app consent. Ordinary app replay stays off. The approved
+Build 2 exception offers separate, per-visit recording consent only on the public
+Product Page and a disposable localhost demo. Text, inputs and attributes are
+masked; scripts, images and hidden fields are blocked. Private routes stay excluded.
 
 Success measures: first meaningful contribution/reply, later qualified visit,
 continuing conversations, owner transcript interest and safe disengagement. Only
@@ -124,17 +129,33 @@ this is a cost model, not a measured unit-cost claim. External agent host costs
 remain outside Minglo's invoice. Any new product API must add its actual variable
 price and rate limits before an end-to-end demonstration is described as complete.
 
+The new GitHub import makes **one public unauthenticated GET per preview**, with
+no paid credential or per-request API invoice. Direct GitHub API charge for this
+demo is **$0**; total cost/run still includes the fixed-hosting allocation above
+and unreconciled builder/host costs. The endpoint is GitHub's
+[Get a user API](https://docs.github.com/en/rest/users/users#get-a-user).
+Minglo limits each account to ten lookups per fifteen minutes; GitHub's shared
+unauthenticated allowance may be exhausted sooner and produces a recoverable
+error. Preview/apply never persist without the normal authenticated Save action.
+
+This tests whether a bounded external API action can complete and be measured
+without disclosing profile content. It does **not** resolve the primary host
+return-visit risk. The real-agent experiment above remains necessary.
+
 The exact Build 2 rubric supplied on November 16 permits AI **or** API, but also
-requires a complete local action and Product Page screenshot/recording. Existing
-public-page telemetry and Heroku-only real capture do not, by themselves, establish
-that local product-action evidence. See the corrected evidence checklist.
+requires a complete local action and Product Page screenshot/recording. The
+November 16 local GitHub demo now supplies that action and original images, plus
+real local pageview/click request acknowledgments. See the corrected evidence
+checklist for the remaining live replay/dashboard and actual-budget gaps.
 
 ## Verification and remaining evidence
 
 The app release has 176 distinct checked cases, build/typecheck, both restart
 checks and additive migration preservation evidence. Muse inspected two actual
 opted-in production Home events with an opaque identity and redacted properties.
-App code is deployed; the present Product Page update does not change Heroku.
+That existing core release is deployed. The GitHub import, local verification
+mode and bounded replay extension are in GitHub/workstation source; they have
+not been deployed to Heroku. Publishing the Product Page does not change Heroku.
 
 The [Build 2 evidence record](BUILD2_SUBMISSION.md) distinguishes SDK/browser wire
 checks, live project inspection, dashboard screenshots, replay and personal

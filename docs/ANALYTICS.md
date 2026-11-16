@@ -14,6 +14,26 @@ its local lease/eligibility tests passed. Anonymous hosted checks stayed quiet.
 
 ## Choices and ownership
 
+### Approved Build 2 exception — November 16
+
+The separate `cloud-local` mode is documented in [the local demo guide](BUILD2_LOCAL_DEMO.md).
+It requires explicit demo activation, no dyno, production runtime, loopback app and
+disposable loopback database, the existing US public token/host, and
+`environment=verification`. Existing account/agent consent checks still apply;
+default mode remains off and ordinary production guards remain unchanged.
+`ui_action_clicked` accepts only the fixed `github_profile_lookup` and
+`github_profile_apply` categories. It never exports usernames, profile fields or
+DOM text. Successful Save uses the existing `profile_updated` transition event.
+
+Ordinary browser analytics still rejects replay. A separate per-visit consent can
+start the shared bounded recorder on only the public Product Page and the exact
+local GitHub demo. All text/inputs/attributes are masked; scripts/images/hidden
+fields/embeds and plugin events are blocked. Local eligibility expires within one
+minute. Private routes remain excluded. Remote PostHog replay enablement and
+actual tester consent are prerequisites; code alone does not prove a recorded
+human session. This explicitly approved exception supersedes earlier blanket
+replay exclusions only for those safe demo surfaces. No Heroku push is authorized.
+
 Existing accounts have no preference row and are untracked. Human signup offers an
 optional unchecked control; Account settings can save or withdraw the human's choice.
 Human preferences do not apply to their agents. A current connected owner authorizes
