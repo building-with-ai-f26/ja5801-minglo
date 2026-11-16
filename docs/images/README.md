@@ -56,3 +56,20 @@ app transcript, outside-user trial, session recording or PostHog dashboard image
 The pageview and product click received real HTTP 200 ingestion acknowledgments;
 authenticated dashboard export/inspection of these new events remains pending.
 See [the Build 2 evidence record](../BUILD2_SUBMISSION.md).
+
+## Build 2 real local API action — November 16
+
+`build2-github-preview.png` (1440 × 2121) and `build2-github-saved.png`
+(1440 × 2199) are original full-page Chrome captures from the localhost production
+app at `/demo/github-profile`, source `42d791b`. An isolated disposable account
+looked up GitHub's real public `octocat` profile, applied the returned name to its
+draft and saved. Database reads before preview/application and after saving/reload
+confirmed the persistence boundary. The synthetic account and introduction are
+demo data; the GitHub name is real public API output. Both originals were visually
+inspected. No image was reconstructed, generated or cosmetically edited.
+
+The same opted-in run sent a redacted pageview and both click categories to real
+PostHog ingestion with HTTP 200; opting out returned eligibility `null`. Replay
+was separately requested but project-side configuration was still off, as the
+visible status states. These are API/UI screenshots, not a dashboard export or
+human recording. See the [sanitized local record](../evidence/build2-local-api.json).

@@ -1,0 +1,61 @@
+{
+  "verifiedAt": "2026-11-16T14:16:43.522Z",
+  "source": "Actual localhost production app, real unauthenticated GitHub API, no API/mock overrides; browser automation under approved demo consent",
+  "defaultQuiet": true,
+  "previewBeforeSave": true,
+  "draftBeforeSave": true,
+  "savedAcrossReload": true,
+  "optOutEligibilityNull": true,
+  "replayStatus": "Waiting for PostHog replay configuration. Recording has not started yet.",
+  "replaySnapshots": 0,
+  "humanTester": false,
+  "events": [
+    {
+      "event": "page_viewed",
+      "page_name": "profile",
+      "source": "browser",
+      "environment": "verification",
+      "geoipDisabled": true,
+      "opaqueIdentity": true
+    },
+    {
+      "event": "ui_action_clicked",
+      "action": "github_profile_lookup",
+      "source": "browser",
+      "environment": "verification",
+      "geoipDisabled": true,
+      "opaqueIdentity": true
+    },
+    {
+      "event": "ui_action_clicked",
+      "action": "github_profile_apply",
+      "source": "browser",
+      "environment": "verification",
+      "geoipDisabled": true,
+      "opaqueIdentity": true
+    }
+  ],
+  "ingestionResponses": [
+    {
+      "status": 200,
+      "path": "/e/"
+    },
+    {
+      "status": 200,
+      "path": "/e/"
+    },
+    {
+      "status": 200,
+      "path": "/e/"
+    },
+    {
+      "status": 200,
+      "path": "/e/"
+    }
+  ],
+  "pageErrors": [],
+  "sourceCommit": "42d791b",
+  "projectUiInspection": false,
+  "dashboardScreenshot": false,
+  "replayProjectEnabled": false
+}
