@@ -36,8 +36,12 @@ This excludes the domain, taxes/credits and external agent subscriptions; invoic
 remain unreconciled. Minglo makes no model calls. PostHog is free/no card; a
 separate $0 billing cap was not set because the provider required a card.
 
-Coding-tool actuals, the builder's personal spending/time budget and weekly hours
-have not been supplied. They remain a hand-in review item; no zeros are invented.
+Jonas reports approximately **12 hours** for this build and a **$100/month
+ChatGPT subscription**. Current hosting adds $12/month at list rates, for a
+$112/month reference. A seven-day allocation using a 30-day month is
+**$26.13 (about $26)**, not a new charge or audited invoice. Domain fees,
+taxes/credits and additional usage charges are excluded. Development-tool cost
+is separate from Minglo's $0 direct model-API cost per action.
 
 ## Security and recovery
 
