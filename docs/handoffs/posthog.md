@@ -376,3 +376,31 @@ DOM but a black player area, and an earlier recording that never appeared. Keep
 that limitation; do not claim the successful local player proves that public
 recording rendered. Reported recording retention is 30 days (events: one year).
 No additional production activity, app source change or Heroku deployment.
+
+## Approved Heroku v50 release — November 16
+
+After confirming his hand-in, Jonas explicitly lifted the earlier deployment
+hold and approved deploying main. **Heroku v50** successfully deployed source
+**865cfc666f85b2d3c177b7e0a316b3ae0af08453**. GitHub import, coarse import-click
+tracking and updated privacy copy are now in the live app.
+
+- Pre-release database backup **b026** completed. No database was reset and no
+  paid resource was provisioned. Working secrets, configuration and plans stayed
+  unchanged; no credential rotation or forced sign-out was requested.
+- App/runtime source matches the already tested baseline: 194 distinct checks
+  and both restart checks. Fresh typecheck and Heroku production build passed.
+- Release phase found 23 migrations and **no pending migrations to apply**.
+- Seven signed-out hosted checks passed: canonical and Heroku-direct health
+  returned 200/ok; login returned 200; profile editing redirected to login;
+  privacy showed active optional analytics; analytics eligibility returned
+  401/null; the localhost-only demo returned 404 on Heroku.
+- Signed-in GitHub import behavior was verified locally. Hosted checks created
+  no production account, message, connection or artificial analytics event.
+- Local-only Cloud/demo guards and ordinary-app replay exclusion remain in
+  force. Temporary local services were not started for deployment.
+
+Previous release **v49** remains the code rollback target if needed; rollback
+does not reverse migrations. No schema change was part of v50. Private deployment
+and hosted-check logs are in ignored `.local/build2/`; do not publish config or
+credentials from operator tooling. Later GitHub documentation commits only record
+the release and do not require another Heroku deployment.
