@@ -14,15 +14,23 @@ continue using the isolated loopback mock collector until activation is approved
 - Jonas supplied the public ingestion token in chat. It is not a personal API key;
   keep deployment configuration in environment settings, not this document. No
   live token has been installed in the app or Heroku.
-- Project retention, IP-discard configuration, budget controls, public deletion
-  contact and actual dashboard links still require confirmation/setup.
+- Jonas confirmed event retention is **Organization default (1 year)** under
+  Project > Product analytics, and approved **ja5801@stern.nyu.edu** as the public
+  privacy/deletion contact. The address belongs in Minglo's `/privacy` notice;
+  it does not require a PostHog settings field.
+- The app notice now includes these details; publication awaits an approved
+  deployment. IP-discard configuration, budget controls, deletion procedure and
+  actual dashboard links still require confirmation/setup. Jonas reports making
+  no project changes and that collection remains off.
+- The notice-only update passed `npm run typecheck` and `git diff --check`.
+  No app/database services were started and no analytics configuration changed.
 - This confirms creation of the PostHog project, not live Minglo collection or
   approval to activate it. Do not add the default snippet to `docs/index.html`:
   that separate marketing page is outside the approved signed-in app scope.
 
 | Batch | Status |
 | --- | --- |
-| PH0 | Product decisions confirmed. Actual US project settings and retention selection await project setup. No collection enabled. |
+| PH0 | Project details, one-year retention and public deletion contact supplied. IP/GeoIP/budget controls and deletion procedure still need verification. No collection enabled. |
 | PH1 | Implemented: additive preferences, opaque identities, typed contract and loopback-only transport. Typecheck and two focused foundation cases passed on disposable PostgreSQL. Stable SDKs pinned: posthog-js 1.450.0 / posthog-node 5.74.0. |
 | PH2 | Implemented. Production build/typecheck and three SDK mock-browser cases pass: sanitized pages, cross-tab withdrawal/account switching, and agent authorization/disconnect/reclaim. The user approved continuing after the two-failed-fixes pause. Required public token retained; SDK bot filtering disabled for authorized agent browsers; local collector accepts the test helper’s synthetic router header. |
 | PH3 | Implemented: committed onboarding/social/conversation/routine events, retry deduplication, consent revisions and owner observations. Final validation is recorded below. |
@@ -84,10 +92,10 @@ shut down after checks; shared local services are not managed by these scripts.
 
 ## Remaining work and limits
 
-- US project ID/token have been supplied. Retention, operator deletion contact,
-  project privacy settings and dashboard links remain unconfirmed. PH0 project
-  configuration is pending; the policy decisions are already approved and must
-  not be asked again.
+- US project ID/token, one-year retention and operator deletion contact have been
+  supplied. Project privacy settings and dashboard links remain unconfirmed.
+  PH0 project configuration is pending; the policy decisions are already approved
+  and must not be asked again.
 - PH4 dashboards and PH5 deployment/live activation are outside the completed
   mock-only implementation. No Heroku/config change, real event ingestion,
   production fixture, outbound invitation/post, paid service or credential rotation
@@ -95,10 +103,10 @@ shut down after checks; shared local services are not managed by these scripts.
 - Current code **rejects remote ingestion hosts and Heroku dynos** even if someone
   sets POSTHOG_ENABLED=true. Actual Cloud configuration support must be reviewed
   at activation time with the selected US project. Do not silently relax guards.
-- Complete the privacy notice's retention/contact, project IP/GeoIP/budget settings,
-  dashboard definitions before asking Jonas for live activation approval. Only
-  after that approval, verify genuine opted-in ingestion and the live kill switch.
-  Review docs/ANALYTICS.md.
+- Publish the updated privacy notice and complete project IP/GeoIP/budget settings,
+  deletion procedure and dashboard definitions before asking Jonas for live
+  activation approval. Only after that approval, verify genuine opted-in ingestion
+  and the live kill switch. Review docs/ANALYTICS.md.
 - Collection is best effort and excludes opted-out accounts; dashboards must show
   coverage/cohort limits. Existing no-backfill and separate human/agent identity
   rules remain. Analytics does not prove personal-agent autonomy.
