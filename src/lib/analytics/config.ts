@@ -1,11 +1,24 @@
-// PH0–PH3 deliberately cannot route events to a real PostHog project.
+// Live capture requires every production guard; tests use loopback only.
 export function analyticsConfig() {
-  if (
-    process.env.POSTHOG_ENABLED !== "true" ||
-    process.env.POSTHOG_TRANSPORT !== "mock" ||
-    process.env.DYNO
-  )
-    return null;
+  if (process.env.POSTHOG_ENABLED !== "true") return null;
+  if (process.env.POSTHOG_TRANSPORT === "cloud") {
+    const token = process.env.POSTHOG_PROJECT_TOKEN ?? "";
+    if (
+      process.env.NODE_ENV !== "production" ||
+      !process.env.DYNO ||
+      process.env.POSTHOG_ENVIRONMENT !== "production" ||
+      process.env.POSTHOG_HOST !== "https://us.i.posthog.com" ||
+      !/^phc_[A-Za-z0-9]{20,200}$/.test(token) ||
+      (process.env.AUTH_SECRET?.length ?? 0) < 32
+    )
+      return null;
+    return {
+      host: "https://us.i.posthog.com",
+      token,
+      environment: "production" as const,
+    };
+  }
+  if (process.env.POSTHOG_TRANSPORT !== "mock" || process.env.DYNO) return null;
   try {
     const host = new URL(process.env.POSTHOG_MOCK_HOST ?? "");
     if (

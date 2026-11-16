@@ -100,7 +100,12 @@ export type AnalyticsIdentity = {
 // Rebuild every payload rather than removing a few known secrets from SDK defaults.
 export function safeBrowserEvent<
   T extends { event: string; properties?: Record<string, unknown> },
->(input: T, identity: AnalyticsIdentity, publicToken = "minglo-local-mock") {
+>(
+  input: T,
+  identity: AnalyticsIdentity,
+  publicToken = "minglo-local-mock",
+  environment: "test" | "production" = "test",
+) {
   const {
     $set: ignoredSet,
     $set_once: ignoredOnce,
@@ -135,7 +140,7 @@ export function safeBrowserEvent<
       distinct_id: identity.analyticsId,
       account_type: identity.accountType,
       schema_version: 1,
-      environment: "test",
+      environment,
       capture_source: "browser",
     },
   };
