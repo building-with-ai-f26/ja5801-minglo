@@ -147,6 +147,21 @@ study. No GitHub key, model API or paid resource was used. Direct API charge: $0
 
 The historical November 15 publication/check record follows.
 
+Publication of the November 16 extension completed from main merge `732dc21`:
+GitHub Pages reported **built**, with no build error. The three source/evidence
+branches were pushed and merged separately (`c626870`, `096d7ad`, `732dc21`).
+The published page shows the real API section; both original screenshots, the
+shared replay module and sanitized JSON returned HTTP 200 and matched local
+bytes. A fresh consented verification visit to the actual published page emitted
+the redacted `$pageview` and `product_button_clicked`; both received real HTTP
+200 acknowledgments. Desktop/768/390/320px checks found no horizontal overflow or
+page errors. No replay was started during that publication check. Authenticated
+project UI inspection/dashboard export and human replay remain pending.
+
+Heroku was inspected read-only afterward: **v49**, succeeded, created November 16
+03:35:51 UTC. It was not deployed or reconfigured by this update. Local app/test
+servers and the isolated PostgreSQL cluster are stopped.
+
 Nine focused real-SDK browser cases passed. They cover no request before consent,
 refusal, sanitized pageview/click, withdrawal/reload, cross-tab withdrawal, withdrawal
 during SDK loading, blocked SDK, JavaScript disabled, unavailable storage and
