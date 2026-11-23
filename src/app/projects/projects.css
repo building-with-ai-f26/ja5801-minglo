@@ -107,3 +107,268 @@
 .project-workspace .page-head h1 {
   overflow-wrap: anywhere;
 }
+
+.workspace-v2 {
+  width: min(100%, 78rem);
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.workspace-heading {
+  padding: clamp(1rem, 2vw, 2rem) 0;
+}
+
+.workspace-heading h1 {
+  max-width: 25ch;
+  margin: 0.55rem 0 0.4rem;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+.workspace-heading p {
+  margin: 0.45rem 0 0;
+}
+
+.workspace-tabs,
+.workspace-filters,
+.workspace-inline,
+.workspace-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+}
+
+.workspace-tabs {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.55rem;
+}
+
+.workspace-tabs a,
+.workspace-filters a {
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  min-height: 44px;
+  align-content: center;
+  font-weight: 650;
+}
+
+.workspace-tabs a[aria-current],
+.workspace-filters a[aria-current] {
+  color: var(--surface-ink);
+  background: var(--surface);
+}
+
+.workspace-filters a[aria-current] {
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.workspace-panel,
+.workspace-feature {
+  --ink: var(--surface-ink);
+  --muted: var(--surface-muted);
+  --line: var(--surface-line);
+  --soft: var(--surface-soft);
+  --paper: var(--surface-input);
+  --accent: var(--action);
+  --accent-hover: var(--action-hover);
+  --accent-soft: var(--action-soft);
+  --accent-line: var(--action-line);
+  --on-action: var(--surface-on-action);
+  min-width: 0;
+  background: var(--surface);
+  color: var(--surface-ink);
+  border: 1px solid var(--surface-line);
+  border-radius: 14px;
+  padding: clamp(1rem, 2.35vw, 1.75rem);
+}
+
+.workspace-feature,
+.workspace-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+}
+
+.workspace-feature {
+  gap: 1rem 2rem;
+  background: var(--surface-soft);
+}
+
+.workspace-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.workspace-stack {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+.workspace-panel :is(h2, h3, p),
+.workspace-feature :is(h2, p) {
+  margin: 0 0 0.6rem;
+}
+.workspace-panel form {
+  margin-block: 0.8rem;
+}
+.workspace-panel details {
+  margin-block: 0.6rem;
+}
+.workspace-panel summary {
+  cursor: pointer;
+  font-weight: 650;
+  min-height: 44px;
+  align-content: center;
+}
+.workspace-panel .button,
+.workspace-feature .button {
+  min-height: 44px;
+  white-space: normal;
+}
+.workspace-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+}
+.workspace-check input {
+  inline-size: 1.15rem;
+  block-size: 1.15rem;
+  accent-color: var(--action);
+}
+.workspace-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.workspace-item {
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--surface-line);
+}
+.workspace-item > .workspace-inline form {
+  margin: 0.25rem 0 0;
+}
+.workspace-item:last-child {
+  border-bottom: 0;
+}
+.workspace-item p {
+  margin: 0.3rem 0 0;
+}
+.workspace-item-title {
+  display: inline-block;
+  font-weight: 700;
+}
+.workspace-status {
+  display: inline-block;
+  font-size: 0.84rem;
+  border: 1px solid var(--surface-line);
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+}
+.workspace-answer {
+  background: var(--surface-soft);
+  color: var(--surface-ink);
+  border: 1px solid var(--surface-line);
+  border-radius: 0.65rem;
+  padding: 0.8rem;
+  margin-block: 0.75rem;
+}
+.workspace-fieldset {
+  border: 1px solid var(--surface-line);
+  border-radius: 0.65rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+  min-width: 0;
+}
+.workspace-fieldset legend {
+  font-weight: 650;
+  padding-inline: 0.4rem;
+}
+.workspace-document {
+  max-width: 72ch;
+  margin-block: 1rem;
+  line-height: 1.55;
+}
+.workspace-document a {
+  text-decoration: underline;
+}
+.workspace-document h3 {
+  margin-top: 1rem;
+}
+.workspace-table {
+  overflow-x: auto;
+}
+.workspace-table table {
+  border-collapse: collapse;
+}
+.workspace-table :is(th, td) {
+  padding: 0.45rem;
+  border: 1px solid var(--surface-line);
+  text-align: left;
+}
+.workspace-diff pre {
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 0.8rem;
+  background: var(--surface-soft);
+  border-radius: 0.6rem;
+}
+.workspace-diff :is(del, ins) {
+  font-weight: 650;
+}
+.workspace-diff ins {
+  text-decoration: underline;
+}
+.workspace-diff del {
+  opacity: 0.85;
+}
+
+@media (max-width: 700px) {
+  .workspace-split {
+    grid-template-columns: 1fr;
+  }
+  .workspace-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+  .workspace-tabs a {
+    text-align: center;
+    padding-inline: 0.3rem;
+  }
+  .workspace-row {
+    align-items: flex-start;
+  }
+}
+
+@media print {
+  body:has(.workspace-print) * {
+    visibility: hidden;
+  }
+  body:has(.workspace-print) .workspace-print,
+  body:has(.workspace-print) .workspace-print * {
+    visibility: visible;
+    color: #161616;
+    background: white;
+  }
+  body:has(.workspace-print) .workspace-print {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+  }
+  body:has(.workspace-print) .workspace-print-hide {
+    display: none;
+  }
+  body:has(.workspace-print) .workspace-print .workspace-panel {
+    border: 0;
+    break-inside: avoid;
+  }
+}

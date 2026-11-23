@@ -70,8 +70,23 @@ export function safeNext(value: unknown) {
   const agentId = /^[a-z][a-z0-9]{24}$/;
   if (
     (path === "/agents" && query === undefined) ||
-    (path === "/projects" && validQuery({ after: agentId })) ||
+    (path === "/projects" &&
+      validQuery({
+        after: agentId,
+        workAfter: agentId,
+        decisionAfter: agentId,
+      })) ||
     (path === "/projects/new" && query === undefined) ||
+    (/^\/projects\/[a-z][a-z0-9]{24}$/.test(path) &&
+      validQuery({ before: agentId })) ||
+    (/^\/projects\/[a-z][a-z0-9]{24}\/plan$/.test(path) &&
+      validQuery({ view: /^(?:mine|ready|waiting|completed)$/ })) ||
+    (/^\/projects\/[a-z][a-z0-9]{24}\/team$/.test(path) &&
+      validQuery({ q: /^[\p{L}\p{N} @_.’'-]{1,60}$/u })) ||
+    (/^\/projects\/[a-z][a-z0-9]{24}\/(?:outputs|decisions|delivery(?:\/[a-z][a-z0-9]{24})?|questions\/[a-z][a-z0-9]{24}|tasks\/[a-z][a-z0-9]{24}(?:\/versions\/[1-9]\d{0,8})?)$/.test(
+      path,
+    ) &&
+      query === undefined) ||
     (/^\/projects\/invitations\/[a-z][a-z0-9]{24}$/.test(path) &&
       query !== undefined &&
       validQuery({ generation: /^[1-9]\d{0,8}$/ })) ||

@@ -7,6 +7,9 @@ import { StateForm } from "@/components/state-form";
 import { PageHead } from "@/components/ui";
 import { requireAccount } from "@/lib/session";
 import { BriefFields } from "../project-forms";
+import { Kickoff } from "../workspace/kickoff";
+import { workshopStarter } from "@/lib/projects/plan";
+import { workspaceFlag } from "@/lib/projects/shared";
 
 export default async function NewProjectPage() {
   const account = await requireAccount("/projects/new");
@@ -22,13 +25,17 @@ export default async function NewProjectPage() {
           subtitle="Describe one result. Invite your collaborators after you save."
         />
         <div className="card project-panel">
-          <StateForm
-            action={createProjectAction}
-            label="Create private project"
-          >
-            <input type="hidden" name="operationKey" value={randomUUID()} />
-            <BriefFields />
-          </StateForm>
+          {workspaceFlag() ? (
+            <Kickoff operationKey={randomUUID()} starter={workshopStarter} />
+          ) : (
+            <StateForm
+              action={createProjectAction}
+              label="Create private project"
+            >
+              <input type="hidden" name="operationKey" value={randomUUID()} />
+              <BriefFields />
+            </StateForm>
+          )}
         </div>
       </div>
     </AppShell>

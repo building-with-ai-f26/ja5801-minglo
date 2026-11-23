@@ -1,14 +1,22 @@
+import type { workspaceQueue } from "@/lib/projects/queries";
 import Link from "next/link";
 import type { getProjectReturns } from "@/lib/projects";
 
 export function ProjectReturns({
   projects,
   canCreate = false,
+  queue,
 }: {
   projects: Awaited<ReturnType<typeof getProjectReturns>>;
   canCreate?: boolean;
+  queue?: Awaited<ReturnType<typeof workspaceQueue>>;
 }) {
-  if (!canCreate && !projects.hasProjects) return null;
+  const next = [
+    ...(queue?.decisions ?? []),
+    ...(queue?.work ?? []),
+    ...projects.items,
+  ].slice(0, 3);
+  if (!canCreate && !projects.hasProjects && !next.length) return null;
   return (
     <section className="card project-returns" aria-label="Projects">
       <div className="project-return-heading">
@@ -26,11 +34,11 @@ export function ProjectReturns({
           )}
         </div>
       </div>
-      {projects.items.length > 0 && (
+      {next.length > 0 && (
         <>
           <h3>For you</h3>
           <ul>
-            {projects.items.map((item) => (
+            {next.map((item) => (
               <li key={item.id}>
                 <Link className="text-link" href={item.href}>
                   {item.label}

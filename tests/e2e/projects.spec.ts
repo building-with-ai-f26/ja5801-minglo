@@ -69,12 +69,15 @@ test("members complete the workshop across fresh visits and outsiders cannot rea
     data: { ownerId: connectedOwner.id },
   });
 
-  await creator.getByRole("link", { name: "Start a project" }).click();
-  await creator.getByLabel("Project name").fill(workshop.title);
-  await creator.getByLabel("What are we making?").fill(workshop.brief);
-  await creator.getByLabel("What counts as done?").fill(workshop.doneWhen);
-  await creator.getByRole("button", { name: "Create private project" }).click();
-  await creator.waitForURL(/\/projects\/c[a-z0-9]{24}$/);
+  // The original workspace remains reachable for projects created before v2.
+  const creatorAccount = await db.account.findUniqueOrThrow({
+    where: { handle: "project_human" },
+  });
+  const legacy = await createProject(creatorAccount.id, {
+    ...workshop,
+    operationKey: randomUUID(),
+  });
+  await creator.goto(`/projects/${legacy.id}`);
   const projectUrl = creator.url();
   await invite(creator, "project_reader", "READER");
   await invite(creator, "project_drafter", "DRAFTER");

@@ -35,3 +35,21 @@ The additive migration `202611230001_projects` creates four tables and begins wi
 Heroku **v59** deployed source `dc468e4` on November 23, 2026 at 5:37 p.m. ET. Manual database backup **b030** completed before the release. The release command applied `202611230001_projects` successfully. The code rollback target is **v58** at `c0b4521`.
 
 The hosted check confirmed canonical HTTPS, database health, and sign-in continuation to **Start a project**. Two existing disposable agent accounts signed in and opened **Your projects**. Each received 404 on the human creation route. The authorized agent still read the existing private room with HTTP 200 and the nonmember received 404. The complete project creation and approval journey was exercised locally.
+
+## Workspace v2 local release candidate
+
+Home and More open Projects. Start blank or review the editable workshop starter. Use **Plan** to assign work, set readiness and link dependencies. **My work** and **Needs my decision** link each participant to the item that needs them. **Outputs** holds shared context and submitted versions. **Delivery** assembles completed outputs and sends the exact package to a named human.
+
+The additive migration is `202611240001_projects_workspace`. It gives earlier projects format 1. Their lead can use **Open in the Projects workspace** to convert one project in a transaction. Original versions, approvals, members and invitation generations remain available, including through old exact-version links. Conversion writes repeatable mappings and rejects old forms after the format changes. Set `MINGLO_PROJECTS_V2=false` to pause v2 creation and edits while retaining the compatible reader. A v1 binary predates the format check and is unsuitable for accepting writes after conversion.
+
+Use only a disposable local PostgreSQL database ending in `_test`. The workshop test in `tests/e2e/project-workspace.spec.ts` starts two contributors in parallel, requests a decision, revises an agenda, hands off a pinned exercise sheet and approves a three-document package. The fixture also leaves an open question and recoverable working draft. Run `npm run test:restart -- --projects --workspace` after the full suite and production build to compare the export and reopen the exact workflow records across restarts.
+
+Independent usability and real-host collaboration require participant sessions. The trial procedure and approval boundary are in [the workspace plan](MINGLO_PROJECTS_V2_PLAN.md).
+
+### Local release evidence
+
+- The production build and typecheck passed. The final functional run passed 170 app checks, 16 public-auth checks, 2 trial-auth checks, 5 Topics-off checks, 16 mock analytics checks, and 12 Product Page checks.
+- Both production-process restart checks passed. The exported workshop package, private working draft, exact dependency version, and open human question remained available after restart.
+- Rehearsing the additive migration on the previous schema preserved the selected account, conversation, project, membership, and version rows byte for byte. Tests converted all six legacy phases, preserved invitation generations and reader permissions, and repeated conversion safely. The dependency audit reported zero findings.
+- The final style adjustment was rebuilt and typechecked. Chrome verified the plan and delivery at 320, 390, and 1440 pixels across both themes, and opened an assigned question by keyboard. Light-mode task links and assignee text measured 8.75:1 and 6.02:1 against the panel. Text extraction from the printed PDF confirmed all three approved deliverables.
+- The local preview at `http://localhost:3117` uses disposable workshop data. Sign in as `workspace_lead` with the browser-test password from `tests/e2e/helpers.ts` to open the approved kit and pending follow-up work.

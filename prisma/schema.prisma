@@ -529,22 +529,34 @@ enum ProjectEventKind {
 }
 
 model Project {
-  id               String              @id @default(cuid())
+  id               String               @id @default(cuid())
   creatorAccountId String
-  creator          Account             @relation("ProjectCreator", fields: [creatorAccountId], references: [id], onDelete: Restrict)
+  creator          Account              @relation("ProjectCreator", fields: [creatorAccountId], references: [id], onDelete: Restrict)
   creationKey      String
   creationHash     String
   title            String
   brief            String
   doneWhen         String
-  phase            ProjectPhase        @default(SETUP)
-  revision         Int                 @default(0)
-  currentVersion   Int                 @default(0)
+  workspaceFormat  Int                  @default(1)
+  planRevision     Int                  @default(0)
+  dueOn            String?
+  workspaceTasks   WorkspaceTask[]
+  milestones       WorkspaceMilestone[]
+  notes            WorkspaceNote[]
+  workspaceBriefs  WorkspaceBrief[]
+  proposals        WorkspaceProposal[]
+  discussion       WorkspacePost[]
+  releases         WorkspaceRelease[]
+  workspaceEvents  WorkspaceEvent[]
+  visits           WorkspaceVisit[]
+  phase            ProjectPhase         @default(SETUP)
+  revision         Int                  @default(0)
+  currentVersion   Int                  @default(0)
   recommendationId String?
   approvedVersion  Int?
   closedAt         DateTime?
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
   memberships      ProjectMembership[]
   versions         ProjectVersion[]
   events           ProjectEvent[]
@@ -553,15 +565,16 @@ model Project {
 }
 
 model ProjectMembership {
-  id         String           @id @default(cuid())
-  projectId  String
-  project    Project          @relation(fields: [projectId], references: [id], onDelete: Restrict)
-  accountId  String
-  account    Account          @relation(fields: [accountId], references: [id], onDelete: Restrict)
-  role       ProjectRole      @default(READER)
-  status     MembershipStatus @default(INVITED)
-  generation Int              @default(1)
-  createdAt  DateTime         @default(now())
+  id          String           @id @default(cuid())
+  projectId   String
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  accountId   String
+  account     Account          @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  contributor Boolean          @default(false)
+  role        ProjectRole      @default(READER)
+  status      MembershipStatus @default(INVITED)
+  generation  Int              @default(1)
+  createdAt   DateTime         @default(now())
 
   @@unique([projectId, accountId])
   @@index([accountId, status, projectId])
@@ -599,4 +612,221 @@ model ProjectEvent {
 
   @@unique([projectId, actorAccountId, operationKey])
   @@unique([projectId, revision])
+}
+
+enum WorkspaceReadiness {
+  SUBMITTED
+  RECOMMENDED
+  APPROVED
+}
+
+enum WorkspaceTaskStatus {
+  OPEN
+  WORKING
+  REVISION
+  REVIEW
+  APPROVAL
+  COMPLETE
+}
+
+enum WorkspaceProposalStatus {
+  OPEN
+  ADOPTED
+  DECLINED
+}
+
+model WorkspaceBrief {
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  number    Int
+  actorId   String
+  brief     String
+  doneWhen  String
+  createdAt DateTime @default(now())
+
+  @@id([projectId, number])
+}
+
+model WorkspaceMilestone {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  title     String
+  dueOn     String?
+
+  @@index([projectId])
+}
+
+model WorkspaceTask {
+  id           String                @id @default(cuid())
+  projectId    String
+  project      Project               @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  title        String
+  brief        String
+  doneWhen     String
+  dueOn        String?
+  milestoneId  String?
+  ownerId      String?
+  reviewerId   String?
+  approverId   String?
+  readiness    WorkspaceReadiness    @default(SUBMITTED)
+  status       WorkspaceTaskStatus   @default(OPEN)
+  required     Boolean               @default(true)
+  position     Int
+  revision     Int                   @default(0)
+  legacy       Boolean               @default(false)
+  output       WorkspaceOutput?
+  drafts       WorkspaceDraft[]
+  dependencies WorkspaceDependency[] @relation("WorkspaceDownstream")
+  usedBy       WorkspaceDependency[] @relation("WorkspaceUpstream")
+
+  @@index([projectId, position])
+  @@index([projectId, ownerId, status])
+  @@index([projectId, reviewerId, status])
+  @@index([projectId, approverId, status])
+}
+
+model WorkspaceDependency {
+  taskId              String
+  task                WorkspaceTask      @relation("WorkspaceDownstream", fields: [taskId], references: [id], onDelete: Restrict)
+  prerequisiteId      String
+  prerequisite        WorkspaceTask      @relation("WorkspaceUpstream", fields: [prerequisiteId], references: [id], onDelete: Restrict)
+  readiness           WorkspaceReadiness
+  pinnedVersion       Int?
+  acknowledgedVersion Int?
+  reason              String?
+
+  @@id([taskId, prerequisiteId])
+  @@index([prerequisiteId])
+}
+
+model WorkspaceOutput {
+  id             String             @id @default(cuid())
+  taskId         String             @unique
+  task           WorkspaceTask      @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  title          String
+  currentVersion Int                @default(0)
+  versions       WorkspaceVersion[]
+}
+
+model WorkspaceVersion {
+  outputId      String
+  output        WorkspaceOutput    @relation(fields: [outputId], references: [id], onDelete: Restrict)
+  number        Int
+  authorId      String
+  body          String
+  changeSummary String
+  inputs        Json
+  readiness     WorkspaceReadiness @default(SUBMITTED)
+  createdAt     DateTime           @default(now())
+
+  @@id([outputId, number])
+}
+
+model WorkspaceDraft {
+  taskId      String
+  task        WorkspaceTask @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  authorId    String
+  body        String
+  revision    Int           @default(0)
+  baseVersion Int
+  updatedAt   DateTime      @updatedAt
+
+  @@id([taskId, authorId])
+}
+
+model WorkspaceNote {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  authorId  String
+  title     String
+  body      String
+  url       String?
+  createdAt DateTime @default(now())
+
+  @@index([projectId, createdAt, id])
+}
+
+model WorkspaceProposal {
+  id           String                  @id @default(cuid())
+  projectId    String
+  project      Project                 @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  authorId     String
+  scope        String
+  title        String
+  brief        String
+  doneWhen     String
+  baseRevision Int
+  status       WorkspaceProposalStatus @default(OPEN)
+  createdAt    DateTime                @default(now())
+
+  @@index([projectId, status, createdAt])
+}
+
+model WorkspacePost {
+  id           String    @id @default(cuid())
+  projectId    String
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  taskId       String?
+  authorId     String
+  responderId  String?
+  body         String
+  version      Int?
+  heading      String?
+  blocking     Boolean   @default(false)
+  answer       String?
+  answeredById String?
+  answeredAt   DateTime?
+  revision     Int       @default(0)
+  createdAt    DateTime  @default(now())
+
+  @@index([projectId, taskId, createdAt, id])
+  @@index([projectId, responderId, answeredAt])
+}
+
+model WorkspaceRelease {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  title         String
+  submittedById String
+  approverId    String
+  supersededAt  DateTime?
+  approvedAt    DateTime?
+  manifest      Json
+  createdAt     DateTime  @default(now())
+
+  @@index([projectId, createdAt, id])
+  @@index([projectId, approverId, approvedAt])
+}
+
+model WorkspaceEvent {
+  id           String   @id @default(cuid())
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  actorId      String
+  kind         String
+  taskId       String?
+  postId       String?
+  releaseId    String?
+  version      Int?
+  subject      String?
+  note         String?
+  operationKey String
+  requestHash  String
+  createdAt    DateTime @default(now())
+
+  @@unique([projectId, actorId, operationKey])
+  @@index([projectId, id])
+  @@index([projectId, taskId, version, id])
+}
+
+model WorkspaceVisit {
+  projectId   String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  accountId   String
+  seenThrough String
+
+  @@id([projectId, accountId])
 }

@@ -1,3 +1,4 @@
+import { workspaceQueue } from "@/lib/projects/queries";
 import { requireAccount } from "@/lib/session";
 import { AppShell } from "@/components/app-shell";
 import { PageHead, Avatar } from "@/components/ui";
@@ -31,6 +32,7 @@ export default async function DashboardPage() {
     directReturns,
     discussionReturns,
     projects,
+    projectQueue,
   ] = await Promise.all([
     db.room.findMany({
       where: readableRooms(account.id),
@@ -67,6 +69,7 @@ export default async function DashboardPage() {
     getDirectReturns(account.id),
     getDiscussionReturns(account.id),
     getProjectReturns(account.id),
+    workspaceQueue(account.id, { limit: 3 }),
   ]);
   // Direct chats stay in their classified groups so a generic preview cannot
   // mix actionable requests with read-only agent activity.
@@ -125,6 +128,7 @@ export default async function DashboardPage() {
       />
       <ProjectReturns
         projects={projects}
+        queue={projectQueue}
         canCreate={account.type === "OWNER"}
       />
       <div

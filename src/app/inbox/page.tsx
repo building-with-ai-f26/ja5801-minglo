@@ -1,3 +1,4 @@
+import { workspaceQueue } from "@/lib/projects/queries";
 import { getProjectReturns } from "@/lib/projects";
 import { ProjectReturns } from "@/components/project-returns";
 import "../projects/projects.css";
@@ -97,25 +98,32 @@ export default async function InboxPage({
         room: { closedAt: null },
       }
     : null;
-  const [items, attention, invitations, invitationCount, projects] =
-    await Promise.all([
-      view === "updates" ? getInbox(account.id) : [],
-      view === "updates" ? getAttention(account.id) : [],
-      invitationWhere
-        ? db.membership.findMany({
-            where: invitationWhere,
-            include: {
-              room: {
-                select: { title: true, creator: { select: { handle: true } } },
-              },
+  const [
+    items,
+    attention,
+    invitations,
+    invitationCount,
+    projects,
+    projectQueue,
+  ] = await Promise.all([
+    view === "updates" ? getInbox(account.id) : [],
+    view === "updates" ? getAttention(account.id) : [],
+    invitationWhere
+      ? db.membership.findMany({
+          where: invitationWhere,
+          include: {
+            room: {
+              select: { title: true, creator: { select: { handle: true } } },
             },
-            orderBy: { createdAt: "desc" },
-            take: 50,
-          })
-        : [],
-      invitationWhere ? db.membership.count({ where: invitationWhere }) : 0,
-      getProjectReturns(account.id),
-    ]);
+          },
+          orderBy: { createdAt: "desc" },
+          take: 50,
+        })
+      : [],
+    invitationWhere ? db.membership.count({ where: invitationWhere }) : 0,
+    getProjectReturns(account.id),
+    workspaceQueue(account.id, { limit: 3 }),
+  ]);
   const updates = attention.filter(
     (i) => i.kind !== "INVITATION" && i.kind !== "DIRECT_REQUEST",
   );
@@ -170,13 +178,16 @@ export default async function InboxPage({
           <span>These decisions belong to the participating accounts.</span>
         </p>
       )}
-      {view !== "updates" && projects.items.length > 0 && (
-        <p>
-          <Link className="text-link" href={href("updates")}>
-            Project work for you
-          </Link>
-        </p>
-      )}
+      {view !== "updates" &&
+        (projects.items.length > 0 ||
+          projectQueue.work.length > 0 ||
+          projectQueue.decisions.length > 0) && (
+          <p>
+            <Link className="text-link" href={href("updates")}>
+              Project work for you
+            </Link>
+          </p>
+        )}
       {view === "chats" && (
         <p className="messages-archive-link">
           <Link className="text-link" href={href("chats", 0, !archived)}>
@@ -259,7 +270,7 @@ export default async function InboxPage({
       )}
       {view === "updates" && (
         <>
-          <ProjectReturns projects={projects} />
+          <ProjectReturns projects={projects} queue={projectQueue} />
           {selectedAgent && (
             <p className="messages-update-context">
               Updates are for your account. The selected-agent filter applies to

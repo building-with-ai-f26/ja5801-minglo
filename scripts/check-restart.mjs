@@ -254,6 +254,64 @@ async function checkProjects() {
     await page.close();
   }
 }
+async function checkWorkspace() {
+  const lead = await db.account.findUniqueOrThrow({
+    where: { handle: "workspace_lead" },
+  });
+  const project = await db.project.findFirstOrThrow({
+    where: {
+      creatorAccountId: lead.id,
+      workspaceFormat: 2,
+      title: "Workshop kit",
+    },
+  });
+  const release = await db.workspaceRelease.findFirstOrThrow({
+    where: { projectId: project.id, approvedAt: { not: null } },
+  });
+  const followup = await db.workspaceTask.findFirstOrThrow({
+    where: { projectId: project.id, title: "Follow-up resources" },
+  });
+  const handout = await db.workspaceTask.findFirstOrThrow({
+    where: { projectId: project.id, title: "Write the participant handout" },
+  });
+  const site = "http://localhost:3100";
+  const root = site + "/projects/" + project.id;
+  const page = await backgroundPage();
+  try {
+    await page.goto(site + "/login");
+    await page.getByLabel("Handle", { exact: true }).fill(lead.handle);
+    await page
+      .getByLabel("Password", { exact: true })
+      .fill("OnlyForLocalTests_42!");
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await page.waitForURL("**/dashboard");
+    const download = await page.request.get(
+      root + "/delivery/" + release.id + "/download",
+    );
+    assert.equal(download.status(), 200);
+    const text = await download.text();
+    assert(
+      text.includes("60 minutes.") &&
+        text.includes("Work in seated pairs") &&
+        text.includes("Pick a partner before starting."),
+    );
+    await page.goto(root + "/tasks/" + followup.id);
+    await page.getByRole("link", { name: /Waiting for a decision/ }).waitFor();
+    assert.equal(
+      await page.getByLabel("Working draft").inputValue(),
+      "Private resources in progress.",
+    );
+    await page.goto(root + "/tasks/" + handout.id);
+    const pin = await page
+      .getByRole("link", { name: "Exercise sheet v1" })
+      .getAttribute("href");
+    assert(pin.endsWith("/versions/1"));
+    return text;
+  } finally {
+    await page.close();
+  }
+}
+
 async function checkTutorial() {
   const viewer = await db.account.findFirstOrThrow({
     where: {
@@ -448,6 +506,9 @@ try {
   await checkDirect();
   await checkTutorial();
   if (process.argv.includes("--projects")) await checkProjects();
+  const workspaceBefore = process.argv.includes("--workspace")
+    ? await checkWorkspace()
+    : null;
   assert.equal(await continuityState(), expectedContinuity);
   if (process.argv.includes("--capture")) {
     mkdirSync(".local", { recursive: true });
@@ -487,6 +548,12 @@ try {
   await checkDirect();
   await checkTutorial();
   if (process.argv.includes("--projects")) await checkProjects();
+  if (workspaceBefore) {
+    assert.equal(await checkWorkspace(), workspaceBefore);
+    console.log(
+      "PASS: approved workshop export, working draft, pinned input and pending question retained across restart.",
+    );
+  }
   assert.equal(await continuityState(), expectedContinuity);
   if (process.argv.includes("--projects"))
     console.log(

@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { workspaceFlag, workspaceFormat } from "@/lib/projects/shared";
+import { workspaceTaskPath } from "@/lib/projects/queries";
+import { WorkspacePage } from "../../workspace/workspace";
+import { Action } from "../../workspace/fields";
 import { AppShell } from "@/components/app-shell";
 import { PageHead } from "@/components/ui";
 import {
@@ -320,14 +325,51 @@ function Team({ project, base }: { project: Project; base: string }) {
 
 export default async function ProjectPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; work?: string[] }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id, work = [] } = await params;
   const base = `/projects/${id}`;
-  const path = [base, ...work].join("/");
+  const query = await searchParams;
+  const suffix = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (typeof value !== "string") notFound();
+    suffix.set(key, value);
+  }
+  const path = [base, ...work].join("/") + (suffix.size ? `?${suffix}` : "");
   if (safeNext(path) !== path) notFound();
   const account = await requireAccount(path);
+  const access = await workspaceFormat(account.id, id);
+  if (!access) notFound();
+  if (access.workspaceFormat === 2) {
+    if (work[0] === "task" || work[0] === "versions") {
+      const legacy = await db.workspaceTask.findFirst({
+        where: { projectId: id, legacy: true },
+        select: { id: true },
+      });
+      if (!legacy) notFound();
+      redirect(
+        workspaceTaskPath(
+          id,
+          legacy.id,
+          work[0] === "versions" ? Number(work[1]) : undefined,
+        ),
+      );
+    }
+    return (
+      <WorkspacePage
+        account={account}
+        id={id}
+        path={path}
+        work={work}
+        query={Object.fromEntries(suffix)}
+      />
+    );
+  }
+  if (suffix.size || (work.length && !["task", "versions"].includes(work[0])))
+    notFound();
   const selectedVersion = work[0] === "versions" ? Number(work[1]) : undefined;
   const project = await readProject(account.id, id, selectedVersion);
   if (!project || (selectedVersion && !project.output)) notFound();
@@ -375,6 +417,23 @@ export default async function ProjectPage({
           )}
         </nav>
         <PageHead title={title} />
+        {!work.length &&
+          workspaceFlag() &&
+          project.creatorAccountId === account.id && (
+            <details className="card project-panel">
+              <summary>Open in the Projects workspace</summary>
+              <p>
+                Move this project into the new workspace with its saved
+                versions, approval and member access.
+              </p>
+              <Action
+                id={id}
+                path={base}
+                kind="CONVERT"
+                label="Move to the new workspace"
+              />
+            </details>
+          )}
         {showTurn && (
           <section className="card project-panel">
             <h2>For you</h2>

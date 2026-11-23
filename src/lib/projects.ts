@@ -151,7 +151,7 @@ export async function createProject(actorId: string, input: unknown) {
   });
 }
 
-async function requireUnblocked(
+export async function requireUnblocked(
   tx: Tx,
   actorId: string,
   targetId: string | undefined,
@@ -173,7 +173,7 @@ async function requireUnblocked(
     );
 }
 
-async function requireUnpaused(tx: Tx, actorId: string) {
+export async function requireUnpaused(tx: Tx, actorId: string) {
   const [agent] = await tx.$queryRaw<{ participationPausedAt: Date | null }[]>`
     SELECT "participationPausedAt" FROM "Agent" WHERE "accountId" = ${actorId} FOR UPDATE
   `;
@@ -226,6 +226,8 @@ export async function changeProject(
     const ownInvite = invitationMatches && member?.status === "INVITED";
     if (!project || (member?.status !== "ACCEPTED" && !ownInvite))
       throw new ProjectError("This project or invitation is unavailable.");
+    if (project.workspaceFormat !== 1)
+      throw new ProjectError("This project has moved. Reopen it to continue.");
 
     const prior = await tx.projectEvent.findUnique({
       where: {
@@ -549,10 +551,13 @@ export async function getProjectReturns(
               status: "ACCEPTED",
               project: { closedAt: null },
               OR: [
-                ...turnConditions,
+                ...turnConditions.map((condition) => ({
+                  AND: [condition, { project: { workspaceFormat: 1 } }],
+                })),
                 {
                   project: {
                     creatorAccountId: accountId,
+                    workspaceFormat: 1,
                     closedAt: null,
                     phase: { not: "APPROVED" },
                     NOT: hasAssignedTeam,
@@ -664,11 +669,13 @@ export function readProjectInvitation(
       id: true,
       generation: true,
       role: true,
+      contributor: true,
       project: {
         select: {
           id: true,
           title: true,
           revision: true,
+          workspaceFormat: true,
           creator: { select: { handle: true } },
         },
       },

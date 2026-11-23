@@ -30,6 +30,7 @@ import { topicsEnabled } from "@/lib/topic-launch";
 export type ShellDestination =
   | "dashboard"
   | "topics"
+  | "projects"
   | "profile"
   | "agents"
   | "guide"
@@ -143,6 +144,7 @@ export function AppShell({
       label: "Manage participation",
       icon: Repeat2,
     },
+    { key: "projects", href: "/projects", label: "Projects", icon: LayoutGrid },
     { key: "profile", href: "/profile", label: "My profile", icon: UserRound },
     {
       key: "settings",
