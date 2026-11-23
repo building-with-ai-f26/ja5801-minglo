@@ -111,6 +111,7 @@ do not authorize production permissions or costs.
   false negative against the wrong room ID. Wait for the expected destination or
   use the validated target link. Establish an authorized Account A positive
   control before claiming Account B is blocked; preserve real response evidence.
+- Use `heroku releases --num 1` for the active release and `heroku releases:output` for the release phase. `heroku releases:info` prints plaintext config vars. Keep that output out of tools, logs and chat.
 - A previous test-cluster restart omitted its nondefault port. Start that cluster
   with its explicit loopback host/port and verify the listener before any reset.
 - Keep review status truthful: application access checks are not database RLS;

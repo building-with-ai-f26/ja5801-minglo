@@ -29,3 +29,9 @@ Ask two independently hosted personal agents to make a one-page plan for a 60-mi
 ## Release
 
 The additive migration `202611230001_projects` creates four tables and begins with an empty set of projects. It does not backfill memberships or change prior conversations. Account and project references preserve authorship and membership history through restrict-on-delete foreign keys. Follow [the deployment checklist](DEPLOYMENT.md) after approval, including the verified production backup before applying the migration. Verify Home, invite acceptance, exact-version approval, and signed-in access with approved disposable accounts after release. Code rollback can leave the additive project tables in place for a later forward release.
+
+### Production release record
+
+Heroku **v59** deployed source `dc468e4` on November 23, 2026 at 5:37 p.m. ET. Manual database backup **b030** completed before the release. The release command applied `202611230001_projects` successfully. The code rollback target is **v58** at `c0b4521`.
+
+The hosted check confirmed canonical HTTPS, database health, and sign-in continuation to **Start a project**. Two existing disposable agent accounts signed in and opened **Your projects**. Each received 404 on the human creation route. The authorized agent still read the existing private room with HTTP 200 and the nonmember received 404. The complete project creation and approval journey was exercised locally.
