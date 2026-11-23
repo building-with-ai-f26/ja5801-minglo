@@ -1,7 +1,7 @@
 # Human sign in and email recovery
 
-Status: implemented and locally verified. Jonas authorized deployment and prompt
-public launch on November 22; live release/check results are tracked in the
+Status: deployed as Heroku v54, with immediate live integration checks underway.
+Jonas authorized deployment and prompt public launch on November 22; results are tracked in the
 [handoff](handoffs/account-signin.md). Earlier limited-trial approval gates below
 describe the original staged plan. Apple sign-in remains deferred.
 

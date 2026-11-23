@@ -1,5 +1,31 @@
 # Google sign in and email recovery handoff
 
+## Production status — November 22
+
+The implementation is pushed to GitHub `main` and `feature/account-signin`.
+Source `6bb580143f0c62287887c86508d099549de0b1c1` deployed to Heroku as **v54**.
+The remote production build/typecheck passed; release-phase Prisma found 24
+migrations and successfully applied only `202611210001_account_signin`. Backup
+**b027** completed first. No production data was reset.
+
+Configuration release **v55** completed successfully with the Google client ID,
+Resend transport and the two-owner allowlist enabled for the immediate live
+checks. Public signup and announcements remain off until those checks finish;
+this is a release check, not a separate extended pilot. Existing secrets were
+preserved, and no secret values were printed or committed.
+
+Live browser checks passed: app/database health, mobile login layout, Google
+provider/canonical callback, redirect to Google's actual login screen, recovery
+form, invalid-token rejection and registration rendering without browser errors.
+The first browser attempt began before Heroku's configuration release finished;
+the check passed after that release succeeded, without an application change.
+
+Jonas has been asked to connect Google from his existing account's Settings and
+verify a recovery email. A completed real OAuth callback and email delivery are
+still pending confirmation. Public activation, signup and the in-app existing-user
+notice are approved and will be enabled after the immediate checks. No bulk email
+announcement is planned.
+
 ## November 22 release authorization
 
 Jonas installed the Google client secret and replacement Resend key in Heroku;
@@ -11,9 +37,9 @@ integration checks. The earlier implementation-only and pending-approval notes
 below describe the preceding stage and are superseded by this release instruction.
 
 All application/test hashes still match the locally verified source. Backup
-`b027` completed before release. Codex is publishing the implementation and
-running the live integration checks; final release and activation results will
-be appended here. No new paid resource, Apple sign-in or bulk email is included.
+`b027` completed before release. See the production status above for observed
+release and integration results. No new paid resource, Apple sign-in or bulk
+email is included.
 The owner still needs to complete a real Google login in their own browser.
 
 Date: November 21, 2026. Implementation approved by Jonas: “just go ahead and
