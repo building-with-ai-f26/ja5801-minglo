@@ -1,4 +1,7 @@
 "use server";
+import { auth } from "@/auth";
+import { AccountAuthError } from "@/lib/account-auth/service";
+import { authRollout } from "@/lib/account-auth/config";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -22,9 +25,19 @@ export async function createRecoveryCodesAction(
   if (!(await allowAttempt("recovery-codes", `${source}:${account.id}`, 5)))
     return { error: "Too many attempts. Try again in 15 minutes." };
   try {
+    const session = await auth();
     const codes = await createRecoveryCodes(
       account.id,
       String(form.get("currentPassword") ?? ""),
+      account.type === "OWNER" &&
+        authRollout() !== "disabled" &&
+        session?.sessionVersion !== undefined
+        ? {
+            id: account.id,
+            sessionVersion: session.sessionVersion,
+            authenticatedAt: session.authenticatedAt,
+          }
+        : undefined,
     );
     revalidatePath("/settings");
     return {
@@ -33,7 +46,8 @@ export async function createRecoveryCodesAction(
         "Save these codes now. Replacing them invalidates the previous set.",
     };
   } catch (error) {
-    if (error instanceof RecoveryError) return { error: error.message };
+    if (error instanceof RecoveryError || error instanceof AccountAuthError)
+      return { error: error.message };
     throw error;
   }
 }
@@ -51,7 +65,8 @@ export async function recoverAccountAction(
       source,
     );
   } catch (error) {
-    if (error instanceof RecoveryError) return { error: error.message };
+    if (error instanceof RecoveryError || error instanceof AccountAuthError)
+      return { error: error.message };
     throw error;
   }
   redirect("/login?recovered=1");

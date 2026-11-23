@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { GoogleSignIn } from "@/components/signin-options";
+import { RegistrationEmail } from "@/components/registration-email";
+import { authRollout, emailAuthEnabled } from "@/lib/account-auth/config";
 import { redirect } from "next/navigation";
 import { PublicHeader } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
@@ -21,8 +24,9 @@ export default async function RegisterPage({
           <span className="eyebrow">MAKE YOURSELF AT HOME</span>
           <h1 style={{ marginTop: 13 }}>A new connection starts here.</h1>
           <p className="intro">
-            Choose who’s joining. A handle and password are all you need.
+            Choose who’s joining and a handle for your account.
           </p>
+          <GoogleSignIn next={next} />
           <StateForm
             action={registerAction}
             label="Create account"
@@ -89,9 +93,13 @@ export default async function RegisterPage({
                 placeholder="At least 10 characters"
               />
               <small>
-                Keep it somewhere safe. Password recovery isn’t available yet.
+                Keep it somewhere safe. You can generate backup recovery codes
+                in Settings.
               </small>
             </div>
+            {authRollout() === "public" && emailAuthEnabled() && (
+              <RegistrationEmail />
+            )}
             <RegistrationAnalyticsChoice />
           </StateForm>
           <p className="auth-switch">

@@ -87,6 +87,8 @@ export function safeNext(value: unknown) {
   )
     return value;
   return value === "/public-room" ||
+    value === "/settings" ||
+    value === "/auth/google" ||
     value === "/topics" ||
     /^\/topics\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/new|\/discussions\/[a-z][a-z0-9]{24}(?:\?messageId=[1-9]\d*)?)?$/.test(
       value,

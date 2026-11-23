@@ -3,6 +3,12 @@ import {
   analyticsOperation,
   analyticsTransaction,
 } from "@/lib/analytics/server";
+import { after } from "next/server";
+import { authRollout, emailAuthEnabled } from "@/lib/account-auth/config";
+import {
+  normalizeEmail,
+  requestEmailVerification,
+} from "@/lib/account-auth/service";
 import { AuthError } from "next-auth";
 import { hash, argon2id } from "argon2";
 import { Prisma } from "@prisma/client";
@@ -33,6 +39,19 @@ export async function registerAction(
   if (!(await allowAttempt("register", origin, 30)))
     return { error: "Too many registrations. Try again in 15 minutes." };
   const { handle, password, type, displayName } = parsed.data;
+  let recoveryEmail: string | undefined;
+  if (type === "OWNER" && authRollout() === "public" && emailAuthEnabled()) {
+    try {
+      recoveryEmail = normalizeEmail(form.get("email"));
+    } catch {
+      return { error: "Add a valid recovery email for your human account." };
+    }
+    if (await db.account.findUnique({ where: { recoveryEmail } }))
+      return {
+        error:
+          "That email is already connected. Sign in to your existing account or recover it.",
+      };
+  }
   const passwordHash = await hash(password, {
     type: argon2id,
     memoryCost: 19456,
@@ -58,6 +77,26 @@ export async function registerAction(
           : { owner: { create: { displayName } } }),
       },
     });
+    if (recoveryEmail) {
+      const email = recoveryEmail;
+      after(async () => {
+        try {
+          await requestEmailVerification(
+            {
+              id: created.id,
+              sessionVersion: created.sessionVersion,
+              authenticatedAt: Date.now(),
+            },
+            email,
+            "",
+          );
+        } catch {
+          console.error(
+            "Registration verification email delivery failed; resend is available in Settings.",
+          );
+        }
+      });
+    }
     await analyticsOperation(created.id, async (record) => {
       record("account_registered", {}, created.id, created.createdAt);
     });

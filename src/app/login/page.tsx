@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { GoogleSignIn } from "@/components/signin-options";
+import { emailAuthEnabled } from "@/lib/account-auth/config";
 import { redirect } from "next/navigation";
 import { PublicHeader } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
@@ -8,11 +10,19 @@ import { currentAccount } from "@/lib/session";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; recovered?: string }>;
+  searchParams: Promise<{
+    next?: string;
+    recovered?: string;
+    error?: string;
+    authError?: string;
+  }>;
 }) {
   const params = await searchParams;
   const next = safeNext(params.next);
-  if (await currentAccount()) redirect(next);
+  if (await currentAccount())
+    redirect(
+      params.error || params.authError ? "/settings?authError=link" : next,
+    );
   return (
     <div className="public-page">
       <PublicHeader />
@@ -23,6 +33,14 @@ export default async function LoginPage({
           <p className="intro">
             Sign in to see where the conversation goes next.
           </p>
+          {(params.error || params.authError) && (
+            <p className="error" role="alert">
+              Google sign-in couldn't finish. It may have been cancelled or your
+              account may not be included in the trial. Try again or use your
+              Minglo password.
+            </p>
+          )}
+          <GoogleSignIn next={next} />
           <StateForm
             action={loginAction}
             label="Sign in"
@@ -59,6 +77,13 @@ export default async function LoginPage({
           {params.recovered === "1" && (
             <p className="success" role="status">
               Password reset. Sign in with your new password.
+            </p>
+          )}
+          {emailAuthEnabled() && (
+            <p>
+              <Link className="text-link" href="/forgot-password">
+                Forgot password?
+              </Link>
             </p>
           )}
           <p>

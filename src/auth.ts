@@ -1,5 +1,23 @@
 import NextAuth, { AuthError } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
+import { cookies } from "next/headers";
+import {
+  AUTH_COOKIE,
+  INTENT_COOKIE,
+  cookieOptions,
+  googleEnabled,
+  googleTestIssuer,
+  localAuthTest,
+  allowedAuthEmail,
+} from "@/lib/account-auth/config";
+import {
+  createGoogleAccount,
+  googleProfileProof,
+  completeGoogleLink,
+  readAuthToken,
+  AccountAuthError,
+} from "@/lib/account-auth/service";
 import { verify, hash, argon2id } from "argon2";
 import { randomBytes } from "node:crypto";
 import { db } from "@/lib/db";
@@ -13,13 +31,72 @@ let dummyHash: Promise<string> | undefined;
 export const { handlers, auth, signIn, signOut } = NextAuth({
   logger: {
     error(error) {
+      if (
+        error instanceof AuthError &&
+        process.env.MINGLO_GOOGLE_TEST_ISSUER &&
+        localAuthTest()
+      ) {
+        console.error(
+          "Local OAuth fixture diagnostic:",
+          error.type,
+          error.cause?.err?.message,
+        );
+      }
       if (!(error instanceof AuthError) || error.type !== "CredentialsSignin")
         console.error("Authentication error:", error.name);
     },
   },
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 },
-  pages: { signIn: "/login" },
+  pages: { signIn: "/login", error: "/login" },
   providers: [
+    ...(googleEnabled()
+      ? [
+          Google({
+            issuer: googleTestIssuer() ?? "https://accounts.google.com",
+            clientId: process.env.AUTH_GOOGLE_ID,
+            clientSecret: process.env.AUTH_GOOGLE_SECRET,
+            authorization: {
+              params: {
+                scope: "openid email profile",
+                prompt: "select_account",
+              },
+            },
+            checks: ["pkce", "state", "nonce"],
+          }),
+        ]
+      : []),
+    Credentials({
+      id: "google-complete",
+      credentials: { handle: {}, displayName: {} },
+      async authorize(input, request) {
+        if (!googleEnabled() || (await auth())?.user) return null;
+        if (
+          !(await allowAttempt(
+            "google-signup",
+            requestSource(request.headers),
+            10,
+          ))
+        )
+          return null;
+        const token = (await cookies()).get(AUTH_COOKIE)?.value ?? "";
+        try {
+          const account = await createGoogleAccount(
+            token,
+            input.handle,
+            input.displayName,
+          );
+          (await cookies()).delete(AUTH_COOKIE);
+          return {
+            id: account.id,
+            name: account.handle,
+            sessionVersion: account.sessionVersion,
+          };
+        } catch (error) {
+          if (error instanceof AccountAuthError) return null;
+          throw error;
+        }
+      },
+    }),
     Credentials({
       credentials: {
         handle: { label: "Handle" },
@@ -58,10 +135,77 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider !== "google") return true;
+      if (
+        !googleEnabled() ||
+        profile?.email_verified !== true ||
+        typeof profile.email !== "string" ||
+        !allowedAuthEmail(profile.email)
+      )
+        return "/login?authError=trial";
+      const subject = account.providerAccountId;
+      const jar = await cookies();
+      const intentToken = jar.get(INTENT_COOKIE)?.value;
+      const session = await auth();
+      if (intentToken) {
+        jar.delete(INTENT_COOKIE);
+        if (!session?.user?.id || session.sessionVersion === undefined)
+          return "/login?authError=link";
+        const proof = await googleProfileProof(
+          subject,
+          profile.email,
+          "/settings",
+        );
+        try {
+          await completeGoogleLink(intentToken, proof, {
+            id: session.user.id,
+            sessionVersion: session.sessionVersion,
+          });
+          return "/settings?connected=1";
+        } catch (error) {
+          if (error instanceof AccountAuthError)
+            return "/settings?authError=link";
+          throw error;
+        }
+      }
+      const identity = await db.signInIdentity.findUnique({
+        where: { provider_subject: { provider: "google", subject } },
+        include: { account: true },
+      });
+      if (identity) {
+        if (identity.account.type !== "OWNER") return false;
+        // Never silently switch a signed-in browser to a different Minglo account.
+        if (session?.user?.id && session.user.id !== identity.accountId)
+          return "/settings?authError=link";
+        user.id = identity.accountId;
+        user.name = identity.account.handle;
+        user.email = null;
+        user.image = null;
+        user.sessionVersion = identity.account.sessionVersion;
+        await recordActivity(identity.accountId, { force: true });
+        return true;
+      }
+      if (session?.user?.id) return "/settings?authError=link";
+      const nextToken = jar.get("minglo-google-next")?.value;
+      const nextProof = nextToken
+        ? await readAuthToken(nextToken, "google-next")
+        : null;
+      const proof = await googleProfileProof(
+        subject,
+        profile.email,
+        nextProof?.nextPath ?? "/dashboard",
+      );
+      jar.set(AUTH_COOKIE, proof, cookieOptions());
+      return "/auth/google";
+    },
     async jwt({ token, user }) {
       if (user) {
         token.sub = user.id;
         token.sessionVersion = user.sessionVersion ?? 0;
+        token.authenticatedAt = Date.now();
+        delete token.email;
+        delete token.picture;
       }
       if (!token.sub) return null;
       const account = await db.account.findUnique({
@@ -75,6 +219,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     session({ session, token }) {
       if (session.user && token.sub) session.user.id = token.sub;
+      session.authenticatedAt =
+        typeof token.authenticatedAt === "number"
+          ? token.authenticatedAt
+          : undefined;
+      session.sessionVersion =
+        typeof token.sessionVersion === "number" ? token.sessionVersion : 0;
       return session;
     },
   },

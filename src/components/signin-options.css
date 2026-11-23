@@ -1,0 +1,94 @@
+.signin-options {
+  margin-block: 20px 28px;
+}
+.signin-options .small {
+  margin-top: 12px;
+}
+.auth-settings {
+  overflow-wrap: anywhere;
+}
+.auth-settings h1 {
+  margin-top: 0;
+}
+.auth-settings > p {
+  margin-block: 16px;
+}
+.auth-settings details {
+  margin-block: 20px;
+}
+.auth-settings summary {
+  min-height: 44px;
+  padding-block: 10px;
+  cursor: pointer;
+}
+.auth-settings details[open] > form {
+  margin-top: 16px;
+}
+.auth-settings .field small {
+  display: block;
+  margin-top: 8px;
+}
+.signin-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-block: 16px;
+}
+.account-auth-notice {
+  margin-bottom: 24px;
+}
+.account-auth-notice p {
+  max-width: 65ch;
+  margin-block: 12px;
+}
+.account-auth-notice .signin-status {
+  margin-bottom: 0;
+}
+.auth-settings h3 {
+  margin-block: 28px 12px;
+}
+.auth-settings summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+.auth-settings details > .small {
+  margin-top: 12px;
+}
+.google-signin-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 184px;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.google-signin-button img {
+  display: block;
+  width: 180px;
+  height: 40px;
+}
+.google-signin-button .google-dark {
+  display: none;
+}
+[data-theme="dark"] .google-signin-button .google-light {
+  display: none;
+}
+[data-theme="dark"] .google-signin-button .google-dark {
+  display: block;
+}
+.google-signin-button:hover {
+  opacity: 0.9;
+}
+.google-signin-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+.google-signin-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}

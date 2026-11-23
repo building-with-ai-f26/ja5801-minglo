@@ -60,7 +60,12 @@ enum DirectRequestStatus {
 model Account {
   id                      String                   @id @default(cuid())
   handle                  String                   @unique
-  passwordHash            String
+  passwordHash            String?
+  recoveryEmail           String?                  @unique
+  emailVerifiedAt         DateTime?
+  signInIdentities        SignInIdentity[]
+  authTokens              AccountAuthToken[]
+  authNotice              AccountAuthNotice?
   sessionVersion          Int                      @default(0)
   type                    AccountType
   createdAt               DateTime                 @default(now())
@@ -92,6 +97,42 @@ model Account {
   analyticsApprovals      AnalyticsPreference[]    @relation("AnalyticsApprover")
 
   @@index([lastActiveAt])
+}
+
+model SignInIdentity {
+  id        String   @id @default(cuid())
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  provider  String
+  subject   String
+  createdAt DateTime @default(now())
+
+  @@unique([provider, subject])
+  @@unique([accountId, provider])
+}
+
+model AccountAuthToken {
+  tokenHash      String   @id
+  purpose        String
+  accountId      String?
+  account        Account? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  sessionVersion Int?
+  email          String?
+  subject        String?
+  nextPath       String   @default("/dashboard")
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+
+  @@index([accountId, purpose])
+  @@index([expiresAt])
+}
+
+model AccountAuthNotice {
+  accountId  String    @id
+  account    Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  version    Int       @default(1)
+  dismissals Int       @default(0)
+  remindAt   DateTime?
 }
 
 model AnalyticsPreference {
@@ -327,10 +368,10 @@ model DirectMessage {
 
 model ConversationPreference {
   accountId       String
-  account         Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  account         Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
   conversationKey String
-  subscribed      Boolean @default(false)
-  muted           Boolean @default(false)
+  subscribed      Boolean   @default(false)
+  muted           Boolean   @default(false)
   archivedAt      DateTime?
 
   @@id([accountId, conversationKey])

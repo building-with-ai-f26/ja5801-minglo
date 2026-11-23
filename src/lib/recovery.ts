@@ -2,14 +2,19 @@ import { randomBytes, createHash } from "node:crypto";
 import { hash, verify, argon2id } from "argon2";
 import { db } from "./db";
 import { credentialsSchema } from "./validation";
+import { requireRecent, type RecentActor } from "./account-auth/service";
 import { allowAttempt } from "./rate-limit";
 
 export class RecoveryError extends Error {}
 const digest = (code: string) =>
   createHash("sha256").update(code).digest("hex");
 
-export async function createRecoveryCodes(accountId: string, password: string) {
-  if (password.length < 10 || password.length > 128)
+export async function createRecoveryCodes(
+  accountId: string,
+  password: string,
+  actor?: RecentActor,
+) {
+  if (!actor && (password.length < 10 || password.length > 128))
     throw new RecoveryError("Enter your current password.");
   const codes = Array.from({ length: 6 }, () =>
     randomBytes(16).toString("base64url"),
@@ -20,7 +25,14 @@ export async function createRecoveryCodes(accountId: string, password: string) {
       where: { id: accountId },
       select: { passwordHash: true },
     });
-    if (!account || !(await verify(account.passwordHash, password)))
+    if (actor) {
+      if (actor.id !== accountId)
+        throw new RecoveryError("Account could not be verified.");
+      await requireRecent(tx, actor, password);
+    } else if (
+      !account?.passwordHash ||
+      !(await verify(account.passwordHash, password))
+    )
       throw new RecoveryError("The current password could not be verified.");
     await tx.recoveryCode.deleteMany({ where: { accountId } });
     await tx.recoveryCode.createMany({

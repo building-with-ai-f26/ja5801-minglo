@@ -3,25 +3,34 @@ import { useActionState } from "react";
 import { createRecoveryCodesAction } from "@/app/actions/recovery";
 import { CopyInstructions } from "./copy-instructions";
 
-export function RecoveryCodesForm() {
+export function RecoveryCodesForm({
+  recentHumanAuth = false,
+}: {
+  recentHumanAuth?: boolean;
+}) {
   const [state, action, pending] = useActionState(
     createRecoveryCodesAction,
     {},
   );
   return (
     <form action={action}>
-      <div className="field">
-        <label htmlFor="currentPassword">Current password</label>
-        <input
-          id="currentPassword"
-          name="currentPassword"
-          type="password"
-          autoComplete="current-password"
-          required
-          minLength={10}
-          maxLength={128}
-        />
-      </div>
+      {!recentHumanAuth && (
+        <div className="field">
+          <label htmlFor="currentPassword">Current password</label>
+          <input
+            id="currentPassword"
+            name="currentPassword"
+            type="password"
+            autoComplete="current-password"
+            required
+            minLength={10}
+            maxLength={128}
+          />
+        </div>
+      )}
+      {recentHumanAuth && (
+        <p className="small muted">Your recent sign-in verifies this change.</p>
+      )}
       {state.error && (
         <p className="error" role="alert">
           {state.error}

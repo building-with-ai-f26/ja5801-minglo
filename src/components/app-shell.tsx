@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AccountAuthNotice } from "./account-auth-notice";
 import "./app-shell.css";
 import {
   LayoutGrid,
@@ -248,6 +249,9 @@ export function AppShell({
           </header>
           <main className="workspace-content" id="main">
             <div id="tour-welcome-slot" />
+            {account.type === "OWNER" && (
+              <AccountAuthNotice accountId={account.id} />
+            )}
             {children}
             <WorkspaceFooter />
           </main>

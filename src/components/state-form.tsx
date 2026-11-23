@@ -8,12 +8,14 @@ export function StateForm({
   label,
   pendingLabel = "Working…",
   wide = false,
+  googleButton = false,
 }: {
   action: (state: FormState, form: FormData) => Promise<FormState>;
   children?: React.ReactNode;
   label: string;
   pendingLabel?: string;
   wide?: boolean;
+  googleButton?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
   const [origin, setOrigin] = useState("");
@@ -91,9 +93,36 @@ export function StateForm({
           </button>
         </div>
       )}
-      <button className={`button ${wide ? "wide" : ""}`} disabled={pending}>
-        {pending ? pendingLabel : label}
-        <ArrowRight size={15} />
+      <button
+        className={
+          googleButton ? "google-signin-button" : `button ${wide ? "wide" : ""}`
+        }
+        disabled={pending}
+        aria-label={googleButton ? (pending ? pendingLabel : label) : undefined}
+      >
+        {googleButton && !pending ? (
+          <>
+            <img
+              className="google-light"
+              src="/images/auth/google-signin-light.png"
+              width={180}
+              height={40}
+              alt=""
+            />
+            <img
+              className="google-dark"
+              src="/images/auth/google-signin-dark.png"
+              width={180}
+              height={40}
+              alt=""
+            />
+          </>
+        ) : pending ? (
+          pendingLabel
+        ) : (
+          label
+        )}
+        {!googleButton && <ArrowRight size={15} />}
       </button>
     </form>
   );
