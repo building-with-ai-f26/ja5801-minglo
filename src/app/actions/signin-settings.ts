@@ -10,6 +10,7 @@ import { requireAccount } from "@/lib/session";
 import { requestSource } from "@/lib/request-source";
 import { allowAttempt } from "@/lib/rate-limit";
 import { db } from "@/lib/db";
+import { AccountEmailDeliveryError } from "@/lib/account-auth/mail";
 import { safeNext } from "@/lib/validation";
 import {
   AUTH_COOKIE,
@@ -171,6 +172,13 @@ export async function verifyEmailRequestAction(
         "Check your inbox for a verification link. Your current recovery email stays active until you confirm the new one.",
     };
   } catch (error) {
+    if (error instanceof AccountEmailDeliveryError) {
+      revalidatePath("/settings");
+      return {
+        error:
+          "We couldn't send your verification email. Your recovery address hasn't changed. Try again, or contact jonas.altaher@gmail.com if this keeps happening.",
+      };
+    }
     return failure(error);
   }
 }

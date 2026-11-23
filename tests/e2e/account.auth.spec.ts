@@ -13,6 +13,7 @@ import {
   requireRecent,
   createGoogleAccount,
   tokenDigest,
+  completeGoogleRecovery,
 } from "../../src/lib/account-auth/service";
 import { createRecoveryCodes } from "../../src/lib/recovery";
 const hashed = hash(password);
@@ -81,6 +82,7 @@ test("existing owner connects Google without changing identity; provider login a
 }) => {
   const account = await human();
   const subject = unique();
+  const googleEmail = `${unique()}@example.com`;
   await db.publicMessage.create({
     data: {
       senderAccountId: account.id,
@@ -93,7 +95,7 @@ test("existing owner connects Google without changing identity; provider login a
   await page
     .getByRole("button", { name: "Sign in with Google", exact: true })
     .click();
-  await google(page, `${unique()}@example.com`, subject);
+  await google(page, googleEmail, subject);
   await expect(page).toHaveURL(/settings\?connected=1/);
   expect(
     (await db.signInIdentity.findFirstOrThrow({ where: { subject } }))
@@ -102,13 +104,20 @@ test("existing owner connects Google without changing identity; provider login a
   expect(
     (await db.account.findUniqueOrThrow({ where: { id: account.id } }))
       .recoveryEmail,
-  ).toBeNull();
+  ).toBe(googleEmail);
+  await expect(
+    page.getByText("You're all set.", { exact: true }),
+  ).toBeVisible();
   await logout(page);
   await page.goto("/login?next=%2Fpublic-room");
   await page.getByRole("button", { name: "Sign in with Google" }).click();
   await google(page, `${unique()}@example.com`, subject);
   await expect(page).toHaveURL(/\/public-room$/);
   await expect(page.getByRole("log")).toContainText("Retain my message");
+  expect(
+    (await db.account.findUniqueOrThrow({ where: { id: account.id } }))
+      .recoveryEmail,
+  ).toBe(googleEmail);
   await page.goto("/settings");
   await page
     .locator("summary")
@@ -125,6 +134,111 @@ test("existing owner connects Google without changing identity; provider login a
   expect(
     await db.publicMessage.count({ where: { senderAccountId: account.id } }),
   ).toBe(1);
+});
+
+test("an already connected owner completes recovery with one fresh Google sign-in", async ({
+  page,
+}) => {
+  const account = await human();
+  const subject = unique(),
+    email = `${unique()}@example.com`;
+  await db.signInIdentity.create({
+    data: { accountId: account.id, provider: "google", subject },
+  });
+  await login(page, account.handle);
+  await page.goto("/settings");
+  await expect(
+    page.getByText("Google sign-in is ready.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/No email verification is in progress/),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Sign in with Google", exact: true })
+    .click();
+  await google(page, email, subject);
+  await expect(page).toHaveURL(/\/settings$/);
+  await expect(
+    page.getByText("You're all set.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/you don't need a verification email/),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Sign in with Google", exact: true }),
+  ).toHaveCount(0);
+  const saved = await db.account.findUniqueOrThrow({
+    where: { id: account.id },
+  });
+  expect(saved.recoveryEmail).toBe(email);
+  expect(saved.emailVerifiedAt).not.toBeNull();
+  expect(
+    await db.accountAuthToken.count({
+      where: { accountId: account.id, purpose: "verify-email" },
+    }),
+  ).toBe(0);
+  for (const width of [390, 1440])
+    for (const theme of ["light", "dark"]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.evaluate(
+        (value) => localStorage.setItem("minglo-theme", value),
+        theme,
+      );
+      await page.reload();
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: `.local/auth-release/setup-complete-${width}-${theme}.png`,
+        fullPage: true,
+      });
+    }
+});
+
+test("Google recovery preserves existing and pending addresses, rejects mismatched subjects and never merges email conflicts", async () => {
+  const existingEmail = `${unique()}@example.com`;
+  const a = await human({ recoveryEmail: existingEmail }),
+    b = await human(),
+    c = await human();
+  const subjects = [unique(), unique(), unique()];
+  for (const [i, account] of [a, b, c].entries())
+    await db.signInIdentity.create({
+      data: { accountId: account.id, provider: "google", subject: subjects[i] },
+    });
+  expect(
+    await completeGoogleRecovery(a.id, subjects[0], `${unique()}@example.com`),
+  ).toBe(false);
+  expect(
+    await completeGoogleRecovery(b.id, subjects[0], `${unique()}@example.com`),
+  ).toBe(false);
+  expect(await completeGoogleRecovery(b.id, subjects[1], existingEmail)).toBe(
+    false,
+  );
+  await requestEmailVerification(
+    { id: b.id, sessionVersion: 0, authenticatedAt: Date.now() },
+    `${unique()}@example.com`,
+    "",
+  );
+  expect(
+    await completeGoogleRecovery(b.id, subjects[1], `${unique()}@example.com`),
+  ).toBe(false);
+  expect(
+    (await db.account.findUniqueOrThrow({ where: { id: a.id } })).recoveryEmail,
+  ).toBe(existingEmail);
+  expect(
+    (await db.account.findUniqueOrThrow({ where: { id: b.id } })).recoveryEmail,
+  ).toBeNull();
+  expect(
+    await db.accountAuthToken.count({
+      where: { accountId: b.id, purpose: "verify-email" },
+    }),
+  ).toBe(1);
+  await db.signInIdentity.deleteMany({ where: { accountId: c.id } });
+  expect(
+    await completeGoogleRecovery(c.id, subjects[2], `${unique()}@example.com`),
+  ).toBe(false);
 });
 
 test("new Google identity offers existing-account linking before explicit passwordless registration", async ({

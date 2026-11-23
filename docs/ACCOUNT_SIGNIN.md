@@ -36,8 +36,14 @@ tokens are persisted. Client forms never supply the acting account ID.
 Settings lists Google connection, verified recovery email, pending verification,
 password controls and backup codes. Email normalization trims and lowercases; it
 does not collapse dots or plus aliases. One verified email maps to one human
-account. Google signup uses its verified email as the initial recovery address;
-linking Google to an existing account does not change recovery email.
+account. Google signup uses its verified email as the initial recovery address.
+Linking or signing in with an already connected Google identity fills a missing
+recovery address from the fresh verified Google profile. No additional
+verification email is required. Existing recovery addresses and pending email
+verification choices remain unchanged. Subject ownership is rechecked under the
+account lock; an email already belonging elsewhere never merges accounts or
+blocks an existing Google login. Such users can verify a different address in
+Settings. A best-effort security email confirms newly completed Google recovery.
 
 Email additions/changes require recent authentication and a 30-minute single-use
 verification link. Confirming the link requires the requesting account's session.

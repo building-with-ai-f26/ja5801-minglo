@@ -15,6 +15,7 @@ import {
   createGoogleAccount,
   googleProfileProof,
   completeGoogleLink,
+  completeGoogleRecovery,
   readAuthToken,
   AccountAuthError,
 } from "@/lib/account-auth/service";
@@ -178,6 +179,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Never silently switch a signed-in browser to a different Minglo account.
         if (session?.user?.id && session.user.id !== identity.accountId)
           return "/settings?authError=link";
+        await completeGoogleRecovery(
+          identity.accountId,
+          subject,
+          profile.email,
+        );
         user.id = identity.accountId;
         user.name = identity.account.handle;
         user.email = null;

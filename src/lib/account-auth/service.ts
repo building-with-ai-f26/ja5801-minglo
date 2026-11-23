@@ -334,6 +334,60 @@ export async function googleProfileProof(
     }),
   );
 }
+// Called only with a verified Google profile from the OIDC callback. Recheck
+// the subject binding under the account lock; never infer identity from email.
+export async function completeGoogleRecovery(
+  accountId: string,
+  subject: string,
+  input: unknown,
+) {
+  const email = normalizeEmail(input);
+  if (!allowedAuthEmail(email)) return false;
+  let added = false;
+  try {
+    added = await db.$transaction(async (tx) => {
+      const account = await lockAccount(tx, accountId);
+      const identity = await tx.signInIdentity.findUnique({
+        where: { provider_subject: { provider: "google", subject } },
+      });
+      if (identity?.accountId !== accountId || account.recoveryEmail)
+        return false;
+      // Preserve an address the user already chose and is verifying.
+      if (
+        await tx.accountAuthToken.count({
+          where: {
+            accountId,
+            purpose: "verify-email",
+            expiresAt: { gt: new Date() },
+          },
+        })
+      )
+        return false;
+      await tx.account.update({
+        where: { id: accountId },
+        data: { recoveryEmail: email, emailVerifiedAt: new Date() },
+      });
+      await tx.accountAuthToken.deleteMany({
+        where: { accountId, purpose: "reset-password" },
+      });
+      return true;
+    });
+  } catch (error) {
+    // A recovery email belonging elsewhere must never merge accounts or stop
+    // the already linked identity from signing in. Manual email setup remains.
+    if (
+      !(error instanceof Prisma.PrismaClientKnownRequestError) ||
+      error.code !== "P2002"
+    )
+      throw error;
+  }
+  if (added)
+    await notifyAccount(
+      email,
+      "Your verified Google email is now your Minglo recovery email. No email verification step is needed. You can sign in with Google or request a password reset from the Minglo sign-in page.",
+    );
+  return added;
+}
 export async function linkGoogle(
   actor: RecentActor,
   password: string,
@@ -361,6 +415,7 @@ export async function linkGoogle(
       email,
       "Google sign-in was connected to your Minglo account.",
     );
+    await completeGoogleRecovery(actor.id, proof.subject, proof.email);
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

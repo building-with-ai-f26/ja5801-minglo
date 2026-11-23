@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { emailAuthEnabled, localAuthTest } from "./config";
+export class AccountEmailDeliveryError extends Error {}
 export async function sendAccountEmail(
   to: string,
   subject: string,
@@ -25,6 +26,7 @@ export async function sendAccountEmail(
     return;
   }
   // Fixed provider endpoint; no caller-supplied URLs. Reuse idempotency on retry.
+  let failure: number | "network" = "network";
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const response = await fetch("https://api.resend.com/emails", {
@@ -39,12 +41,17 @@ export async function sendAccountEmail(
         body: JSON.stringify(message),
       });
       if (response.ok) return;
+      failure = response.status;
       if (response.status < 500 && response.status !== 429) break;
     } catch {
+      failure = "network";
       /* Retry transient network failure without logging a token or address. */
     }
   }
-  throw new Error("Email delivery is unavailable. Try again later.");
+  console.error("Account email delivery failed:", failure);
+  throw new AccountEmailDeliveryError(
+    "Email delivery is unavailable. Try again later.",
+  );
 }
 export async function notifyAccount(to: string | null, text: string) {
   if (!to || !emailAuthEnabled()) return;

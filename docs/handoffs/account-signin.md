@@ -1,5 +1,29 @@
 # Google sign in and email recovery handoff
 
+## Setup clarity follow-up — November 22
+
+Jonas confirmed that real Google linking worked, then reported that Settings did
+not make completion or the remaining email action clear. Read-only checks found
+Google connected, no verified recovery email, no pending verification request,
+and no recorded account-email errors. That is not evidence of a delivery failure:
+the original Google-link flow did not request a verification email.
+
+The follow-up uses the fresh verified Google profile to fill a missing recovery
+address after linking or a subsequent Google sign-in. Existing recovery addresses,
+pending verification choices and unique-email ownership remain intact. Settings
+now leads with the next action or “You're all set,” explains when no email is
+needed, distinguishes pending verification from no request in progress, and
+collapses completed setup controls. Verification-send failures have a specific
+retry/support message; operator logs contain only a provider status code or a
+network-failure category, never provider bodies, recipient addresses or secrets.
+
+The old behavior was reproduced by an expected failing local regression test.
+The updated 16-case auth suite, two trial checks, all 162 compatibility tests and
+four Topics-off cases pass (184 total), along with build/typecheck and both
+production restart checks. Mobile/desktop light/dark captures were reviewed.
+Backup b028 completed before the follow-up deployment. No new migration or
+dependency is needed. The original release record follows.
+
 ## Production status — November 22
 
 The implementation is pushed to GitHub `main` and `feature/account-signin`.
