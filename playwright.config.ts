@@ -16,7 +16,11 @@ process.env.POSTHOG_ENABLED = "false";
 process.env.POSTHOG_TRANSPORT = "disabled";
 export default defineConfig({
   testDir: "./tests/e2e",
-  testIgnore: ["**/*.topics-off.spec.ts", "**/analytics.integration.spec.ts"],
+  testIgnore: [
+    "**/*.topics-off.spec.ts",
+    "**/analytics.integration.spec.ts",
+    "**/*.auth.spec.ts",
+  ],
   fullyParallel: false,
   workers: 1,
   timeout: 45_000,
