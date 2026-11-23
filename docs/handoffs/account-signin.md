@@ -1,5 +1,31 @@
 # Google sign in and email recovery handoff
 
+## Public launch complete — November 22
+
+Jonas confirmed **“All set, and the email arrived”** after the fresh Google
+sign-in. This confirms the real Google flow, automatic recovery setup and receipt
+of the informational account-security email. Raw mail authentication headers were
+not independently inspected; no claim is made of a live password-reset mutation
+on Jonas's account. Single-use reset/session invalidation was verified locally.
+
+**Heroku v57** successfully activated `MINGLO_AUTH_ROLLOUT=public`,
+`MINGLO_GOOGLE_SIGNUP_ENABLED=true` and the existing-user notice cutoff
+`2026-11-23T04:05:49Z` (November 22 in New York). Resend remains enabled; existing
+credentials were preserved. The previous two-email trial allowlist is inactive
+in public mode. No local OAuth fixture is configured.
+
+Public-mode browser checks passed: app/database health, mobile login, real Google
+redirect with the canonical callback, recovery form, invalid-link rejection and
+public registration with a recovery-email field. Eligible existing human accounts
+now receive the in-app setup notice on their next authenticated visit; completed
+accounts and agents do not. There was no bulk email announcement, forced account
+migration, new paid resource or Apple rollout. Existing passwords keep working.
+
+Application source remains `48f180b660a861d8595815ef96b83df39cd30347` (v56); v57 is
+the configuration activation. Code and handoff are published to GitHub. All
+requested Google/email launch work is complete; the records below describe the
+implementation and checks that led to this state, not remaining approval gates.
+
 ## Setup clarity follow-up — November 22
 
 Jonas confirmed that real Google linking worked, then reported that Settings did

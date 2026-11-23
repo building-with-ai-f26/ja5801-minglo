@@ -1,9 +1,11 @@
 # Human sign in and email recovery
 
-Status: deployed as Heroku v56, including the simplified Google recovery setup.
-Jonas authorized deployment and prompt public launch on November 22; results are tracked in the
-[handoff](handoffs/account-signin.md). Earlier limited-trial approval gates below
-describe the original staged plan. Apple sign-in remains deferred.
+Status: publicly enabled in Heroku v57 on November 22, running v56's simplified
+Google recovery setup. Jonas confirmed real Google sign-in, completed recovery
+setup and receipt of the account-security email. Public signup and the existing-user
+notice are enabled. See the [handoff](handoffs/account-signin.md) for evidence.
+The staging/activation checklist below is retained for future environments;
+the production launch is complete. Apple sign-in remains deferred.
 
 ## Account continuity
 
