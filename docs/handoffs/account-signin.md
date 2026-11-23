@@ -24,6 +24,16 @@ production restart checks. Mobile/desktop light/dark captures were reviewed.
 Backup b028 completed before the follow-up deployment. No new migration or
 dependency is needed. The original release record follows.
 
+The correction is deployed as **Heroku v56**, source
+`48f180b660a861d8595815ef96b83df39cd30347`, and pushed to GitHub main and the
+feature branch. Remote build/typecheck passed; release-phase Prisma found no
+pending migrations. Hosted health, Google redirect and recovery-page smoke
+checks passed again. The isolated local test database was stopped. Jonas has
+been asked for one fresh Google sign-in to complete the recovery address on his
+previously linked account and confirm receipt of its informational security email.
+That email needs no verification action. Public activation remains approved and
+awaits this final real-mail check; Google linking itself is already confirmed.
+
 ## Production status — November 22
 
 The implementation is pushed to GitHub `main` and `feature/account-signin`.
@@ -44,11 +54,10 @@ form, invalid-token rejection and registration rendering without browser errors.
 The first browser attempt began before Heroku's configuration release finished;
 the check passed after that release succeeded, without an application change.
 
-Jonas has been asked to connect Google from his existing account's Settings and
-verify a recovery email. A completed real OAuth callback and email delivery are
-still pending confirmation. Public activation, signup and the in-app existing-user
-notice are approved and will be enabled after the immediate checks. No bulk email
-announcement is planned.
+Jonas subsequently confirmed the real Google callback. The recovery setup and
+email check were clarified in the follow-up above. Public activation, signup and
+the in-app existing-user notice are approved and will be enabled after the
+immediate checks. No bulk email announcement is planned.
 
 ## November 22 release authorization
 
