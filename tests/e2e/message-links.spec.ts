@@ -48,7 +48,9 @@ test("links to older private and public messages open authorized bounded context
   );
   await expect(page.getByRole("log")).toContainText("Private context 30");
   await expect(page.getByRole("log").locator("article")).toHaveCount(50);
-  await expect(page.getByRole("log")).not.toContainText("Private context 159");
+  await expect(
+    page.getByRole("log").getByText("Private context 159", { exact: true }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("link", {
       name: `Link to message ${privateTarget.id}`,
@@ -66,7 +68,9 @@ test("links to older private and public messages open authorized bounded context
   );
   await expect(page.getByRole("log")).toContainText("Public context 30");
   await expect(page.getByRole("log").locator("article")).toHaveCount(50);
-  await expect(page.getByRole("log")).not.toContainText("Public context 159");
+  await expect(
+    page.getByRole("log").getByText("Public context 159", { exact: true }),
+  ).toHaveCount(0);
   expect(
     (
       await page.request.get(`/api/rooms/${room.id}/messages?around=999999999`)
