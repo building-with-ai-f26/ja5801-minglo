@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-11-23T04:26:37.407291+00:00",
+  "surface": "Live GitHub Pages product page",
+  "method": "Explicitly consented automated verification visit, plus separate masked replay consent; no private app recording.",
+  "noThirdPartyBeforeConsent": true,
+  "eventNames": [
+    "$pageview",
+    "$snapshot"
+  ],
+  "snapshotBatches": 1,
+  "ingestionResponses": [
+    {
+      "path": "/e/",
+      "status": 200
+    },
+    {
+      "path": "/e/",
+      "status": 200
+    },
+    {
+      "path": "/s/",
+      "status": 200
+    }
+  ],
+  "recordingOffConfirmationObserved": true,
+  "pageErrors": [],
+  "clickAfterReplayStop": "Not confirmed: no product_button_clicked observed in network capture or SDK listener before timeout.",
+  "limitations": [
+    "Two harness corrections did not complete the combined live analytics check; further attempts stopped under the repository rule.",
+    "Accepted pageviews and masked snapshots are positive evidence; do not claim a complete current live click check.",
+    "Playback of this new recording has not been inspected in the PostHog dashboard."
+  ]
+}

@@ -761,6 +761,81 @@
           below describe what works, what I checked and what still needs
           evidence.
         </p>
+        <details class="build-notes" open>
+          <summary>Build 3 · live app and security audit</summary>
+          <p class="meta">
+            November 22, 2026 · Beginner lane · due November 23 at noon Eastern
+          </p>
+          <dl>
+            <dt>What shipped</dt>
+            <dd>
+              Google sign-in and email recovery are live on the existing Heroku
+              app. I connected my account and received the email. Handles, chats
+              and connected agents stay together.
+            </dd>
+            <dt>What I checked</dt>
+            <dd>
+              Account A could read its private message; Account B was blocked
+              from the same room. Forged-author, cross-site and anonymous
+              requests were also blocked. These were clearly labeled automated
+              test accounts, not a claim about autonomous agent use.
+            </dd>
+            <dt>What I learned</dt>
+            <dd>
+              Being online is only one part of the checklist. The server
+              enforces access, but the database still has no row-level security
+              policies. Database RLS remains planned security work; the report
+              describes the current application-enforced boundary.
+            </dd>
+            <dt>What broke</dt>
+            <dd>
+              The audit script first checked the URL before navigation finished.
+              We corrected the test and verified A’s successful read before
+              recording B’s denial. The dependency audit also found a
+              high-severity issue; a targeted local update now gives zero audit
+              vulnerabilities. A new general write limit is tested locally. Both
+              code fixes still await deployment.
+            </dd>
+            <dt>Time and spend</dt>
+            <dd>
+              About 8 hours. Carrying forward my earlier $100/month ChatGPT and
+              $12/month hosting estimates gives about $26 for seven days. This
+              is an allocation, not a new invoice; domain costs, taxes and extra
+              usage are not reconciled. No paid resource was added for the
+              audit.
+            </dd>
+            <dt>Still to do</dt>
+            <dd>
+              Publish the approved fixes and check the full journey on a
+              physical phone before class. No podmate sign-off is claimed.
+            </dd>
+          </dl>
+          <figure class="evidence-figure">
+            <a href="images/build3-access-control.png"
+              ><img
+                src="images/build3-access-control.png"
+                alt="Live test report: Account A receives HTTP 200 and one private message; Account B receives HTTP 404 and Room unavailable."
+                loading="lazy"
+                width="1100"
+                height="850"
+            /></a>
+            <figcaption>
+              Recorded live access test, rendered as a labeled report. This
+              demonstrates application access controls, not database RLS.
+              <a href="images/build3-account-b-blocked.png"
+                >Original blocked page</a
+              >.
+            </figcaption>
+          </figure>
+          <p>
+            <a
+              href="https://github.com/building-with-ai-f26/ja5801-minglo/blob/main/SECURITY.md"
+              >Security review</a
+            >
+            · <a href="PRD_V3.md">PRD v3</a> ·
+            <a href="BUILD3_SUBMISSION.md">Submission checklist</a>
+          </p>
+        </details>
         <details class="build-notes">
           <summary>Build 2 · architecture, analytics and checks</summary>
           <p class="meta">

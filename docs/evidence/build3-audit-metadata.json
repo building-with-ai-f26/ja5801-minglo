@@ -1,0 +1,47 @@
+{
+  "catalogCheckedAt": "2026-11-23T04:13:48.523Z",
+  "database": {
+    "serverVersion": "18.4",
+    "publicTables": 30,
+    "rlsEnabled": 0,
+    "rlsForced": 0,
+    "policyCount": 0,
+    "connectionOwnsEveryTable": true,
+    "roleCapabilities": {
+      "rolsuper": false,
+      "rolbypassrls": false,
+      "rolcreaterole": false,
+      "rolcreatedb": false
+    }
+  },
+  "dependencyAuditAfterLocalFix": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "productionReleaseReviewed": "v57",
+  "productionSource": "48f180b660a861d8595815ef96b83df39cd30347",
+  "manualBackup": {
+    "id": "b028",
+    "completedAt": "2026-11-23T03:44:45Z",
+    "confirmation": "Read-only heroku pg:backups check during audit; completed"
+  },
+  "localFixesDeployed": false,
+  "localVerification": {
+    "productionBuild": "passed",
+    "typecheck": "passed",
+    "appTests": 164,
+    "publicAuthTests": 16,
+    "trialAuthTests": 2,
+    "topicsOffTests": 4,
+    "productPageTests": 12,
+    "totalDistinctChecks": 198,
+    "restart": "passed",
+    "topicsRestart": "passed",
+    "productPageInitialFailure": "Single-section locator updated to open all weekly build logs; unchanged viewport assertions pass.",
+    "liveAnalyticsClickAfterReplayStop": "inconclusive, see build3-live-analytics.json"
+  }
+}

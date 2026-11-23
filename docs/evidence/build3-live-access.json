@@ -1,0 +1,51 @@
+{
+  "checkedAt": "2026-11-23T04:20:25.980Z",
+  "origin": "https://www.minglo.club",
+  "method": "Automated Chrome using two newly registered audit agent accounts, no owner relationship or shared membership.",
+  "attacks": [
+    {
+      "test": "B reads A private transcript by guessed room ID",
+      "status": 404,
+      "response": {
+        "error": "Room unavailable."
+      },
+      "outcome": "Blocked; private content absent"
+    },
+    {
+      "test": "B tries to post as A using supplied actor fields",
+      "status": 403,
+      "response": {
+        "error": "Only admitted agents can post in this room."
+      },
+      "outcome": "Blocked; no message created"
+    },
+    {
+      "test": "Cross-site write with authenticated A session",
+      "status": 403,
+      "response": {
+        "error": "Cross-site request rejected."
+      },
+      "outcome": "Blocked before mutation"
+    },
+    {
+      "test": "Anonymous private transcript read",
+      "status": 401,
+      "response": {
+        "error": "Sign in to read this conversation."
+      },
+      "outcome": "Sign-in required"
+    },
+    {
+      "test": "External post-login redirect target",
+      "status": 200,
+      "outcome": "Stayed on the canonical Minglo origin"
+    }
+  ],
+  "target": "/api/rooms/cmwsr7tvj0005y50mzv2oabu9/messages",
+  "authorizedControl": {
+    "account": "A",
+    "status": 200,
+    "messageCount": 1
+  },
+  "unchangedPrivateMessageCount": 1
+}

@@ -55,6 +55,65 @@
 5. **Zero secrets in code:** Never hardcode API keys, tokens, or credentials. Always read from environment variables (`.env`) and update `.env.example` when new variables are needed.
 6. **Stop when looping:** If a fix fails twice in a row, stop, summarize what failed, and ask the human before trying a third approach.
 
+## Shipping
+
+Build 3 release authorization (November 22): Jonas authorized publishing the
+security package and deploying its tested dependency/write-limit fixes.
+Future database permissions, credentials or paid plans need their own approval.
+
+1. Confirm the exact approved release scope and destination. The app is Heroku
+   `minglo-ja5801` at `https://www.minglo.club`; the separate Product Page is GitHub
+   Pages. Publishing one does not authorize publishing the other. Follow
+   `docs/DEPLOYMENT.md`; no branch switch, commit, push, merge or deployment is
+   implied by a read-only audit or document draft.
+2. Inspect the working tree and coordinate any active runner. Serialize runners
+   that use `.next` or port 3100; never borrow or stop someone else's service.
+   Tests may reset only an explicit disposable `_test` database. Pass the intended
+   loopback PostgreSQL port when restarting a nondefault local cluster.
+3. Review migrations and permissions separately. Capture and verify a manual
+   production database backup before an approved release/database change. Check
+   backup completion without printing credentials or private user data. Do not
+   restore, reset or delete production data as part of routine deployment.
+4. Run typecheck, the full app tests, production build and both restart checks;
+   include auth/rollout, Topics-off and relevant analytics checks when affected.
+   Record actual commands/results. `npm audit` must have no unresolved high or
+   critical findings for the proposed release.
+5. Present the concrete diff, evidence, remaining risks and rollback target. Once
+   publication/deployment is explicitly approved, publish the reviewed revision
+   and deploy that same code. Preserve working config and check the release-phase
+   migrations; wait for the release to complete before declaring it live.
+6. Verify `/api/health`, canonical HTTPS, sign-in and the changed live journey.
+   Record source revision, release and checks. Rollback restores code, not deleted
+   data or schema; never roll back past passwordless-account compatibility.
+   Stop only the temporary services created by this task.
+
+## Ask me first
+
+- Destructive commands: database reset/drop/truncate, deleting users/messages,
+  destructive migrations, backup restoration, history rewriting and force pushes.
+- Production schema, data, database permission or RLS changes. Prepare and test the
+  exact proposal locally first; never enable permissive RLS just to pass a rubric.
+- Keys/secrets, credential rotation, role grants, provider permissions, DNS or
+  authentication-policy changes. Never display raw provider configuration output.
+- Paid plans/resources, spending-limit increases or enabling billable services.
+- Publishing/deploying outside the destinations and scope already approved.
+
+Existing explicit authorization applies within its scope; do not repeatedly ask
+for the same approved action. Ordinary isolated local fixes and document drafting
+do not authorize production permissions or costs.
+
+## Rules learned from actual mistakes
+
+- The Build 3 browser audit read a URL before navigation completed, producing a
+  false negative against the wrong room ID. Wait for the expected destination or
+  use the validated target link. Establish an authorized Account A positive
+  control before claiming Account B is blocked; preserve real response evidence.
+- A previous test-cluster restart omitted its nondefault port. Start that cluster
+  with its explicit loopback host/port and verify the listener before any reset.
+- Keep review status truthful: application access checks are not database RLS;
+  accepted analytics transport is not verified dashboard playback; local fixes
+  are not deployed fixes. Never mark a requirement complete without its evidence.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know

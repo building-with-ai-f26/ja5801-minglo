@@ -1,38 +1,31 @@
-# Build 3: Build.exe (The Core, in Small Changes)
+# Build 3: Go Live & Security Audit
 
-Optional working notes. Publish your required build log on `docs/index.html`; no separate journal submission is required.
+November 22, 2026 · due November 23 at noon New York time · Beginner lane.
 
-**Build due:** Monday, Nov 23, 2026 at 12:00 PM (Noon)
+## What shipped
 
----
+Minglo is live at https://www.minglo.club. This week I finished Google sign-in and email recovery for people, including connecting an existing account without losing its handle, chats or agents. I tested it on my account: Google connected and the email arrived. The build uses the existing Heroku app and PostgreSQL database.
 
-## 1. What you made
-- **PRs / Commits shipped:** 
-- **Product Page URL / local demo evidence:** 
-- **Summary of what works now:** 
+The security submission is prepared locally. It includes a real Account A/Account B access test, screenshots, SECURITY.md, PRD v3 and shipping rules. The dependency update and shared write limiter still need publication and deployment. RLS is not implemented. The current application-enforced boundary and planned database work stay documented.
 
-## 2. Metacognition ("Learn with AI"): Branches, Diffs & Agent Guardrails
-- **Changes your AI tutor helped you understand: what changed, why it matters, and how you checked it:**
-  1. 
-  2. 
-  3. 
-- **New rule you added to `AGENTS.md` after catching your agent making a mistake this week:** 
+## What I learned
 
-## 3. What the agent did
-- **Agent(s) & Model(s) used:** 
-- **How you briefed/directed it (key prompts or `AGENTS.md` updates):** 
-- **Where you had to step in, edit by hand, or reset context:** 
+Being live and meeting the security checklist are different things. The app correctly blocked one account from another account's private conversation, but that does not mean PostgreSQL itself has row-level policies. I want to keep Heroku and make the remaining decision explicit rather than move everything just for the assignment.
 
-## 4. What didn't work
-- **Bugs, agent loops, or broken assumptions:** 
-- **How you diagnosed and fixed (or rolled back) them:** 
+I also learned that successful authentication needs clear feedback. Google linking and recovery originally looked like two unrelated tasks. The revised page says when the account is ready and whether an email needs action.
 
-## 5. What it cost
-- **Agent / Token spend this week:** `$___`
-- **Hosting / API runtime spend this week:** `$___`
-- **Your hours spent this week:** `___ hrs`
-- **Cumulative project spend to date:** `$___`
+## What broke and how we checked it
 
-## 6. Pod Critique Sign-off
-- **Tested by podmate(s):** 
-- **Key feedback to address next:**
+The dependency audit found one high-severity advisory reported through three related packages. A targeted patched-version override removed it without downgrading Prisma. Some database-write forms also lacked a general visitor cap, so the agent added one and verified that actual form/API writes are blocked at the cap.
+
+The live audit script initially read the URL before navigation finished and used the wrong room identifier. That was a harness mistake, not evidence of an access-control bug. It was corrected to use the actual room link and verify the successful A read before recording B's denial. AGENTS.md now requires a positive control and completed navigation before an audit claim.
+
+## Time and money
+
+About **8 hours** this week. My previously reported subscription was **$100/month** and hosting **$12/month**. Assuming those are unchanged, seven days of the recurring total is about **$26** using a 30-day month. This is an allocation, not an invoice. Domain costs, taxes, usage adjustments and cumulative spend have not been reconciled. No paid resource was added during the audit.
+
+## Remaining work
+
+I have approved publication/deployment. Upload the blocked-access evidence and submit the live link once publication is verified. Check the full journey on a physical phone and bring it to class November 24. No podmate sign-off is claimed yet.
+
+Commits already exist on Saturday November 21 (`319eff0`) and Sunday November 22 (`48f180b`), outside Tuesday class. These are existing commits; the current audit files have not been committed or backdated.

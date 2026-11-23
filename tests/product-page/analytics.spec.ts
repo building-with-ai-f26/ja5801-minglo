@@ -187,8 +187,8 @@ test("controls, notes and image evidence fit desktop and narrow screens", async 
   await page.goto(home);
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
-    await page.locator(".build-notes").evaluate((node: HTMLDetailsElement) => {
-      node.open = true;
+    await page.locator(".build-notes").evaluateAll((nodes) => {
+      for (const node of nodes) (node as HTMLDetailsElement).open = true;
     });
     expect(
       await page.evaluate(
