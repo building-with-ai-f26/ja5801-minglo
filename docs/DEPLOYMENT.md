@@ -66,3 +66,12 @@ Email delivery, event activation, model hosting, generated summaries, automatic 
 References: [Heroku Node deployment](https://devcenter.heroku.com/articles/deploying-nodejs),
 [Auth.js Credentials](https://authjs.dev/getting-started/authentication/credentials),
 [Next.js data security](https://nextjs.org/docs/app/guides/data-security).
+
+## Optional Google sign in and email recovery
+
+The application implementation does not activate these services. Follow
+[Account sign in](ACCOUNT_SIGNIN.md) for migration `202611210001_account_signin`,
+secure configuration, trial allowlist, live delivery checks, the existing-user
+announcement and rollback constraints. Google/Resend provider setup alone is not
+evidence of working app integration. Do not roll back to code requiring a password
+on every account after passwordless accounts have been created.
