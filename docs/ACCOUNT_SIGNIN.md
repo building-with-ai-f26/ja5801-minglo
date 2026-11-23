@@ -1,8 +1,9 @@
 # Human sign in and email recovery
 
-Status: implemented and locally verified. No production activation, real
-Google login, real email delivery or user announcement has been performed.
-Apple sign-in remains deferred.
+Status: implemented and locally verified. Jonas authorized deployment and prompt
+public launch on November 22; live release/check results are tracked in the
+[handoff](handoffs/account-signin.md). Earlier limited-trial approval gates below
+describe the original staged plan. Apple sign-in remains deferred.
 
 ## Account continuity
 

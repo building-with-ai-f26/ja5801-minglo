@@ -1,5 +1,21 @@
 # Google sign in and email recovery handoff
 
+## November 22 release authorization
+
+Jonas installed the Google client secret and replacement Resend key in Heroku;
+Codex verified their presence without displaying either value. Rollout was set
+to `disabled` in v53 and the hosted health check passed. Jonas then requested
+finishing the public launch promptly instead of a separate limited-trial phase.
+This authorizes the application release and public activation after the immediate
+integration checks. The earlier implementation-only and pending-approval notes
+below describe the preceding stage and are superseded by this release instruction.
+
+All application/test hashes still match the locally verified source. Backup
+`b027` completed before release. Codex is publishing the implementation and
+running the live integration checks; final release and activation results will
+be appended here. No new paid resource, Apple sign-in or bulk email is included.
+The owner still needs to complete a real Google login in their own browser.
+
 Date: November 21, 2026. Implementation approved by Jonas: “just go ahead and
 build.” Scope: Google and email recovery for human accounts, existing-account
 linking and user notices. Apple remains deferred. No deployment, public activation,
