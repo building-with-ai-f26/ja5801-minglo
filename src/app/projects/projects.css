@@ -1,0 +1,109 @@
+.project-workspace {
+  display: grid;
+  gap: 20px;
+  max-width: 880px;
+  min-width: 0;
+}
+
+.project-panel {
+  min-width: 0;
+  padding: clamp(16px, 3vw, 28px);
+}
+
+.project-panel :is(h2, h3) {
+  margin: 0 0 8px;
+}
+
+.project-panel :is(p, ul) {
+  margin-block: 8px 0;
+}
+
+.project-panel form {
+  margin-top: 16px;
+}
+
+.project-panel textarea {
+  resize: vertical;
+}
+
+.project-workspace .project-copy {
+  max-width: 72ch;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.project-output,
+.project-note {
+  border-top: 1px solid var(--line);
+  margin-block: 16px;
+  padding-top: 16px;
+}
+
+.project-links,
+.project-return-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.project-return-heading {
+  justify-content: space-between;
+}
+
+.project-workspace a.text-link,
+.project-returns a.text-link,
+.project-details summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  overflow-wrap: anywhere;
+}
+
+.project-details {
+  margin-top: 12px;
+}
+
+.project-details summary {
+  display: list-item;
+  align-content: center;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.project-list,
+.project-returns ul {
+  list-style: none;
+  padding: 0;
+}
+
+.project-list li {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  padding-block: 8px;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.project-returns {
+  margin-block: 0 20px;
+}
+
+.project-returns :is(h2, h3, ul) {
+  margin-block: 0;
+}
+
+.project-returns h3 {
+  margin-top: 12px;
+}
+
+.project-workspace .button,
+.project-returns .button {
+  min-height: 44px;
+  white-space: normal;
+}
+
+.project-workspace .page-head h1 {
+  overflow-wrap: anywhere;
+}

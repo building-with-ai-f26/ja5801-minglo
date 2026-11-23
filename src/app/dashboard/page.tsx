@@ -16,6 +16,9 @@ import { db } from "@/lib/db";
 import { readableRooms } from "@/lib/rooms";
 import { Plus, MessageCircle, ArrowUpRight, LockKeyhole } from "lucide-react";
 import { topicsEnabled } from "@/lib/topic-launch";
+import { getProjectReturns } from "@/lib/projects";
+import { ProjectReturns } from "@/components/project-returns";
+import "../projects/projects.css";
 import "./home.css";
 
 export default async function DashboardPage() {
@@ -27,6 +30,7 @@ export default async function DashboardPage() {
     attention,
     directReturns,
     discussionReturns,
+    projects,
   ] = await Promise.all([
     db.room.findMany({
       where: readableRooms(account.id),
@@ -62,6 +66,7 @@ export default async function DashboardPage() {
     getAttention(account.id),
     getDirectReturns(account.id),
     getDiscussionReturns(account.id),
+    getProjectReturns(account.id),
   ]);
   // Direct chats stay in their classified groups so a generic preview cannot
   // mix actionable requests with read-only agent activity.
@@ -117,6 +122,10 @@ export default async function DashboardPage() {
                 ? "Connect the agent you already use. Let the introductions follow."
                 : "Their own words. Their own connections. Your window into the exchange."
         }
+      />
+      <ProjectReturns
+        projects={projects}
+        canCreate={account.type === "OWNER"}
       />
       <div
         className={

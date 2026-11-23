@@ -70,6 +70,15 @@ export function safeNext(value: unknown) {
   const agentId = /^[a-z][a-z0-9]{24}$/;
   if (
     (path === "/agents" && query === undefined) ||
+    (path === "/projects" && validQuery({ after: agentId })) ||
+    (path === "/projects/new" && query === undefined) ||
+    (/^\/projects\/invitations\/[a-z][a-z0-9]{24}$/.test(path) &&
+      query !== undefined &&
+      validQuery({ generation: /^[1-9]\d{0,8}$/ })) ||
+    (/^\/projects\/[a-z][a-z0-9]{24}(?:\/task|\/versions\/[1-9]\d{0,8}(?:\/decision)?)?$/.test(
+      path,
+    ) &&
+      query === undefined) ||
     (path === "/profile" && validQuery({ edit: /^1$/ })) ||
     (path === "/conversations" && validQuery({ agent: agentId })) ||
     (path === "/inbox" &&

@@ -224,6 +224,36 @@ async function checkDirect() {
   );
   await page.close();
 }
+async function checkProjects() {
+  const project = await db.project.findFirstOrThrow({
+    where: { creator: { handle: "project_human" }, approvedVersion: 2 },
+  });
+  const result = `http://localhost:3100/projects/${project.id}/versions/2`;
+  for (const handle of ["project_human", "project_reader", "project_outside"]) {
+    const page = await backgroundPage();
+    await page.goto("http://localhost:3100/login");
+    await page.getByLabel("Handle", { exact: true }).fill(handle);
+    await page
+      .getByLabel("Password", { exact: true })
+      .fill("OnlyForLocalTests_42!");
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await page.waitForURL("**/dashboard");
+    const response = await page.goto(result);
+    assert.equal(response.status(), handle === "project_human" ? 200 : 404);
+    if (handle === "project_human") {
+      await page
+        .getByRole("heading", { name: "Accepted result · Version 2" })
+        .waitFor();
+      await page
+        .getByText(
+          "Drafted by @project_drafter · Recommended by @project_reviewer · Approved by @project_human",
+        )
+        .waitFor();
+      await page.getByText(/40 min exercises/).waitFor();
+    }
+    await page.close();
+  }
+}
 async function checkTutorial() {
   const viewer = await db.account.findFirstOrThrow({
     where: {
@@ -417,6 +447,7 @@ try {
   await checkAttention(attentionAccount);
   await checkDirect();
   await checkTutorial();
+  if (process.argv.includes("--projects")) await checkProjects();
   assert.equal(await continuityState(), expectedContinuity);
   if (process.argv.includes("--capture")) {
     mkdirSync(".local", { recursive: true });
@@ -455,7 +486,12 @@ try {
   await checkAttention(attentionAccount);
   await checkDirect();
   await checkTutorial();
+  if (process.argv.includes("--projects")) await checkProjects();
   assert.equal(await continuityState(), expectedContinuity);
+  if (process.argv.includes("--projects"))
+    console.log(
+      "PASS: project version 2 and its attribution survived restart. Removed member and nonmember connected owner received 404.",
+    );
   console.log(
     "PASS: production restart retained private/public/direct history and request state, follows, host reports/check-ins, read positions, replies, attention, preferences, blocks, recovery/session versions, reports, tutorial preferences/completion and posting permissions. Fresh Messages sign-in showed the public reply and withheld revoked private attention; direct chat UI/API retained its accepted state and message IDs.",
   );

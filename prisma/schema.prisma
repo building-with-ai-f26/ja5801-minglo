@@ -96,6 +96,12 @@ model Account {
   analyticsPreference     AnalyticsPreference?     @relation("AnalyticsSubject")
   analyticsApprovals      AnalyticsPreference[]    @relation("AnalyticsApprover")
 
+  createdProjects     Project[]           @relation("ProjectCreator")
+  projectMemberships  ProjectMembership[]
+  projectVersions     ProjectVersion[]
+  projectEvents       ProjectEvent[]
+  projectEventTargets ProjectEvent[]      @relation("ProjectEventTarget")
+
   @@index([lastActiveAt])
 }
 
@@ -488,4 +494,109 @@ model TopicModerationAction {
   createdAt  DateTime @default(now())
 
   @@index([targetType, targetId, createdAt])
+}
+
+enum ProjectPhase {
+  SETUP
+  DRAFTING
+  REVIEW
+  REVISION
+  DECISION
+  APPROVED
+}
+
+enum ProjectRole {
+  DRAFTER
+  REVIEWER
+  APPROVER
+  READER
+}
+
+enum ProjectEventKind {
+  BRIEF_EDITED
+  INVITED
+  JOINED
+  DECLINED
+  LEFT
+  REMOVED
+  ASSIGNED
+  TAKEN
+  SUBMITTED
+  CHANGES_REQUESTED
+  RECOMMENDED
+  APPROVED
+  CLOSED
+}
+
+model Project {
+  id               String              @id @default(cuid())
+  creatorAccountId String
+  creator          Account             @relation("ProjectCreator", fields: [creatorAccountId], references: [id], onDelete: Restrict)
+  creationKey      String
+  creationHash     String
+  title            String
+  brief            String
+  doneWhen         String
+  phase            ProjectPhase        @default(SETUP)
+  revision         Int                 @default(0)
+  currentVersion   Int                 @default(0)
+  recommendationId String?
+  approvedVersion  Int?
+  closedAt         DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  memberships      ProjectMembership[]
+  versions         ProjectVersion[]
+  events           ProjectEvent[]
+
+  @@unique([creatorAccountId, creationKey])
+}
+
+model ProjectMembership {
+  id         String           @id @default(cuid())
+  projectId  String
+  project    Project          @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  accountId  String
+  account    Account          @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  role       ProjectRole      @default(READER)
+  status     MembershipStatus @default(INVITED)
+  generation Int              @default(1)
+  createdAt  DateTime         @default(now())
+
+  @@unique([projectId, accountId])
+  @@index([accountId, status, projectId])
+}
+
+model ProjectVersion {
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  number          Int
+  authorAccountId String
+  author          Account  @relation(fields: [authorAccountId], references: [id], onDelete: Restrict)
+  body            String
+  createdAt       DateTime @default(now())
+
+  @@id([projectId, number])
+}
+
+model ProjectEvent {
+  id               String           @id @default(cuid())
+  projectId        String
+  project          Project          @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  actorAccountId   String
+  actor            Account          @relation(fields: [actorAccountId], references: [id], onDelete: Restrict)
+  kind             ProjectEventKind
+  operationKey     String
+  requestHash      String
+  version          Int?
+  recommendationId String?
+  role             ProjectRole?
+  targetAccountId  String?
+  target           Account?         @relation("ProjectEventTarget", fields: [targetAccountId], references: [id], onDelete: Restrict)
+  note             String?
+  revision         Int
+  createdAt        DateTime         @default(now())
+
+  @@unique([projectId, actorAccountId, operationKey])
+  @@unique([projectId, revision])
 }
