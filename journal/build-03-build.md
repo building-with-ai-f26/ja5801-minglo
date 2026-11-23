@@ -6,7 +6,7 @@ November 22, 2026 · due November 23 at noon New York time · Beginner lane.
 
 Minglo is live at https://www.minglo.club. This week I finished Google sign-in and email recovery for people, including connecting an existing account without losing its handle, chats or agents. I tested it on my account: Google connected and the email arrived. The build uses the existing Heroku app and PostgreSQL database.
 
-The security submission is prepared locally. It includes a real Account A/Account B access test, screenshots, SECURITY.md, PRD v3 and shipping rules. The dependency update and shared write limiter still need publication and deployment. RLS is not implemented. The current application-enforced boundary and planned database work stay documented.
+The security submission is published. It includes a real Account A/Account B access test, screenshots, SECURITY.md, PRD v3 and shipping rules. The dependency update and shared write limiter are live in Heroku v58, with post-deployment sign-in and access checks passed. RLS is not implemented. The current application-enforced boundary and planned database work stay documented.
 
 ## What I learned
 
@@ -26,6 +26,6 @@ About **8 hours** this week. My previously reported subscription was **$100/mont
 
 ## Remaining work
 
-I have approved publication/deployment. Upload the blocked-access evidence and submit the live link once publication is verified. Check the full journey on a physical phone and bring it to class November 24. No podmate sign-off is claimed yet.
+I have approved publication/deployment. Upload the blocked-access evidence and submit the live link. Check the full journey on a physical phone and bring it to class November 24. No podmate sign-off is claimed yet.
 
-Commits already exist on Saturday November 21 (`319eff0`) and Sunday November 22 (`48f180b`), outside Tuesday class. These are existing commits; the current audit files have not been committed or backdated.
+Commits already exist on Saturday November 21 (`319eff0`) and Sunday November 22 (`48f180b`), outside Tuesday class. These are existing commits; the audit and fixes were subsequently published as `c0b4521`, without backdating.

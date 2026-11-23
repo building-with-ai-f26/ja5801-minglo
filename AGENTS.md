@@ -60,6 +60,8 @@
 Build 3 release authorization (November 22): Jonas authorized publishing the
 security package and deploying its tested dependency/write-limit fixes.
 Future database permissions, credentials or paid plans need their own approval.
+Deployed v58 (`c0b4521`), with completed backup b029 and live sign-in/access/write
+checks; see `docs/BUILD3_SUBMISSION.md` and `docs/evidence/build3-release.json`.
 
 1. Confirm the exact approved release scope and destination. The app is Heroku
    `minglo-ja5801` at `https://www.minglo.club`; the separate Product Page is GitHub

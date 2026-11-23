@@ -2,7 +2,7 @@
 
 Due **Monday, November 23, 2026, noon New York time**. Prepared November 22. Lane: **Beginner**. Nothing has been submitted to the course site by the agent.
 
-The security package and tested fixes are authorized for publication and deployment. Live release verification is in progress. The security report describes the actual application access controls and remaining database RLS work.
+**Published and deployed:** Heroku **v58**, source `c0b4521`. Live health, sign-in, guarded writes and private access passed. The security report describes the actual application access controls and remaining database RLS work.
 
 ## What to enter
 
@@ -25,26 +25,26 @@ The attached live test shows Account A reading its private conversation and Acco
 
 **Upload:** [build3-access-control.png](images/build3-access-control.png). This clearly labeled result report shows the live A=200/B=404 comparison. Also available: the [original blocked app page](images/build3-account-b-blocked.png) and [original blocked JSON response](images/build3-blocked-response.png). The report is generated from [actual sanitized results](evidence/build3-live-access.json), not invented UI or sample responses.
 
-The remote SECURITY.md link will not work until the local files are committed and pushed. The product-page log likewise is not published yet. Do not submit a broken evidence link.
+The security report, PRD v3, Product Page log and screenshots are published on GitHub/GitHub Pages. [Download the submission screenshot](https://building-with-ai-f26.github.io/ja5801-minglo/images/build3-access-control.png). The code fixes are live in Heroku v58; [post-deployment evidence](evidence/build3-release.json) records the checks.
 
 ## Rubric checklist
 
 | Requirement | Status |
 | --- | --- |
-| Public app and persistent database | Already live on Heroku v57; canonical HTTPS and live private workflow exercised. |
+| Public app and persistent database | Live on Heroku v58; canonical HTTPS and live private workflow exercised. |
 | Phone workflow | Automated 390 × 844 Chrome registration/sign-in/private-room/message/read passed; physical-phone check remains. Bring phone November 24. |
 | RLS every table | Not enabled: 30 tables, zero RLS policies. Current server enforcement and future work are documented. [Decision and next batch](../SECURITY.md#rls-decision-and-remaining-work). |
 | Account B cannot read Account A | **Passed live:** A=200/one message, B=404/no private content. Four additional adversarial checks also passed. |
 | Repo/live key search | No confirmed usable credential exposures in the checked scope. One historical placeholder triaged. [Scan record](evidence/build3-secret-scan.json). |
 | File storage privacy | No user uploads/buckets; public static product evidence only. |
 | Production guardrails and manual backup | Shipping/Ask me first/real-mistake rules prepared in AGENTS. Manual backup b029 completed before this approved release. |
-| Spending/rate limits | No Minglo model provider. Shared write guard and existing stricter quotas tested locally; deployment pending. Existing provider free-plan status is not a fresh billing audit. |
-| Dependency audit | Local patch: effect 3.22.1; npm audit zero vulnerabilities. Deployment pending. |
+| Spending/rate limits | No Minglo model provider. Shared write guard and existing stricter quotas verified locally; v58 live sign-in and guarded write passed. Existing provider free-plan status is not a fresh billing audit. |
+| Dependency audit | Deployed patch: effect 3.22.1; pre-release npm audit zero vulnerabilities. |
 | Agent security review and report | [SECURITY.md](../SECURITY.md), five actual live attempts and limitations documented. |
 | PostHog/session replay | Existing consent boundaries preserved. See [new live evidence](evidence/build3-live-analytics.json); pageviews/snapshots accepted, but a click after replay stop was not observed and new dashboard playback was not inspected. Further live-check fixes stopped after two attempts. Earlier actual playback evidence remains dated Build 2. |
-| PRD v3 | [Prepared](PRD_V3.md): hosting, DB, auth/security decisions, costs and remaining security work. |
+| PRD v3 | [Published](PRD_V3.md): hosting, DB, auth/security decisions, costs and remaining security work. |
 | Commits on two days outside class | Existing Saturday Nov 21 `319eff0` and Sunday Nov 22 `48f180b`, checked in America/New_York. No backdating. |
-| Build log | Product Page draft plus [working copy](../journal/build-03-build.md): shipped/learned/broke, ~8 hours, prior cost estimates explicitly carried forward. |
+| Build log | Published Product Page log plus [working copy](../journal/build-03-build.md): shipped/learned/broke, ~8 hours, prior cost estimates explicitly carried forward. |
 
 ## Verification of the local release candidate
 
@@ -64,3 +64,11 @@ The remote SECURITY.md link will not work until the local files are committed an
 1. Confirm the published security report and screenshot links below load before copying them into the course site.
 2. On your phone, open the live app, sign in, open a conversation, send a message where you have posting rights, reload and verify it persists. No screenshot of private real-user content is needed.
 3. Paste the live URL and note, upload the access-test image, and click the course site's final submission button. Attaching files alone does not submit.
+
+## Publication and release record
+
+- GitHub app source: `c0b4521be1a43ad16fe4cdc217634c292139fc9d`; subsequent documentation-only commit records the finished release.
+- Heroku: **v58 succeeded**, prior release **v57**. Release phase reported no pending migrations. Manual backup **b029** completed at 2026-11-23 04:49:01 UTC (November 22 New York).
+- Post-deployment: database health 200; Google/recovery options present; both existing synthetic accounts signed in; A read its one retained private message (200) and completed an activity write (204); B was denied that room (404); anonymous read required sign-in (401). Phone-width authorized room had no horizontal overflow.
+- No new accounts, rooms, messages, invitations or emails were created for the release smoke check. No configuration, credentials, permissions or paid plan changed.
+- The agent has not submitted the assignment to the course site. Use the Link box, note and screenshot above, then submit.

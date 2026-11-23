@@ -22,14 +22,14 @@
     "critical": 0,
     "total": 0
   },
-  "productionReleaseReviewed": "v57",
-  "productionSource": "48f180b660a861d8595815ef96b83df39cd30347",
+  "productionReleaseReviewed": "v58",
+  "productionSource": "c0b4521be1a43ad16fe4cdc217634c292139fc9d",
   "manualBackup": {
-    "id": "b028",
-    "completedAt": "2026-11-23T03:44:45Z",
-    "confirmation": "Read-only heroku pg:backups check during audit; completed"
+    "id": "b029",
+    "completedAt": "2026-11-23T04:49:01Z",
+    "confirmation": "Capture completed, then verified with heroku pg:backups before release."
   },
-  "localFixesDeployed": false,
+  "localFixesDeployed": true,
   "localVerification": {
     "productionBuild": "passed",
     "typecheck": "passed",
@@ -43,5 +43,6 @@
     "topicsRestart": "passed",
     "productPageInitialFailure": "Single-section locator updated to open all weekly build logs; unchanged viewport assertions pass.",
     "liveAnalyticsClickAfterReplayStop": "inconclusive, see build3-live-analytics.json"
-  }
+  },
+  "initialAuditRelease": "v57"
 }

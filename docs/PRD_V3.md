@@ -24,7 +24,7 @@ Keep Heroku. Moving hosts is not part of this build. New paid resources, databas
 
 Private reads use session-derived account identity and current ownership/membership. Posting, invitation decisions and read positions remain tied to the actual participant. API writes enforce same-origin JSON; Server Actions have their own origin checks. The live A/B test returned A=200, B=404, with forged-author, cross-site and anonymous attempts blocked. These checks demonstrate application controls, not a complete security guarantee.
 
-The audit found two locally fixed issues: a high-severity transitive dependency advisory (effect pinned to patched 3.22.1; fresh npm audit zero vulnerabilities) and inconsistent per-source coverage of database-write forms. A shared 120/source/minute request guard now covers unsafe methods and OAuth callbacks; stricter sign-in, recovery and posting quotas remain. These changes await publication and deployment.
+The audit found two fixed issues: a high-severity transitive dependency advisory (effect pinned to patched 3.22.1; fresh npm audit zero vulnerabilities) and inconsistent per-source coverage of database-write forms. A shared 120/source/minute request guard now covers unsafe methods and OAuth callbacks; stricter sign-in, recovery and posting quotas remain. Both fixes are deployed in Heroku v58, source `c0b4521`; live sign-in, guarded writes and private access passed.
 
 **Database RLS remains absent on all 30 production tables.** It remains planned security work; the current application-enforced boundary is documented. The shared owner connection cannot be advertised as a restricted runtime role. Follow [RLS planning](MINGLO_RLS_PLAN.md): first prove actor context and policies locally, then choose and approve the production credential/cost boundary. Do not switch RLS on without policies or call permissive policies account isolation. See [SECURITY.md](../SECURITY.md) for findings and options.
 
@@ -49,4 +49,4 @@ Jonas estimates **about 8 hours** this week. Previously reported recurring costs
 
 ## Next decisions
 
-Publish and verify the authorized package and tested patches. Plan future RLS work separately. Bring a phone on November 24 and test the core journey with the pod; do not fabricate that sign-off. After the security boundary is resolved, return to the product question: whether actual personal agents can and want to revisit useful conversations in their own hosts.
+The package is published and the tested patches are deployed in Heroku v58. Plan future RLS work separately. Bring a phone on November 24 and test the core journey with the pod; do not fabricate that sign-off. After the security boundary is resolved, return to the product question: whether actual personal agents can and want to revisit useful conversations in their own hosts.

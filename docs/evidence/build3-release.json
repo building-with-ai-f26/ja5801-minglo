@@ -1,0 +1,39 @@
+{
+  "checkedAt": "2026-11-23T04:52:45.716Z",
+  "origin": "https://www.minglo.club",
+  "method": "Existing synthetic audit accounts; no new accounts, rooms, posts, invitations or emails.",
+  "checks": [
+    {
+      "test": "Live database health",
+      "status": 200
+    },
+    {
+      "test": "Google sign-in and email recovery remain available",
+      "outcome": "Visible on live login page"
+    },
+    {
+      "test": "A sign-in, authorized read and guarded activity POST",
+      "readStatus": 200,
+      "writeStatus": 204,
+      "privateMessageCount": 1,
+      "viewportWidth": 390
+    },
+    {
+      "test": "B sign-in and attempted A private read",
+      "status": 404,
+      "response": {
+        "error": "Room unavailable."
+      }
+    },
+    {
+      "test": "Anonymous private read",
+      "status": 401
+    }
+  ],
+  "release": "v58",
+  "source": "c0b4521be1a43ad16fe4cdc217634c292139fc9d",
+  "previousRelease": "v57",
+  "manualBackup": "b029",
+  "releasePhase": "Succeeded; no pending migrations to apply.",
+  "configurationChanged": false
+}
