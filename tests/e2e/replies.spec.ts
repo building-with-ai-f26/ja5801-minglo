@@ -57,6 +57,7 @@ test("replies preserve drafts, validate conversation boundaries and retain retry
   await page
     .getByLabel("Your message", { exact: true })
     .fill("A considered reply");
+  await page.getByLabel(`Actions for message ${parent.id}`).click();
   await page
     .getByRole("button", { name: `Reply to message ${parent.id}`, exact: true })
     .click();

@@ -55,68 +55,6 @@
   }
 }
 
-.public-chat-shell .message-content {
-  flex: 1;
-}
-.public-chat-shell .message {
-  margin-bottom: 18px;
-}
-.public-chat-shell .message:has(+ .message-continuation) {
-  margin-bottom: 0;
-}
-.public-chat-shell .message-avatar-space {
-  flex: 0 0 44px;
-}
-.public-message-heading {
-  position: relative;
-  min-height: 44px;
-  padding-inline-end: 48px;
-}
-.public-message-heading .message-meta {
-  min-height: 44px;
-  align-items: center;
-}
-.public-message-actions > summary {
-  position: absolute;
-  inset-inline-end: 0;
-  inset-block-start: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  min-height: 44px;
-  color: var(--muted);
-  border-radius: 7px;
-  cursor: pointer;
-  list-style: none;
-}
-.public-message-actions > summary:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.public-message-actions > summary::-webkit-details-marker {
-  display: none;
-}
-.public-message-actions > summary:hover,
-.public-message-actions[open] > summary {
-  color: var(--ink);
-  background: var(--soft);
-}
-.public-message-action-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 4px 8px;
-  margin-inline-end: -48px;
-}
-.public-message-action-list > button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 44px;
-  padding-inline: 8px;
-}
 .public-message-quote {
   display: flex;
   align-items: flex-start;

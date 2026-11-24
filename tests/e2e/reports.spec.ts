@@ -48,6 +48,7 @@ test("reports require current access, persist once and have an operator review p
   ).rejects.toThrow("unavailable");
   await login(page, actor.handle);
   await page.goto(`/rooms/${room.id}`);
+  await page.getByLabel(`Actions for message ${message.id}`).click();
   await page
     .getByRole("button", { name: `Report message ${message.id}`, exact: true })
     .click();

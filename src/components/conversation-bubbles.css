@@ -1,0 +1,207 @@
+.transcript-card:has(.bubble-transcript) {
+  padding: 0;
+}
+.bubble-transcript .message {
+  display: block;
+  margin: 18px 0 0;
+}
+.bubble-transcript .message:first-child {
+  margin-top: 0;
+}
+.bubble-transcript .message-continuation {
+  margin-top: 3px;
+}
+.bubble-transcript .message-meta {
+  align-items: center;
+  gap: 3px 7px;
+  margin-bottom: 4px;
+}
+.bubble-transcript .message-own .message-meta {
+  justify-content: flex-end;
+}
+.bubble-transcript .message-profile-avatar {
+  flex: none;
+  min-height: 28px;
+}
+.bubble-transcript .avatar.tiny {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+}
+.bubble-transcript .message-profile-name {
+  min-height: 28px;
+  align-items: center;
+  padding: 2px 0;
+  gap: 4px 6px;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.bubble-transcript .message-profile-name:hover {
+  text-decoration: underline;
+}
+.bubble-transcript .message-meta strong {
+  color: var(--ink);
+  font: 600 13px var(--sans);
+}
+.bubble-transcript .message-meta a:has(time) {
+  color: var(--muted);
+  text-decoration: none;
+}
+.bubble-transcript .message-meta a:hover time {
+  text-decoration: underline;
+}
+.bubble-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.message-own .bubble-row {
+  flex-direction: row-reverse;
+}
+.message-bubble {
+  max-width: min(74%, 66ch);
+  min-width: 0;
+  padding: 9px 14px;
+  border-radius: 4px 17px 17px 17px;
+  background: var(--soft);
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.message-own .message-bubble {
+  background: #1637bc;
+  color: #fff;
+  border-radius: 17px 4px 17px 17px;
+}
+.bubble-transcript .message-body {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: 400 14px/1.55 var(--sans);
+}
+.message-bubble > .small {
+  margin: 0 0 4px;
+}
+.message-bubble > .small a {
+  color: inherit;
+}
+.bubble-actions {
+  min-width: 0;
+}
+.bubble-actions summary {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--muted);
+  border-radius: 8px;
+}
+.bubble-actions summary::-webkit-details-marker {
+  display: none;
+}
+.bubble-actions summary:focus-visible {
+  outline: 2px solid var(--accent);
+}
+.bubble-actions[open] summary,
+.bubble-actions summary:hover {
+  background: var(--soft);
+}
+@media (hover: hover) and (pointer: fine) {
+  .bubble-actions:not([open]) summary:not(:focus-visible) {
+    opacity: 0;
+  }
+  .message:is(:hover, :focus-within) .bubble-actions summary {
+    opacity: 1;
+  }
+}
+/* The disclosure takes its own line so it remains usable at either scroll edge. */
+.bubble-row:has(.bubble-actions[open]) {
+  flex-wrap: wrap;
+}
+.bubble-actions[open] {
+  flex: 1 1 100%;
+}
+.message-own .bubble-actions[open] summary {
+  margin-left: auto;
+}
+.public-message-action-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.message-own .public-message-action-list {
+  justify-content: flex-end;
+}
+.public-message-action-list > :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 4px 8px;
+  color: var(--accent);
+  font-size: 12px;
+}
+.unread-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  margin: 14px 0;
+  font-size: 12px;
+  scroll-margin-block-start: 10px;
+}
+.unread-divider::before,
+.unread-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--line);
+}
+.conversation-presence {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 22px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+.conversation-presence > span {
+  flex: none;
+}
+.conversation-presence ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 4.5em;
+  overflow: auto;
+}
+.conversation-presence li {
+  overflow-wrap: anywhere;
+}
+.conversation-presence li::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 5px 1px 0;
+  border-radius: 50%;
+  background: var(--accent);
+}
+@media (max-width: 600px) {
+  .transcript.bubble-transcript {
+    padding: 14px 12px;
+  }
+  .message-bubble {
+    max-width: min(86%, calc(100% - 48px));
+    padding: 8px 11px;
+  }
+  .conversation-presence {
+    padding-inline: 12px;
+  }
+}

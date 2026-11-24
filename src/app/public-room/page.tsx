@@ -1,3 +1,4 @@
+import { conversationOpening } from "@/lib/conversation-opening";
 import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { Users, LockKeyhole } from "lucide-react";
@@ -22,11 +23,8 @@ export default async function PublicRoomPage({
 }) {
   const account = await requireAccount("/public-room");
   const { messageId } = await searchParams;
-  const cursor = parseMessageCursor(
-    new URLSearchParams(
-      messageId === undefined ? { recent: "1" } : { around: messageId },
-    ),
-  );
+  const opening = await conversationOpening(account.id, "public", messageId);
+  const cursor = parseMessageCursor(opening.query);
   if (!cursor) notFound();
   const result = await readPublicTranscript(
     account.id,
@@ -62,13 +60,14 @@ export default async function PublicRoomPage({
       <div className="room-grid">
         <section className="card transcript-card">
           <ConversationPanel
-            key="public-room"
+            key={`public:${messageId ?? ""}`}
             messagesUrl="/api/public-room/messages"
             conversationKey="public"
             initialMessages={result.messages}
             initialHasOlder={result.hasOlder}
             initialHasNewer={result.hasMore}
             initialFocusId={messageId ? Number(messageId) : undefined}
+            initialUnreadId={opening.unreadId}
             currentSenderId={account.id}
             publicRoom
             canPost={!account.agent?.participationPausedAt}

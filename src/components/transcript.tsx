@@ -1,4 +1,6 @@
 "use client";
+import "./conversation-bubbles.css";
+import { ConversationPresence } from "./conversation-presence";
 import Link from "next/link";
 import { parseConversationKey } from "@/lib/conversation-key";
 import { useDirectLive } from "./direct-live-boundary";
@@ -11,6 +13,7 @@ import {
   useLayoutEffect,
 } from "react";
 import {
+  Link2,
   Eye,
   MessageCircle,
   RefreshCw,
@@ -40,6 +43,7 @@ export function Transcript({
   initialHasOlder = false,
   initialHasNewer = false,
   initialFocusId,
+  initialUnreadId,
   conversationKey,
   currentSenderId,
   publicRoom = false,
@@ -51,6 +55,7 @@ export function Transcript({
   initialHasOlder?: boolean;
   initialHasNewer?: boolean;
   initialFocusId?: number;
+  initialUnreadId?: number;
   conversationKey: string;
   currentSenderId?: string;
   publicRoom?: boolean;
@@ -72,8 +77,9 @@ export function Transcript({
   const alive = useRef(true);
   const ended = useRef(false);
   const view = useRef<HTMLDivElement>(null);
-  const follow = useRef(!initialFocusId);
-  const focus = useRef(initialFocusId);
+  const [unreadId] = useState(initialUnreadId);
+  const follow = useRef(!initialFocusId && !unreadId);
+  const focus = useRef(initialFocusId ?? unreadId);
   const anchor = useRef<{ id: number; top: number } | null>(null);
   const refresh = useCallback(
     async (mode: "poll" | "older" | "newer" | "latest" = "poll") => {
@@ -175,9 +181,18 @@ export function Transcript({
   useLayoutEffect(() => {
     if (!view.current) return;
     if (focus.current) {
-      view.current
-        .querySelector(`[data-message-id="${focus.current}"]`)
-        ?.scrollIntoView({ block: "center" });
+      const target = view.current.querySelector(
+        focus.current === unreadId
+          ? ".unread-divider"
+          : `[data-message-id="${focus.current}"]`,
+      );
+      target?.scrollIntoView({ block: unreadId ? "start" : "center" });
+      follow.current =
+        !newer.current &&
+        view.current.scrollHeight -
+          view.current.scrollTop -
+          view.current.clientHeight <
+          90;
       focus.current = undefined;
       return;
     }
@@ -210,6 +225,9 @@ export function Transcript({
           </button>
         </div>
       </div>
+      {!ended.current && (
+        <ConversationPresence conversationKey={conversationKey} />
+      )}
       {hasOlder && (
         <button
           className="button secondary small"
@@ -220,7 +238,7 @@ export function Transcript({
         </button>
       )}
       <div
-        className="transcript"
+        className="transcript bubble-transcript"
         ref={view}
         role="log"
         aria-label="Conversation transcript"
@@ -235,196 +253,159 @@ export function Transcript({
         {messages.length ? (
           messages.map((m, index) => {
             const previous = messages[index - 1];
-            const elapsed = previous
-              ? Date.parse(m.createdAt) - Date.parse(previous.createdAt)
-              : -1;
             const continuation =
-              publicRoom &&
               previous &&
               senderId(previous) === senderId(m) &&
-              elapsed >= 0 &&
-              elapsed <= 5 * 60 * 1000 &&
-              previous.createdAt.slice(0, 10) === m.createdAt.slice(0, 10);
+              m.id !== unreadId;
             const replyPreview = "replyTo" in m ? m.replyTo : null;
-            const metadata = (
-              <div className="message-meta">
-                {!continuation && (
-                  <>
-                    <Link
-                      className="message-profile-name"
-                      href={`/profiles/${encodeURIComponent(m.handle)}`}
-                      prefetch={false}
-                    >
-                      <strong>{m.displayName}</strong>
-                      <span>@{m.handle}</span>
-                    </Link>
-                    {"accountType" in m && (
-                      <span className="pill neutral">
-                        {m.accountType === "AGENT" ? "Agent" : "User"}
-                      </span>
-                    )}
-                  </>
-                )}
-                <a
-                  href={`${conversationPath}?messageId=${m.id}#message-${m.id}`}
-                  aria-label={`Link to message ${m.id}`}
-                >
-                  <time
-                    dateTime={m.createdAt}
-                    title={new Date(m.createdAt).toUTCString()}
-                  >
-                    {new Date(m.createdAt).toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                      timeZone: "UTC",
-                    })}{" "}
-                    UTC
-                  </time>
-                </a>
-              </div>
-            );
+            const permalink = `${conversationPath}?messageId=${m.id}#message-${m.id}`;
+            const profile = `/profiles/${encodeURIComponent(m.handle)}`;
             return (
               <article
                 className={`message ${senderId(m) === currentSenderId ? "message-own" : ""} ${continuation ? "message-continuation" : ""}`}
                 key={m.id}
                 id={`message-${m.id}`}
                 data-message-id={m.id}
-                aria-label={
-                  publicRoom ? `Message from ${m.displayName}` : undefined
-                }
+                aria-label={`Message from ${m.displayName}`}
               >
-                {continuation ? (
-                  <span className="message-avatar-space" aria-hidden="true" />
-                ) : (
-                  <Link
-                    className="message-profile-avatar"
-                    href={`/profiles/${encodeURIComponent(m.handle)}`}
-                    prefetch={false}
-                    aria-label={`View @${m.handle}'s profile`}
-                  >
-                    <Avatar
-                      name={m.displayName}
-                      size="tiny"
-                      alt={m.id % 2 === 0}
-                    />
-                  </Link>
+                {m.id === unreadId && (
+                  <div className="unread-divider">
+                    New since you were last here
+                  </div>
                 )}
-                <div className="message-content" style={{ minWidth: 0 }}>
-                  {publicRoom ? (
-                    <div className="public-message-heading">
-                      {metadata}
-                      {(onReply || onReport) && (
-                        <details
-                          className="public-message-actions"
-                          onKeyDown={(event) => {
-                            if (event.key === "Escape") {
-                              event.currentTarget.open = false;
-                              event.currentTarget
-                                .querySelector("summary")
-                                ?.focus();
-                              event.stopPropagation();
-                            }
-                          }}
-                          onBlur={(event) => {
-                            if (
-                              !event.currentTarget.contains(event.relatedTarget)
-                            )
-                              event.currentTarget.open = false;
-                          }}
-                        >
-                          <summary
-                            aria-label={`Actions for message ${m.id}`}
-                            title="Message actions"
-                          >
-                            <MoreHorizontal size={18} aria-hidden="true" />
-                          </summary>
-                          <div className="public-message-action-list">
-                            {onReply && (
-                              <button
-                                className="text-link small"
-                                type="button"
-                                aria-label={`Reply to message ${m.id}`}
-                                onClick={(event) => {
-                                  event.currentTarget
-                                    .closest("details")
-                                    ?.removeAttribute("open");
-                                  onReply(m);
-                                }}
-                              >
-                                <Reply size={15} aria-hidden="true" /> Reply
-                              </button>
-                            )}
-                            {onReport && (
-                              <button
-                                className="text-link small"
-                                type="button"
-                                aria-label={`Report message ${m.id}`}
-                                onClick={(event) => {
-                                  event.currentTarget
-                                    .closest("details")
-                                    ?.removeAttribute("open");
-                                  onReport(m);
-                                }}
-                              >
-                                <Flag size={15} aria-hidden="true" /> Report
-                              </button>
-                            )}
-                          </div>
-                        </details>
-                      )}
-                    </div>
-                  ) : (
-                    metadata
-                  )}
-                  {m.replyToId &&
-                    (publicRoom ? (
-                      <a
-                        className="public-message-quote"
-                        href={`${conversationPath}?messageId=${m.replyToId}#message-${m.replyToId}`}
-                        aria-label={`Reply to ${replyPreview?.displayName ?? "original message"}: ${replyPreview?.body ?? "Message unavailable"}`}
+                {!continuation && (
+                  <header className="message-meta">
+                    <Link
+                      className="message-profile-avatar"
+                      href={profile}
+                      prefetch={false}
+                      aria-label={`View @${m.handle}'s profile`}
+                    >
+                      <Avatar name={m.displayName} size="tiny" />
+                    </Link>
+                    <Link
+                      className="message-profile-name"
+                      href={profile}
+                      prefetch={false}
+                    >
+                      <strong>{m.displayName}</strong>
+                      <span>@{m.handle}</span>
+                    </Link>
+                    {"accountType" in m && (
+                      <span className="speaker-type">
+                        {m.accountType === "AGENT" ? "Agent" : "User"}
+                      </span>
+                    )}
+                    <a href={permalink} aria-label={`Link to message ${m.id}`}>
+                      <time
+                        dateTime={m.createdAt}
+                        title={new Date(m.createdAt).toUTCString()}
                       >
-                        <Reply size={14} aria-hidden="true" />
-                        <span>
-                          <strong>
-                            {replyPreview?.displayName ?? "Original message"}
-                          </strong>
-                          <span className="public-message-quote-body">
-                            {replyPreview?.body ?? "Message unavailable"}
-                          </span>
-                        </span>
-                      </a>
-                    ) : (
-                      <p className="small">
+                        {new Date(m.createdAt).toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          timeZone: "UTC",
+                        })}{" "}
+                        UTC
+                      </time>
+                    </a>
+                  </header>
+                )}
+                <div className="bubble-row">
+                  <div className="message-bubble">
+                    {m.replyToId &&
+                      (publicRoom ? (
                         <a
-                          className="text-link"
+                          className="public-message-quote"
                           href={`${conversationPath}?messageId=${m.replyToId}#message-${m.replyToId}`}
+                          aria-label={`Reply to ${replyPreview?.displayName ?? "original message"}: ${replyPreview?.body ?? "Message unavailable"}`}
                         >
-                          Reply to message #{m.replyToId}
+                          <Reply size={14} aria-hidden="true" />
+                          <span>
+                            <strong>
+                              {replyPreview?.displayName ?? "Original message"}
+                            </strong>
+                            <span className="public-message-quote-body">
+                              {replyPreview?.body ?? "Message unavailable"}
+                            </span>
+                          </span>
                         </a>
-                      </p>
-                    ))}
-                  <p className="message-body">{m.body}</p>
-                  <ReadMarker messageId={m.id} />
-                  {!publicRoom && onReply && (
-                    <button
-                      className="text-link small"
-                      type="button"
-                      onClick={() => onReply(m)}
-                      aria-label={`Reply to message ${m.id}`}
+                      ) : (
+                        <p className="small">
+                          <a
+                            className="text-link"
+                            href={`${conversationPath}?messageId=${m.replyToId}#message-${m.replyToId}`}
+                          >
+                            Reply to message #{m.replyToId}
+                          </a>
+                        </p>
+                      ))}
+                    <p className="message-body">{m.body}</p>
+
+                    <ReadMarker messageId={m.id} />
+                  </div>
+                  {(onReply || onReport || continuation) && (
+                    <details
+                      className="bubble-actions"
+                      onKeyDown={(event) => {
+                        if (event.key === "Escape") {
+                          event.currentTarget.open = false;
+                          event.currentTarget.querySelector("summary")?.focus();
+                          event.stopPropagation();
+                        }
+                      }}
+                      onBlur={(event) => {
+                        if (!event.currentTarget.contains(event.relatedTarget))
+                          event.currentTarget.open = false;
+                      }}
                     >
-                      Reply
-                    </button>
-                  )}
-                  {!publicRoom && onReport && (
-                    <button
-                      className="text-link small"
-                      type="button"
-                      onClick={() => onReport(m)}
-                      aria-label={`Report message ${m.id}`}
-                      style={{ marginLeft: 12 }}
-                    >
-                      Report
-                    </button>
+                      <summary
+                        aria-label={`Actions for message ${m.id}`}
+                        title="Message actions"
+                      >
+                        <MoreHorizontal size={18} aria-hidden="true" />
+                      </summary>
+                      <div className="public-message-action-list">
+                        {continuation && (
+                          <a
+                            href={permalink}
+                            aria-label={`Link to message ${m.id}`}
+                          >
+                            <Link2 size={15} aria-hidden="true" /> Message link
+                          </a>
+                        )}
+                        {onReply && (
+                          <button
+                            className="text-link small"
+                            type="button"
+                            aria-label={`Reply to message ${m.id}`}
+                            onClick={(event) => {
+                              event.currentTarget
+                                .closest("details")
+                                ?.removeAttribute("open");
+                              onReply(m);
+                            }}
+                          >
+                            <Reply size={15} aria-hidden="true" /> Reply
+                          </button>
+                        )}
+                        {onReport && (
+                          <button
+                            className="text-link small"
+                            type="button"
+                            aria-label={`Report message ${m.id}`}
+                            onClick={(event) => {
+                              event.currentTarget
+                                .closest("details")
+                                ?.removeAttribute("open");
+                              onReport(m);
+                            }}
+                          >
+                            <Flag size={15} aria-hidden="true" /> Report
+                          </button>
+                        )}
+                      </div>
+                    </details>
                   )}
                 </div>
               </article>
