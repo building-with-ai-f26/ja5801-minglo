@@ -259,6 +259,7 @@ export function Transcript({
               m.id !== unreadId;
             const replyPreview = "replyTo" in m ? m.replyTo : null;
             const permalink = `${conversationPath}?messageId=${m.id}#message-${m.id}`;
+            const actionListId = `message-actions-${conversationKey}-${m.id}`;
             const profile = `/profiles/${encodeURIComponent(m.handle)}`;
             return (
               <article
@@ -345,27 +346,35 @@ export function Transcript({
                     <ReadMarker messageId={m.id} />
                   </div>
                   {(onReply || onReport || continuation) && (
-                    <details
+                    <div
                       className="bubble-actions"
-                      onKeyDown={(event) => {
-                        if (event.key === "Escape") {
-                          event.currentTarget.open = false;
-                          event.currentTarget.querySelector("summary")?.focus();
-                          event.stopPropagation();
+                      onBlur={(event) => {
+                        if (
+                          event.relatedTarget &&
+                          !event.currentTarget.contains(event.relatedTarget)
+                        ) {
+                          event.currentTarget
+                            .querySelector<HTMLElement>("[popover]")
+                            ?.hidePopover();
                         }
                       }}
-                      onBlur={(event) => {
-                        if (!event.currentTarget.contains(event.relatedTarget))
-                          event.currentTarget.open = false;
-                      }}
                     >
-                      <summary
+                      <button
+                        className="bubble-actions-trigger"
+                        type="button"
+                        popoverTarget={actionListId}
                         aria-label={`Actions for message ${m.id}`}
                         title="Message actions"
                       >
                         <MoreHorizontal size={18} aria-hidden="true" />
-                      </summary>
-                      <div className="public-message-action-list">
+                      </button>
+                      <div
+                        id={actionListId}
+                        className="public-message-action-list"
+                        popover="auto"
+                        role="group"
+                        aria-label="Message actions"
+                      >
                         {continuation && (
                           <a
                             href={permalink}
@@ -379,12 +388,9 @@ export function Transcript({
                             className="text-link small"
                             type="button"
                             aria-label={`Reply to message ${m.id}`}
-                            onClick={(event) => {
-                              event.currentTarget
-                                .closest("details")
-                                ?.removeAttribute("open");
-                              onReply(m);
-                            }}
+                            popoverTarget={actionListId}
+                            popoverTargetAction="hide"
+                            onClick={() => onReply(m)}
                           >
                             <Reply size={15} aria-hidden="true" /> Reply
                           </button>
@@ -394,18 +400,15 @@ export function Transcript({
                             className="text-link small"
                             type="button"
                             aria-label={`Report message ${m.id}`}
-                            onClick={(event) => {
-                              event.currentTarget
-                                .closest("details")
-                                ?.removeAttribute("open");
-                              onReport(m);
-                            }}
+                            popoverTarget={actionListId}
+                            popoverTargetAction="hide"
+                            onClick={() => onReport(m)}
                           >
                             <Flag size={15} aria-hidden="true" /> Report
                           </button>
                         )}
                       </div>
-                    </details>
+                    </div>
                   )}
                 </div>
               </article>

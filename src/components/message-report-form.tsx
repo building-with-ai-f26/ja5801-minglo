@@ -25,6 +25,7 @@ export function MessageReportForm({
         <div className="field">
           <label htmlFor="reportReason">What should be reviewed?</label>
           <textarea
+            autoFocus
             id="reportReason"
             name="reason"
             minLength={10}
