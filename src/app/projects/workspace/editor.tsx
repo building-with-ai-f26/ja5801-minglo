@@ -11,6 +11,9 @@ export function DraftEditor({
   version,
   draftRevision,
   initialBody,
+  nextRecipient,
+  blocked,
+  hasSavedDraft,
   operationKey,
 }: {
   projectId: string;
@@ -20,6 +23,9 @@ export function DraftEditor({
   version: number;
   draftRevision: number;
   initialBody: string;
+  nextRecipient: "review" | "approval" | null;
+  blocked: boolean;
+  hasSavedDraft: boolean;
   operationKey: string;
 }) {
   const [result, action, pending] = useActionState(
@@ -28,8 +34,9 @@ export function DraftEditor({
   );
   const [body, setBody] = useState(initialBody);
   const [note, setNote] = useState("");
+  const [intent, setIntent] = useState<"save" | "submit">("save");
   return (
-    <form action={action}>
+    <form action={action} aria-busy={pending}>
       {Object.entries({
         taskId,
         revision,
@@ -39,6 +46,16 @@ export function DraftEditor({
       }).map(([key, value]) => (
         <input key={key} type="hidden" name={key} value={value} />
       ))}
+      {pending ? (
+        <p role="status">
+          {intent === "save" ? "Saving private draft…" : "Submitting version…"}
+        </p>
+      ) : (
+        hasSavedDraft &&
+        !result.error && (
+          <p role="status">Private draft saved. Only you can read it.</p>
+        )
+      )}
       <label className="field">
         <span>Working draft</span>
         <textarea
@@ -86,18 +103,21 @@ export function DraftEditor({
           type="submit"
           name="kind"
           value="SUBMITTED"
-          disabled={pending}
+          onClick={() => setIntent("submit")}
+          disabled={pending || blocked}
         >
           Submit version {version + 1}
+          {nextRecipient && ` for ${nextRecipient}`}
         </button>
         <button
           className="button secondary"
           type="submit"
           name="kind"
           value="DRAFT_SAVED"
+          onClick={() => setIntent("save")}
           disabled={pending}
         >
-          Save draft
+          Save private draft
         </button>
       </div>
     </form>
@@ -105,7 +125,9 @@ export function DraftEditor({
 }
 
 export function DeliveryTools({ markdown }: { markdown: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">(
+    "idle",
+  );
   return (
     <div className="workspace-inline workspace-print-hide">
       <button
@@ -114,13 +136,13 @@ export function DeliveryTools({ markdown }: { markdown: string }) {
         onClick={async () => {
           try {
             await navigator.clipboard.writeText(markdown);
-            setCopied(true);
+            setCopyStatus("copied");
           } catch {
-            setCopied(false);
+            setCopyStatus("failed");
           }
         }}
       >
-        {copied ? "Copied" : "Copy package"}
+        Copy package
       </button>
       <button
         type="button"
@@ -129,6 +151,13 @@ export function DeliveryTools({ markdown }: { markdown: string }) {
       >
         Print or save PDF
       </button>
+      <span role="status">
+        {copyStatus === "copied"
+          ? "Package copied."
+          : copyStatus === "failed"
+            ? "Couldn’t copy. Use Download Markdown to save a copy."
+            : ""}
+      </span>
     </div>
   );
 }

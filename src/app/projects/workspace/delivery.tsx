@@ -9,6 +9,41 @@ import { Action, author, Field, MemberSelect, readinessLabels } from "./fields";
 import { DeliveryTools } from "./editor";
 import { DocumentText } from "./document";
 
+function ResultsNavigation({
+  view,
+  page,
+}: {
+  view: WorkspaceView;
+  page: "documents" | "packages";
+}) {
+  const base = `/projects/${view.project.id}`;
+  return (
+    <nav className="workspace-result-nav" aria-label="Results views">
+      <Link
+        className="text-link"
+        href={`${base}/outputs`}
+        aria-current={page === "documents" ? "page" : undefined}
+      >
+        Documents
+      </Link>
+      <Link
+        className="text-link"
+        href={`${base}/delivery`}
+        aria-current={page === "packages" ? "page" : undefined}
+      >
+        Packages
+      </Link>
+    </nav>
+  );
+}
+function notReady(task: WorkspaceView["tasks"][number]) {
+  return (
+    task.status !== "COMPLETE" ||
+    task.blockers.length > 0 ||
+    task.inputs.some((input) => !input.latest || input.changed)
+  );
+}
+
 export function Outputs({
   view,
   path,
@@ -21,8 +56,32 @@ export function Outputs({
   const id = view.project.id;
   return (
     <div className="workspace-stack">
+      <ResultsNavigation view={view} page="documents" />
+      {(view.latestApproved || view.pendingRelease) && (
+        <section className="workspace-panel">
+          <h2>Packages</h2>
+          <div className="workspace-inline">
+            {view.latestApproved && (
+              <Link
+                className="text-link"
+                href={`/projects/${id}/delivery/${view.latestApproved.id}`}
+              >
+                Open approved {view.latestApproved.title}
+              </Link>
+            )}
+            {view.pendingRelease && (
+              <Link
+                className="text-link"
+                href={`/projects/${id}/delivery/${view.pendingRelease.id}`}
+              >
+                View package awaiting approval
+              </Link>
+            )}
+          </div>
+        </section>
+      )}
       <section className="workspace-panel">
-        <h2>Deliverables</h2>
+        <h2>Working documents</h2>
         {view.tasks.length ? (
           <ul className="workspace-list">
             {view.tasks.map((task) => (
@@ -118,21 +177,47 @@ export function Deliveries({
   manage: boolean;
 }) {
   const { project, releases, tasks } = view;
-  const previous = releases.find(
-    (release) => !release.approvedAt && !release.supersededAt,
-  );
-  const blockers = tasks.filter(
-    (task) =>
-      task.required &&
-      (task.status !== "COMPLETE" ||
-        task.blockers.length ||
-        task.inputs.some((input) => !input.latest || input.changed)),
-  );
-  const questions = view.projectQuestions.filter(
-    (post) => !post.taskId && post.blocking && !post.answeredAt,
+  const previous = view.pendingRelease;
+  const current = view.latestApproved;
+  const blockers = tasks.filter((task) => task.required && notReady(task));
+  const questions = view.deliveryQuestions;
+  const canPrepare =
+    !blockers.length &&
+    !questions.length &&
+    tasks.some((task) => !notReady(task) && task.output?.currentVersion);
+  const history = releases.filter(
+    (release) => release.id !== current?.id && release.id !== previous?.id,
   );
   return (
     <div className="workspace-stack">
+      <ResultsNavigation view={view} page="packages" />
+      {(current || previous) && (
+        <section className="workspace-panel">
+          {current && (
+            <div>
+              <h2>Latest approved package</h2>
+              <Link
+                className="text-link"
+                href={`/projects/${project.id}/delivery/${current.id}`}
+              >
+                Open approved {current.title}
+              </Link>
+            </div>
+          )}
+          {previous && (
+            <div>
+              <h2>Awaiting approval</h2>
+              <Link
+                className="text-link"
+                href={`/projects/${project.id}/delivery/${previous.id}`}
+              >
+                {previous.title}
+              </Link>
+              <p>Decision assigned to {author(view, previous.approverId)}.</p>
+            </div>
+          )}
+        </section>
+      )}
       {manage && (
         <section className="workspace-panel">
           <h2>Prepare delivery</h2>
@@ -152,7 +237,14 @@ export function Deliveries({
                     >
                       {task.title}
                     </Link>{" "}
-                    · {staffing(project, task)}
+                    ·{" "}
+                    {task.blockers.length
+                      ? "Blocking question"
+                      : task.inputs.some(
+                            (input) => !input.latest || input.changed,
+                          )
+                        ? "Resolve required inputs"
+                        : staffing(project, task)}
                   </li>
                 ))}
               </ul>
@@ -168,9 +260,7 @@ export function Deliveries({
               </Link>
             </p>
           ))}
-          {tasks.some(
-            (task) => task.status === "COMPLETE" && task.output?.currentVersion,
-          ) && (
+          {canPrepare && (
             <Action
               id={project.id}
               path={path}
@@ -210,7 +300,7 @@ export function Deliveries({
                           defaultChecked={
                             task.required && task.status === "COMPLETE"
                           }
-                          disabled={task.status !== "COMPLETE"}
+                          disabled={notReady(task)}
                         />
                         {task.output.title} v{task.output.currentVersion}
                         {task.required ? " · Required" : " · Optional"}
@@ -223,10 +313,10 @@ export function Deliveries({
         </section>
       )}
       <section className="workspace-panel">
-        <h2>Delivery history</h2>
-        {releases.length ? (
+        <h2>Earlier packages</h2>
+        {history.length ? (
           <ul className="workspace-list">
-            {releases.map((release) => (
+            {history.map((release) => (
               <li className="workspace-item workspace-row" key={release.id}>
                 <Link
                   className="text-link"
@@ -245,7 +335,7 @@ export function Deliveries({
             ))}
           </ul>
         ) : (
-          <p>The approved package will appear here.</p>
+          <p>No earlier packages.</p>
         )}
       </section>
     </div>
@@ -269,41 +359,76 @@ export function Package({
     !release.supersededAt &&
     view.actor.accountId === release.approverId;
   const discussions = view.relatedQuestions;
+  const stale =
+    decide &&
+    (view.manifest?.brief !== project.brief ||
+      view.manifest?.doneWhen !== project.doneWhen ||
+      view.deliveryQuestions.length > 0 ||
+      view.tasks.some(
+        (task) =>
+          (task.required && !items.some((item) => item.taskId === task.id)) ||
+          items.some(
+            (item) =>
+              item.taskId === task.id &&
+              (notReady(task) || task.output?.currentVersion !== item.version),
+          ),
+      ));
+  const returned = releaseEvents.some(
+    (event) => event.kind === "RELEASE_RETURNED",
+  );
   return (
     <div className="workspace-stack workspace-print">
       <section className="workspace-panel">
         <div className="workspace-row">
-          <h2>{release.title}</h2>
+          <h2>Package summary</h2>
           <span className="workspace-status">
             {release.approvedAt
               ? "Approved package"
               : release.supersededAt
-                ? "Previous submission"
+                ? returned
+                  ? "Returned for changes"
+                  : "Replaced submission"
                 : "Awaiting human approval"}
           </span>
         </div>
         <p className="project-copy">{view.manifest?.brief}</p>
         <p>
-          <strong>Success criteria</strong> · {project.doneWhen}
+          <strong>Success criteria</strong> · {view.manifest?.doneWhen}
         </p>
         <p>
           Prepared by {author(view, release.submittedById)} ·{" "}
           {release.approvedAt ? "Approved by" : "Assigned to"}{" "}
           {author(view, release.approverId)}
+          {release.approvedAt && (
+            <>
+              {" "}
+              ·{" "}
+              <time dateTime={release.approvedAt.toISOString()}>
+                {release.approvedAt.toLocaleDateString("en-US", {
+                  timeZone: "UTC",
+                })}
+              </time>
+            </>
+          )}
         </p>
         <ul className="workspace-list">
           {items.map((item) => (
             <li key={item.taskId}>
-              <Link
-                className="text-link"
-                href={workspaceTaskPath(project.id, item.taskId, item.version)}
-              >
+              <Link className="text-link" href={`#package-${item.taskId}`}>
                 {item.title} v{item.version}
               </Link>
               {item.saved.changeSummary && <p>{item.saved.changeSummary}</p>}
             </li>
           ))}
         </ul>
+        {decide && (
+          <a
+            className="text-link workspace-print-hide"
+            href="#package-documents"
+          >
+            Review these versions
+          </a>
+        )}
         {release.approvedAt && (
           <div className="workspace-print-hide workspace-inline">
             <a href={`${path}/download`} className="button">
@@ -313,27 +438,80 @@ export function Package({
           </div>
         )}
       </section>
-      {items.map((item) => (
-        <section className="workspace-panel" key={item.taskId}>
-          <h2>
-            {item.title} · Version {item.version}
-          </h2>
-          <p className="muted">
-            Submitted by {author(view, item.saved.authorId)} ·{" "}
-            {readinessLabels[item.saved.readiness]}
-          </p>
-          <DocumentText body={item.saved.body} />
-          {item.signoffs.map((event, index) => (
-            <p key={index} className="workspace-answer">
-              <strong>
-                {author(view, event.actorId)}{" "}
-                {event.kind === "RECOMMENDED" ? "recommended" : "approved"}:
-              </strong>{" "}
-              {event.note}
-            </p>
+      <div className={decide ? "workspace-with-decision" : undefined}>
+        <div className="workspace-stack" id="package-documents" tabIndex={-1}>
+          {items.map((item) => (
+            <section
+              className="workspace-panel"
+              id={`package-${item.taskId}`}
+              key={item.taskId}
+              tabIndex={-1}
+            >
+              <h2>
+                {item.title} · Version {item.version}
+              </h2>
+              <p className="muted">
+                Submitted by {author(view, item.saved.authorId)} ·{" "}
+                {readinessLabels[item.saved.readiness]}
+              </p>
+              <Link
+                className="text-link workspace-print-hide"
+                href={workspaceTaskPath(project.id, item.taskId, item.version)}
+              >
+                Open version history
+              </Link>
+              <DocumentText body={item.saved.body} />
+              {item.signoffs.map((event, index) => (
+                <p key={index} className="workspace-answer">
+                  <strong>
+                    {author(view, event.actorId)}{" "}
+                    {event.kind === "RECOMMENDED" ? "recommended" : "approved"}:
+                  </strong>{" "}
+                  {event.note}
+                </p>
+              ))}
+            </section>
           ))}
-        </section>
-      ))}
+        </div>
+        {decide && (
+          <section className="workspace-panel workspace-print-hide workspace-decision">
+            <h2>Your decision</h2>
+            <p>Your approval applies to the versions in this package.</p>
+            {stale ? (
+              <p className="workspace-answer">
+                The brief or required work changed. Ask the project lead to
+                prepare an updated package.
+              </p>
+            ) : (
+              <Action
+                id={project.id}
+                path={path}
+                kind="RELEASE_APPROVED"
+                label="Approve package"
+                values={{ releaseId: release.id }}
+              />
+            )}
+            <details>
+              <summary>Return for changes</summary>
+              <Action
+                id={project.id}
+                path={path}
+                kind="RELEASE_RETURNED"
+                label="Return package"
+                secondary
+                values={{ releaseId: release.id }}
+              >
+                <Field
+                  label="What needs to change?"
+                  name="body"
+                  rows={3}
+                  maxLength={1500}
+                />
+              </Action>
+            </details>
+          </section>
+        )}
+      </div>
       {discussions.length > 0 && (
         <section className="workspace-panel workspace-print-hide">
           <h2>Related decisions</h2>
@@ -361,35 +539,6 @@ export function Package({
             {author(view, event.actorId)} returned the package. {event.note}
           </p>
         ))}
-      {decide && (
-        <section className="workspace-panel workspace-print-hide">
-          <h2>Your approval</h2>
-          <Action
-            id={project.id}
-            path={path}
-            kind="RELEASE_APPROVED"
-            label="Approve package"
-            values={{ releaseId: release.id }}
-          />
-          <details>
-            <summary>Return for changes</summary>
-            <Action
-              id={project.id}
-              path={path}
-              kind="RELEASE_RETURNED"
-              label="Return package"
-              values={{ releaseId: release.id }}
-            >
-              <Field
-                label="What needs to change?"
-                name="body"
-                rows={3}
-                maxLength={1500}
-              />
-            </Action>
-          </details>
-        </section>
-      )}
     </div>
   );
 }

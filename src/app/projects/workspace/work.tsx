@@ -27,6 +27,7 @@ export function Discussion({
   contribute,
   manage,
   focused = false,
+  projectLevel = false,
 }: {
   view: WorkspaceView;
   path: string;
@@ -36,11 +37,15 @@ export function Discussion({
   contribute: boolean;
   manage: boolean;
   focused?: boolean;
+  projectLevel?: boolean;
 }) {
   const id = view.project.id;
   return (
     <section className="workspace-panel">
-      <h2>{focused ? "Decision request" : "Discussion"}</h2>
+      {!focused && (
+        <h2>{projectLevel ? "Questions and comments" : "Task discussion"}</h2>
+      )}
+      {!items.length && <p>No questions or comments yet.</p>}
       {items.length > 0 && (
         <ul className="workspace-list">
           {items.map((post) => (
@@ -67,7 +72,8 @@ export function Discussion({
                   className="text-link"
                   href={`/projects/${id}/tasks/${post.taskId}`}
                 >
-                  Open affected task
+                  {view.tasks.find((task) => task.id === post.taskId)?.title ??
+                    "Open affected task"}
                 </Link>
               )}
               {post.version && post.taskId && (
@@ -79,7 +85,11 @@ export function Discussion({
                   {post.heading && ` · ${post.heading}`}
                 </Link>
               )}
-              <p className="project-copy">{post.body}</p>
+              {focused ? (
+                <h2 className="project-copy">{post.body}</h2>
+              ) : (
+                <p className="project-copy">{post.body}</p>
+              )}
               {post.answer && (
                 <div className="workspace-answer">
                   <strong>{author(view, post.answeredById)} answered</strong>
@@ -212,16 +222,57 @@ export function TaskPage({
   const writing =
     owner && latest && ["WORKING", "REVISION"].includes(task.status);
   const keyNotes = view.notes.slice(0, 4);
+  const blocking =
+    task.blockers.length > 0 ||
+    task.inputs.some((input) => !input.latest || input.changed);
+  const reviewNote =
+    task.status === "REVISION" &&
+    versionEvents.find((event) => event.kind === "CHANGES_REQUESTED");
+  const nextRecipient =
+    task.reviewerId || task.readiness === "RECOMMENDED"
+      ? "review"
+      : task.readiness === "APPROVED"
+        ? "approval"
+        : null;
+  const recipient =
+    nextRecipient === "review" ? task.reviewerId : task.approverId;
+  const decision = (reviewer || approver) && current;
   return (
     <div className="workspace-stack">
+      {decision && (
+        <section className="workspace-feature">
+          <div>
+            <h2>
+              {reviewer ? "Review" : "Approve"} {task.output.title} v
+              {decision.number}
+            </h2>
+            <p>
+              {reviewer
+                ? "Recommend this version or describe what needs to change."
+                : "Your decision applies to this saved version."}
+            </p>
+          </div>
+          <Link className="text-link" href="#submitted-version">
+            Read version {decision.number}
+          </Link>
+        </section>
+      )}
+      {current && !latest && (
+        <p className="workspace-answer">
+          You’re viewing version {current.number}.{" "}
+          <Link className="text-link" href={taskPath}>
+            Open the current version
+          </Link>
+        </p>
+      )}
       <section className="workspace-panel workspace-task-brief">
         <div className="workspace-row">
           <h2>Task brief</h2>
           <span className="workspace-status">{staffing(project, task)}</span>
         </div>
         <p className="muted">
-          {author(view, task.ownerId)} owns this task ·{" "}
-          {readinessLabels[task.readiness]}
+          {author(view, task.ownerId)} owns this task · Complete when{" "}
+          {readinessLabels[task.readiness].toLowerCase()}
           {task.dueOn && ` · Due ${task.dueOn}`}
         </p>
         <p className="project-copy">{task.brief}</p>
@@ -346,103 +397,27 @@ export function TaskPage({
           </ul>
         </section>
       )}
-      {current && (
-        <section className="workspace-panel">
-          <div className="workspace-row">
-            <h2>
-              {task.output.title} · Version {current.number}
-            </h2>
-            <span className="workspace-status">
-              {readinessLabels[current.readiness]}
-            </span>
-          </div>
-          <p className="muted">Submitted by {author(view, current.authorId)}</p>
-          {current.changeSummary && <p>{current.changeSummary}</p>}
-          <DocumentText body={current.body} />
-          {previous && (
-            <details open={reviewer || approver}>
-              <summary>Compare with version {previous.number}</summary>
-              <Difference
-                before={previous.body}
-                after={current.body}
-                beforeLabel={`Version ${previous.number}`}
-                afterLabel={`Version ${current.number}`}
-              />
-            </details>
-          )}
-          {versionEvents.map((event) => (
-            <div className="workspace-answer" key={event.id}>
-              <strong>
-                {author(view, event.actorId)}{" "}
-                {event.kind === "CHANGES_REQUESTED"
-                  ? "requested changes"
-                  : event.kind === "RECOMMENDED"
-                    ? "recommended this version"
-                    : "approved this version"}
-              </strong>
-              {event.note && <p className="project-copy">{event.note}</p>}
-            </div>
-          ))}
-          {Array.isArray(current.inputs) && current.inputs.length > 0 && (
-            <div className="workspace-answer">
-              <h3>Inputs used in this submission</h3>
-              <ul>
-                {current.inputs.map((input, index) => {
-                  if (
-                    !input ||
-                    typeof input !== "object" ||
-                    Array.isArray(input) ||
-                    typeof input.taskId !== "string" ||
-                    typeof input.version !== "number" ||
-                    typeof input.title !== "string"
-                  )
-                    return null;
-                  return (
-                    <li key={index}>
-                      <Link
-                        className="text-link"
-                        href={workspaceTaskPath(
-                          id,
-                          input.taskId,
-                          input.version,
-                        )}
-                      >
-                        {input.title} v{input.version}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
-          <nav className="workspace-inline" aria-label="Output versions">
-            {current.number > 1 && (
-              <Link
-                className="text-link"
-                href={workspaceTaskPath(id, task.id, current.number - 1)}
-              >
-                Previous version
-              </Link>
-            )}
-            {current.number < task.output.currentVersion && (
-              <Link
-                className="text-link"
-                href={workspaceTaskPath(id, task.id, current.number + 1)}
-              >
-                Next version
-              </Link>
-            )}
-            {!latest && (
-              <Link className="text-link" href={taskPath}>
-                Current task
-              </Link>
-            )}
-          </nav>
-        </section>
-      )}
       {writing && (
-        <section className="workspace-panel">
+        <section className="workspace-panel" id="draft">
           <h2>{draft ? "Continue saved draft" : "Write the output"}</h2>
+          {reviewNote && current && (
+            <div className="workspace-answer">
+              <strong>
+                {author(view, reviewNote.actorId)} requested changes to version{" "}
+                {current.number}
+              </strong>
+              <p className="project-copy">{reviewNote.note}</p>
+            </div>
+          )}
+          <p>
+            {blocking
+              ? "You can save a private draft while this task waits."
+              : nextRecipient
+                ? recipient
+                  ? `Submitting sends this version to ${author(view, recipient)} for ${nextRecipient} in Minglo.`
+                  : `Submitting saves this version for ${nextRecipient}. The lead can assign the next participant.`
+                : "Submitting shares this version with the project team."}
+          </p>
           <DraftEditor
             key={`${task.id}-${task.revision}-${draft?.revision ?? 0}`}
             projectId={id}
@@ -452,53 +427,160 @@ export function TaskPage({
             version={task.output.currentVersion}
             draftRevision={draft?.revision ?? 0}
             initialBody={draft?.body ?? current?.body ?? ""}
+            nextRecipient={nextRecipient}
+            blocked={blocking}
+            hasSavedDraft={!!draft}
             operationKey={randomUUID()}
           />
         </section>
       )}
-      {(reviewer || approver) && current && (
-        <section className="workspace-panel">
-          <h2>{reviewer ? "Review this version" : "Decide on this version"}</h2>
-          <Action
-            id={id}
-            path={path}
-            kind={reviewer ? "RECOMMENDED" : "TASK_APPROVED"}
-            label={`${reviewer ? "Recommend" : "Approve"} version ${current.number}`}
-            values={{ ...values, version: current.number }}
+      <div className={decision ? "workspace-with-decision" : undefined}>
+        {current && (
+          <section
+            className="workspace-panel"
+            id="submitted-version"
+            tabIndex={-1}
           >
-            <Field
-              label={reviewer ? "Recommendation" : "Approval note (optional)"}
-              name="note"
-              rows={2}
-              required={reviewer}
-              maxLength={1500}
-            />
-          </Action>
-          <details>
-            <summary>Request changes</summary>
+            <div className="workspace-row">
+              <h2>
+                {task.output.title} · Version {current.number}
+              </h2>
+              <span className="workspace-status">
+                {readinessLabels[current.readiness]}
+              </span>
+            </div>
+            <p className="muted">
+              Submitted by {author(view, current.authorId)}
+            </p>
+            {current.changeSummary && <p>{current.changeSummary}</p>}
+            <DocumentText body={current.body} />
+            {previous && (
+              <details>
+                <summary>Compare with version {previous.number}</summary>
+                <Difference
+                  before={previous.body}
+                  after={current.body}
+                  beforeLabel={`Version ${previous.number}`}
+                  afterLabel={`Version ${current.number}`}
+                />
+              </details>
+            )}
+            {versionEvents.map((event) => (
+              <div className="workspace-answer" key={event.id}>
+                <strong>
+                  {author(view, event.actorId)}{" "}
+                  {event.kind === "CHANGES_REQUESTED"
+                    ? "requested changes"
+                    : event.kind === "RECOMMENDED"
+                      ? "recommended this version"
+                      : "approved this version"}
+                </strong>
+                {event.note && <p className="project-copy">{event.note}</p>}
+              </div>
+            ))}
+            {Array.isArray(current.inputs) && current.inputs.length > 0 && (
+              <div className="workspace-answer">
+                <h3>Inputs used in this submission</h3>
+                <ul>
+                  {current.inputs.map((input, index) => {
+                    if (
+                      !input ||
+                      typeof input !== "object" ||
+                      Array.isArray(input) ||
+                      typeof input.taskId !== "string" ||
+                      typeof input.version !== "number" ||
+                      typeof input.title !== "string"
+                    )
+                      return null;
+                    return (
+                      <li key={index}>
+                        <Link
+                          className="text-link"
+                          href={workspaceTaskPath(
+                            id,
+                            input.taskId,
+                            input.version,
+                          )}
+                        >
+                          {input.title} v{input.version}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+            <nav className="workspace-inline" aria-label="Output versions">
+              {current.number > 1 && (
+                <Link
+                  className="text-link"
+                  href={workspaceTaskPath(id, task.id, current.number - 1)}
+                >
+                  Previous version
+                </Link>
+              )}
+              {current.number < task.output.currentVersion && (
+                <Link
+                  className="text-link"
+                  href={workspaceTaskPath(id, task.id, current.number + 1)}
+                >
+                  Next version
+                </Link>
+              )}
+              {!latest && (
+                <Link className="text-link" href={taskPath}>
+                  Current task
+                </Link>
+              )}
+            </nav>
+          </section>
+        )}
+        {decision && (
+          <section className="workspace-panel workspace-decision">
+            <h2>
+              {reviewer ? "Review this version" : "Decide on this version"}
+            </h2>
             <Action
               id={id}
               path={path}
-              kind="CHANGES_REQUESTED"
-              label="Send change request"
+              kind={reviewer ? "RECOMMENDED" : "TASK_APPROVED"}
+              label={`${reviewer ? "Recommend" : "Approve"} version ${current.number}`}
               values={{ ...values, version: current.number }}
             >
               <Field
-                label="What needs to change?"
+                label={reviewer ? "Recommendation" : "Approval note (optional)"}
                 name="note"
-                rows={3}
+                rows={2}
+                required={reviewer}
                 maxLength={1500}
               />
-              <Field
-                label="Heading in this version (optional)"
-                name="heading"
-                maxLength={160}
-                required={false}
-              />
             </Action>
-          </details>
-        </section>
-      )}
+            <details>
+              <summary>Request changes</summary>
+              <Action
+                id={id}
+                path={path}
+                kind="CHANGES_REQUESTED"
+                label="Send change request"
+                values={{ ...values, version: current.number }}
+              >
+                <Field
+                  label="What needs to change?"
+                  name="note"
+                  rows={3}
+                  maxLength={1500}
+                />
+                <Field
+                  label="Heading in this version (optional)"
+                  name="heading"
+                  maxLength={160}
+                  required={false}
+                />
+              </Action>
+            </details>
+          </section>
+        )}
+      </div>
       {manage && (
         <details className="workspace-panel">
           <summary>Manage task</summary>

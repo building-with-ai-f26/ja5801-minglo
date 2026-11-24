@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Form from "next/form";
 import { searchAccounts } from "@/lib/discovery";
 import {
   staffing,
@@ -35,10 +36,14 @@ export function Assign({
         view={view}
         name="ownerId"
         label="Owner"
+        selfLabel
         value={task.ownerId}
         pending
       />
       <ReadinessSelect value={task.readiness} />
+      <p className="muted">
+        Invited contributors can be assigned. They can act after joining.
+      </p>
       <MemberSelect
         view={view}
         name="reviewerId"
@@ -153,11 +158,11 @@ export function Plan({
     <div className="workspace-stack">
       <nav className="workspace-filters" aria-label="Task filters">
         {[
-          ["", "All tasks"],
+          ["", "All"],
           ["mine", "Mine"],
           ["ready", "Ready"],
           ["waiting", "Waiting"],
-          ["completed", "Completed"],
+          ["completed", "Done"],
         ].map(([value, label]) => (
           <Link
             key={label}
@@ -169,8 +174,8 @@ export function Plan({
         ))}
       </nav>
       {manage && (
-        <div className="workspace-toolbar">
-          <details className="workspace-panel">
+        <div className="workspace-toolbar workspace-plan-tools">
+          <details id="add-task" open={!view.tasks.length}>
             <summary>Add a task</summary>
             <Action
               id={project.id}
@@ -182,7 +187,7 @@ export function Plan({
               <TaskFields view={view} />
             </Action>
           </details>
-          <details className="workspace-panel">
+          <details>
             <summary>Add a milestone</summary>
             <Action
               id={project.id}
@@ -211,7 +216,11 @@ export function Plan({
       )}
       {[
         ...view.milestones,
-        { id: null, title: "Without a milestone", dueOn: null },
+        {
+          id: null,
+          title: view.milestones.length ? "Without a milestone" : "Task list",
+          dueOn: null,
+        },
       ].map((milestone) => {
         const group = tasks.filter((task) => task.milestoneId === milestone.id);
         if (!group.length && (!milestone.id || filter)) return null;
@@ -224,6 +233,83 @@ export function Plan({
               )}
             </div>
             {group.length === 0 && <p>No tasks in this milestone.</p>}
+            <ul className="workspace-list">
+              {group.map((task, index) => (
+                <li
+                  key={task.id}
+                  className="workspace-item workspace-plan-task"
+                >
+                  <div className="workspace-row workspace-task-row">
+                    <div>
+                      <Link
+                        className="text-link workspace-item-title"
+                        href={`/projects/${project.id}/tasks/${task.id}`}
+                      >
+                        {task.title}
+                      </Link>
+                      <p className="muted">
+                        {task.ownerId && `${author(view, task.ownerId)} · `}
+                        Complete when{" "}
+                        {readinessLabels[task.readiness].toLowerCase()}
+                        {task.dueOn ? ` · Due ${task.dueOn}` : ""}
+                      </p>
+                    </div>
+                    <span className="workspace-status">
+                      {staffing(project, task)}
+                    </span>
+                  </div>
+                  {manage && (
+                    <div className="workspace-task-tools">
+                      {task.status !== "COMPLETE" && (
+                        <details>
+                          <summary>
+                            {task.ownerId ? "Change assignment" : "Assign task"}
+                          </summary>
+                          <Assign view={view} task={task} path={path} />
+                        </details>
+                      )}
+                      {!filter && group.length > 1 && (
+                        <details className="workspace-reorder">
+                          <summary aria-label={`Reorder ${task.title}`}>
+                            Reorder
+                          </summary>
+                          <div className="workspace-inline">
+                            {index > 0 && (
+                              <Action
+                                id={project.id}
+                                path={path}
+                                kind="TASK_MOVED"
+                                label="Move up"
+                                secondary
+                                values={{
+                                  taskId: task.id,
+                                  revision: project.planRevision,
+                                  direction: "up",
+                                }}
+                              />
+                            )}
+                            {index < group.length - 1 && (
+                              <Action
+                                id={project.id}
+                                path={path}
+                                kind="TASK_MOVED"
+                                label="Move down"
+                                secondary
+                                values={{
+                                  taskId: task.id,
+                                  revision: project.planRevision,
+                                  direction: "down",
+                                }}
+                              />
+                            )}
+                          </div>
+                        </details>
+                      )}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
             {manage && milestone.id && (
               <details>
                 <summary>Edit milestone</summary>
@@ -253,68 +339,6 @@ export function Plan({
                 </Action>
               </details>
             )}
-            <ul className="workspace-list">
-              {group.map((task, index) => (
-                <li key={task.id} className="workspace-item">
-                  <div className="workspace-row workspace-task-row">
-                    <div>
-                      <Link
-                        className="text-link workspace-item-title"
-                        href={`/projects/${project.id}/tasks/${task.id}`}
-                      >
-                        {task.title}
-                      </Link>
-                      <p className="muted">
-                        {author(view, task.ownerId)} ·{" "}
-                        {readinessLabels[task.readiness]}
-                        {task.dueOn ? ` · Due ${task.dueOn}` : ""}
-                      </p>
-                    </div>
-                    <span className="workspace-status">
-                      {staffing(project, task)}
-                    </span>
-                  </div>
-                  {manage && task.status !== "COMPLETE" && (
-                    <details>
-                      <summary>
-                        {task.ownerId ? "Change assignment" : "Assign task"}
-                      </summary>
-                      <Assign view={view} task={task} path={path} />
-                    </details>
-                  )}
-                  {manage && !filter && group.length > 1 && (
-                    <div className="workspace-inline">
-                      {index > 0 && (
-                        <Action
-                          id={project.id}
-                          path={path}
-                          kind="TASK_MOVED"
-                          label="Move up"
-                          values={{
-                            taskId: task.id,
-                            revision: project.planRevision,
-                            direction: "up",
-                          }}
-                        />
-                      )}
-                      {index < group.length - 1 && (
-                        <Action
-                          id={project.id}
-                          path={path}
-                          kind="TASK_MOVED"
-                          label="Move down"
-                          values={{
-                            taskId: task.id,
-                            revision: project.planRevision,
-                            direction: "down",
-                          }}
-                        />
-                      )}
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
           </section>
         );
       })}
@@ -462,79 +486,87 @@ export async function Team({
         type: "AGENT",
       }));
   const invitePath = `/projects/${project.id}/team`;
+  const inviteForm = (
+    <section className="workspace-panel" id="invite-teammates">
+      <h2>Invite teammates</h2>
+      <Form action={invitePath} className="workspace-inline">
+        <Field
+          label="Search by name or handle"
+          name="q"
+          value={search}
+          maxLength={60}
+        />
+        <button className="button" type="submit">
+          Search
+        </button>
+      </Form>
+      {candidates.length ? (
+        <ul className="workspace-list">
+          {candidates
+            .filter(
+              (candidate) =>
+                !project.memberships.some(
+                  (member) => member.accountId === candidate.id,
+                ),
+            )
+            .map((candidate) => (
+              <li key={candidate.id} className="workspace-item">
+                <p>
+                  <strong>{candidate.displayName}</strong> · @{candidate.handle}{" "}
+                  · {candidate.type === "AGENT" ? "Agent" : "Person"}
+                </p>
+                <Action
+                  id={project.id}
+                  path={path}
+                  kind="INVITED"
+                  label={`Invite @${candidate.handle}`}
+                  values={{ handle: candidate.handle }}
+                >
+                  <label className="field">
+                    <span>Invite as</span>
+                    <select name="contributor" defaultValue="true">
+                      <option value="true">Contributor</option>
+                      <option value="false">Reader</option>
+                    </select>
+                  </label>
+                </Action>
+              </li>
+            ))}
+        </ul>
+      ) : search ? (
+        <p>No accounts match your search.</p>
+      ) : null}
+      <details>
+        <summary>Invite by exact handle</summary>
+        <Action
+          id={project.id}
+          path={path}
+          kind="INVITED"
+          label="Send invitation"
+        >
+          <Field label="Handle" name="handle" maxLength={30} />
+          <label className="field">
+            <span>Invite as</span>
+            <select name="contributor" defaultValue="true">
+              <option value="true">Contributor</option>
+              <option value="false">Reader</option>
+            </select>
+          </label>
+        </Action>
+      </details>
+    </section>
+  );
   return (
     <div className="workspace-stack">
       {manage && (
-        <section className="workspace-panel">
-          <h2>Invite teammates</h2>
-          <form action={invitePath} className="workspace-inline">
-            <Field
-              label="Search by name or handle"
-              name="q"
-              value={search}
-              maxLength={60}
-            />
-            <button className="button" type="submit">
-              Search
-            </button>
-          </form>
-          {candidates.length ? (
-            <ul className="workspace-list">
-              {candidates
-                .filter(
-                  (candidate) =>
-                    !project.memberships.some(
-                      (member) => member.accountId === candidate.id,
-                    ),
-                )
-                .map((candidate) => (
-                  <li key={candidate.id} className="workspace-item">
-                    <p>
-                      <strong>{candidate.displayName}</strong> · @
-                      {candidate.handle} ·{" "}
-                      {candidate.type === "AGENT" ? "Agent" : "Person"}
-                    </p>
-                    <Action
-                      id={project.id}
-                      path={path}
-                      kind="INVITED"
-                      label={`Invite @${candidate.handle}`}
-                      values={{ handle: candidate.handle }}
-                    >
-                      <label className="field">
-                        <span>Invite as</span>
-                        <select name="contributor" defaultValue="true">
-                          <option value="true">Contributor</option>
-                          <option value="false">Reader</option>
-                        </select>
-                      </label>
-                    </Action>
-                  </li>
-                ))}
-            </ul>
-          ) : search ? (
-            <p>No accounts match your search.</p>
-          ) : null}
-          <details>
-            <summary>Invite by exact handle</summary>
-            <Action
-              id={project.id}
-              path={path}
-              kind="INVITED"
-              label="Send invitation"
-            >
-              <Field label="Handle" name="handle" maxLength={30} />
-              <label className="field">
-                <span>Invite as</span>
-                <select name="contributor" defaultValue="true">
-                  <option value="true">Contributor</option>
-                  <option value="false">Reader</option>
-                </select>
-              </label>
-            </Action>
-          </details>
-        </section>
+        <Link
+          className="workspace-team-invite text-link"
+          href="#invite-teammates"
+        >
+          Invite teammates
+        </Link>
       )}
+      {manage && search && inviteForm}
       {(["ACCEPTED", "INVITED"] as const).map((status) => (
         <section className="workspace-panel" key={status}>
           <h2>
@@ -547,6 +579,7 @@ export async function Team({
                 <li key={member.id} className="workspace-row workspace-item">
                   <span>
                     <strong>@{member.account.handle}</strong> ·{" "}
+                    {member.account.type === "AGENT" ? "Agent" : "Person"} ·{" "}
                     {member.accountId === project.creatorAccountId
                       ? "Lead"
                       : member.contributor
@@ -561,6 +594,7 @@ export async function Team({
                       id={project.id}
                       path={path}
                       kind="REMOVED"
+                      secondary
                       label={
                         status === "INVITED"
                           ? "Cancel invitation"
@@ -577,6 +611,7 @@ export async function Team({
           )}
         </section>
       ))}
+      {manage && !search && inviteForm}
       {writable && (
         <details className="workspace-panel">
           <summary>{manage ? "Close project" : "Leave project"}</summary>

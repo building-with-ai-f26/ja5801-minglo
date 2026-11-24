@@ -529,7 +529,11 @@ export function projectTurnPath(project: {
 
 export async function getProjectReturns(
   accountId: string,
-  options: { after?: string; all?: boolean } = {},
+  options: {
+    after?: string;
+    all?: boolean;
+    kind?: "memberships" | "invitations";
+  } = {},
 ) {
   const turnConditions: Prisma.ProjectMembershipWhereInput[] = Object.entries(
     turnRole,
@@ -539,32 +543,37 @@ export async function getProjectReturns(
       : [],
   );
   const take = options.all ? 21 : 4;
+  const invited = { status: "INVITED", project: { closedAt: null } } as const;
   const memberships = await db.projectMembership.findMany({
     where: {
       accountId,
       ...(options.after && { id: { lt: options.after } }),
       OR: [
-        { status: "INVITED", project: { closedAt: null } },
-        options.all
-          ? { status: "ACCEPTED" }
-          : {
-              status: "ACCEPTED",
-              project: { closedAt: null },
-              OR: [
-                ...turnConditions.map((condition) => ({
-                  AND: [condition, { project: { workspaceFormat: 1 } }],
-                })),
-                {
-                  project: {
-                    creatorAccountId: accountId,
-                    workspaceFormat: 1,
-                    closedAt: null,
-                    phase: { not: "APPROVED" },
-                    NOT: hasAssignedTeam,
+        ...(options.kind !== "memberships" ? [invited] : []),
+        ...(options.kind === "invitations"
+          ? []
+          : [
+              options.all
+                ? { status: "ACCEPTED" as const }
+                : {
+                    status: "ACCEPTED" as const,
+                    project: { closedAt: null },
+                    OR: [
+                      ...turnConditions.map((condition) => ({
+                        AND: [condition, { project: { workspaceFormat: 1 } }],
+                      })),
+                      {
+                        project: {
+                          creatorAccountId: accountId,
+                          workspaceFormat: 1,
+                          closedAt: null,
+                          phase: { not: "APPROVED" as const },
+                          NOT: hasAssignedTeam,
+                        },
+                      },
+                    ],
                   },
-                },
-              ],
-            },
+            ]),
       ],
     },
     select: {
@@ -577,10 +586,22 @@ export async function getProjectReturns(
           id: true,
           title: true,
           phase: true,
+          workspaceFormat: true,
+          releases: {
+            where: {
+              OR: [{ approvedAt: { not: null } }, { supersededAt: null }],
+            },
+            orderBy: { approvedAt: { sort: "desc", nulls: "last" } },
+            take: 1,
+            select: { approvedAt: true },
+          },
           currentVersion: true,
           closedAt: true,
           memberships: {
-            where: { status: "ACCEPTED", role: { in: [...requiredRoles] } },
+            where: {
+              status: "ACCEPTED" as const,
+              role: { in: [...requiredRoles] },
+            },
             select: { id: true },
           },
         },
@@ -598,9 +619,11 @@ export async function getProjectReturns(
           id,
           href: `/projects/invitations/${id}?generation=${generation}`,
           label: `Review invitation to ${project.title}`,
+          invitation: true as const,
         };
       const base = `/projects/${project.id}`;
       const actionable =
+        project.workspaceFormat === 1 &&
         !project.closedAt &&
         project.memberships.length === requiredRoles.length &&
         role === turnRole[project.phase];
@@ -609,12 +632,17 @@ export async function getProjectReturns(
           id,
           href: base,
           label: project.title,
-          status:
-            project.phase === "APPROVED"
-              ? "Accepted result"
-              : project.closedAt
-                ? "Closed"
-                : "In progress",
+          status: project.closedAt
+            ? "Closed"
+            : project.workspaceFormat === 1
+              ? project.phase === "APPROVED"
+                ? "Accepted result"
+                : "In progress"
+              : project.releases[0]?.approvedAt
+                ? "Approved package"
+                : project.releases.length
+                  ? "Package awaiting approval"
+                  : "In progress",
           action: actionable
             ? {
                 href: projectTurnPath(project),

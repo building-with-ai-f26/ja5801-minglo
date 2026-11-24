@@ -104,6 +104,7 @@ export default async function InboxPage({
     invitations,
     invitationCount,
     projects,
+    projectInvitations,
     projectQueue,
   ] = await Promise.all([
     view === "updates" ? getInbox(account.id) : [],
@@ -121,7 +122,8 @@ export default async function InboxPage({
         })
       : [],
     invitationWhere ? db.membership.count({ where: invitationWhere }) : 0,
-    getProjectReturns(account.id),
+    getProjectReturns(account.id, { kind: "memberships" }),
+    getProjectReturns(account.id, { kind: "invitations" }),
     workspaceQueue(account.id, { limit: 3 }),
   ]);
   const updates = attention.filter(
@@ -179,7 +181,8 @@ export default async function InboxPage({
         </p>
       )}
       {view !== "updates" &&
-        (projects.items.length > 0 ||
+        (projectInvitations.items.length > 0 ||
+          projects.items.length > 0 ||
           projectQueue.work.length > 0 ||
           projectQueue.decisions.length > 0) && (
           <p>
@@ -270,7 +273,11 @@ export default async function InboxPage({
       )}
       {view === "updates" && (
         <>
-          <ProjectReturns projects={projects} queue={projectQueue} />
+          <ProjectReturns
+            projects={projects}
+            invitations={projectInvitations}
+            queue={projectQueue}
+          />
           {selectedAgent && (
             <p className="messages-update-context">
               Updates are for your account. The selected-agent filter applies to

@@ -21,15 +21,11 @@ export function Kickoff({
       </label>
       <label className="field">
         <span>What are we making?</span>
-        <textarea name="brief" required maxLength={3000} rows={4} />
+        <textarea name="brief" required maxLength={3000} rows={3} />
       </label>
       <label className="field">
         <span>What counts as done?</span>
-        <textarea name="doneWhen" required maxLength={1500} rows={3} />
-      </label>
-      <label className="field">
-        <span>Due date (optional)</span>
-        <input name="dueOn" type="date" />
+        <textarea name="doneWhen" required maxLength={1500} rows={2} />
       </label>
       <label className="field">
         <span>Starting point</span>
@@ -39,15 +35,16 @@ export function Kickoff({
           onChange={(event) => setTemplate(event.target.value)}
         >
           <option value="blank">Start blank</option>
-          <option value="workshop">Use a workshop plan</option>
+          <option value="workshop">Workshop kit</option>
         </select>
       </label>
-      {template === "workshop" && (
-        <div className="workspace-stack">
-          <p>
-            Start the agenda and exercises in parallel. The handout uses the
-            recommended exercise sheet.
-          </p>
+      <div hidden={template !== "workshop"} className="workspace-starter">
+        <p>
+          {starter.map((task) => task.output).join(" · ")}. The handout uses the
+          reviewed exercise sheet.
+        </p>
+        <details>
+          <summary>Edit starter tasks</summary>
           {starter.map((task, index) => (
             <fieldset className="workspace-fieldset" key={task.title}>
               <legend>{task.title}</legend>
@@ -56,7 +53,6 @@ export function Kickoff({
                 <input
                   name={`taskTitle${index}`}
                   defaultValue={task.title}
-                  required
                   maxLength={100}
                 />
               </label>
@@ -65,36 +61,32 @@ export function Kickoff({
                 <textarea
                   name={`taskBrief${index}`}
                   defaultValue={task.brief}
-                  required
                   rows={3}
                 />
               </label>
               <label className="field">
                 <span>Done when</span>
-                <input
-                  name={`taskDone${index}`}
-                  defaultValue={task.doneWhen}
-                  required
-                />
+                <input name={`taskDone${index}`} defaultValue={task.doneWhen} />
               </label>
               <label className="field">
                 <span>Output name</span>
                 <input
                   name={`taskOutput${index}`}
                   defaultValue={task.output}
-                  required
                   maxLength={120}
                 />
               </label>
-              <p className="muted">
-                {index < 2
-                  ? "Choose a reviewer after adding the team."
-                  : "Ready once submitted."}
-              </p>
             </fieldset>
           ))}
-        </div>
-      )}
+        </details>
+      </div>
+      <details className="project-details">
+        <summary>Add a due date</summary>
+        <label className="field">
+          <span>Due date (optional)</span>
+          <input name="dueOn" type="date" />
+        </label>
+      </details>
     </StateForm>
   );
 }

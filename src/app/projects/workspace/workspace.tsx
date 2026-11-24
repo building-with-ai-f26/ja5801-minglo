@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ProjectRows } from "@/components/project-returns";
 import { AppShell } from "@/components/app-shell";
 import {
   workspaceTaskPath,
@@ -7,7 +8,6 @@ import {
   staffing,
   workspaceQueue,
   type WorkspaceView,
-  type WorkItem,
 } from "@/lib/projects/queries";
 import { workspaceFlag } from "@/lib/projects/shared";
 import type { CurrentAccount } from "@/lib/session";
@@ -18,10 +18,8 @@ import { Discussion, TaskPage } from "./work";
 
 const tabs = [
   ["Overview", ""],
-  ["Plan", "/plan"],
-  ["Outputs", "/outputs"],
-  ["Decisions", "/decisions"],
-  ["Delivery", "/delivery"],
+  ["Tasks", "/plan"],
+  ["Results", "/outputs"],
   ["Team", "/team"],
 ] as const;
 const verbs: Record<string, string> = {
@@ -58,32 +56,6 @@ const verbs: Record<string, string> = {
   APPROVED: "approved a version",
 };
 
-export function WorkItems({
-  items,
-  empty,
-}: {
-  items: WorkItem[];
-  empty?: string;
-}) {
-  return items.length ? (
-    <ul className="workspace-list">
-      {items.map((item) => (
-        <li key={item.id} className="workspace-item">
-          <Link className="text-link workspace-item-title" href={item.href}>
-            {item.label}
-          </Link>
-          <p className="muted">
-            {item.project}
-            {item.status && ` · ${item.status}`}
-          </p>
-        </li>
-      ))}
-    </ul>
-  ) : empty ? (
-    <p>{empty}</p>
-  ) : null;
-}
-
 async function Overview({
   view,
   path,
@@ -97,10 +69,14 @@ async function Overview({
 }) {
   const { project, tasks } = view;
   const base = `/projects/${project.id}`;
-  const queue = await workspaceQueue(view.actor.accountId, { limit: 20 });
-  const personal = [...queue.decisions, ...queue.work].find((entry) =>
-    entry.href.startsWith(base + "/"),
-  );
+  const queue = await workspaceQueue(view.actor.accountId, {
+    projectId: project.id,
+    limit: 3,
+  });
+  const personal = [
+    ...queue.decisions,
+    ...queue.work.filter((item) => item.kind !== "waiting"),
+  ];
   const since = before
     ? view.activity
     : view.activity.filter(
@@ -118,37 +94,73 @@ async function Overview({
       (task) => task.milestoneId === item.id && task.status !== "COMPLETE",
     ),
   );
-  const delivery = view.releases.find((release) => release.approvedAt);
+  const delivery = view.latestApproved;
+  const needsAssignment = tasks.some(
+    (task) => task.status === "OPEN" && !task.ownerId,
+  );
+  const pendingDelivery = view.pendingRelease;
   return (
     <div className="workspace-stack">
-      <section className="workspace-feature">
-        <div>
-          <h2>
-            {personal
-              ? "Your next action"
-              : tasks.length
-                ? "Project outcome"
-                : "Make a plan"}
-          </h2>
-          <p className="project-copy">
-            {personal
-              ? (personal.status ?? "Ready for your input")
-              : tasks.length
-                ? project.brief
-                : "Turn the outcome into tasks you and your teammates can take on."}
-          </p>
-        </div>
-        {personal && (
-          <Link className="button" href={personal.href}>
-            {personal.label}
+      {personal.length > 0 ? (
+        <section
+          className="workspace-panel workspace-personal"
+          aria-label="For you"
+        >
+          <h2>For you</h2>
+          <ProjectRows items={personal} showProject={false} />
+        </section>
+      ) : manage && (!tasks.length || needsAssignment) ? (
+        <section className="workspace-feature">
+          <div>
+            <h2>
+              {tasks.length
+                ? "Give everyone their part"
+                : "Plan the first piece of work"}
+            </h2>
+            <p>
+              {tasks.length
+                ? "Choose who will do each task and who should review it."
+                : "Work on your own or bring in teammates when you’re ready."}
+            </p>
+          </div>
+          <div className="workspace-inline">
+            <Link
+              className="button"
+              href={tasks.length ? `${base}/plan` : `${base}/plan#add-task`}
+            >
+              {tasks.length ? "Assign tasks" : "Add first task"}
+            </Link>
+            <Link className="text-link" href={`${base}/team#invite-teammates`}>
+              Invite teammates
+            </Link>
+          </div>
+        </section>
+      ) : null}
+      <div className="workspace-inline workspace-overview-links">
+        <Link className="text-link" href={`${base}/decisions`}>
+          Questions &amp; decisions
+        </Link>
+        {pendingDelivery &&
+          !personal.some((item) => item.href.endsWith(pendingDelivery.id)) && (
+            <Link
+              className="text-link"
+              href={`${base}/delivery/${pendingDelivery.id}`}
+            >
+              View package awaiting approval
+            </Link>
+          )}
+      </div>
+      {delivery && (
+        <section className="workspace-feature">
+          <div>
+            <h2>Approved result</h2>
+            <p>{delivery.title}</p>
+          </div>
+          <Link className="button" href={`${base}/delivery/${delivery.id}`}>
+            Open approved {delivery.title}
           </Link>
-        )}
-        {!personal && !tasks.length && (
-          <Link className="button" href={`${base}/plan`}>
-            Open the plan
-          </Link>
-        )}
-      </section>
+        </section>
+      )}
       <div className="workspace-split">
         <section className="workspace-panel">
           <h2>Brief</h2>
@@ -234,7 +246,17 @@ async function Overview({
                   >
                     {task.title}
                   </Link>
-                  <p>{staffing(project, task)}</p>
+                  {task.blockers[0] ? (
+                    <Link
+                      className="text-link"
+                      href={`${base}/questions/${task.blockers[0].id}`}
+                    >
+                      Waiting for an answer from{" "}
+                      {author(view, task.blockers[0].responderId)}
+                    </Link>
+                  ) : (
+                    <p>{staffing(project, task)}</p>
+                  )}
                 </li>
               ))}
             </ul>
@@ -243,14 +265,6 @@ async function Overview({
             <Link className="text-link" href={`${base}/team`}>
               View team
             </Link>
-            {delivery && (
-              <Link
-                className="text-link"
-                href={`${base}/delivery/${delivery.id}`}
-              >
-                Open approved delivery
-              </Link>
-            )}
           </div>
           {!delivery && tasks.some((task) => task.status === "COMPLETE") && (
             <Link className="text-link" href={`${base}/outputs`}>
@@ -261,7 +275,7 @@ async function Overview({
         </section>
       </div>
       <section className="workspace-panel">
-        <h2>{before ? "Earlier activity" : "Since your last visit"}</h2>
+        <h2>{before ? "Earlier activity" : "Team activity"}</h2>
         {!since.length && <p>No new project activity.</p>}
         <ul className="workspace-list">
           {since.map((event) => {
@@ -366,46 +380,104 @@ export async function WorkspacePage({
   const contribute =
     writable && view.actor.contributor && !account.agent?.participationPausedAt;
   const base = `/projects/${id}`;
-  const active = ["tasks"].includes(section)
-    ? "plan"
-    : section === "questions"
-      ? "decisions"
-      : section;
+  const active =
+    section === "tasks" || section === "plan"
+      ? "Tasks"
+      : section === "outputs" || section === "delivery"
+        ? "Results"
+        : section === "team"
+          ? "Team"
+          : "Overview";
   const title =
     view.release?.title ??
     view.task?.title ??
-    (view.post ? "Project question" : view.project.title);
+    (view.post
+      ? "Project question"
+      : section === "decisions"
+        ? "Questions & decisions"
+        : section === "delivery"
+          ? "Packages"
+          : section === "overview"
+            ? view.project.title
+            : active);
+  const parent =
+    section === "overview"
+      ? "/projects"
+      : section === "tasks"
+        ? `${base}/plan`
+        : view.release
+          ? `${base}/delivery`
+          : view.post
+            ? `${base}/decisions`
+            : base;
+  const parentLabel =
+    section === "overview"
+      ? "Your projects"
+      : section === "tasks"
+        ? "Tasks"
+        : view.release
+          ? "Packages"
+          : view.post
+            ? "Questions & decisions"
+            : view.project.title;
+  const sectionLinks = tabs.map(([label, suffix]) => (
+    <Link
+      key={label}
+      aria-current={active === label ? "page" : undefined}
+      href={base + suffix}
+    >
+      {label}
+    </Link>
+  ));
   return (
-    <AppShell account={account} active="projects" title={title}>
+    <AppShell
+      account={account}
+      active="projects"
+      title={null}
+      className="project-shell"
+    >
       <div className="workspace-v2">
         <header className="workspace-heading workspace-print-hide">
-          <Link
-            className="text-link"
-            href={section === "overview" ? "/projects" : base}
-          >
-            {section === "overview" ? "Projects" : view.project.title}
-          </Link>
-          <h1>{title}</h1>
-          <p>
-            {author(view, view.project.creatorAccountId)} leads this project
-            {view.project.dueOn && ` · Due ${view.project.dueOn}`}
-            {view.project.closedAt && " · Closed"}
-          </p>
+          <div className="workspace-breadcrumb">
+            <Link className="text-link" href={parent}>
+              {parentLabel}
+            </Link>
+            {section === "tasks" || view.release || view.post ? (
+              <Link className="text-link workspace-project-parent" href={base}>
+                {view.project.title}
+              </Link>
+            ) : null}
+          </div>
+          <div className="workspace-row">
+            <h1>{title}</h1>
+            {section === "overview" && (
+              <p>
+                {author(view, view.project.creatorAccountId)} · Project lead
+                {view.project.dueOn && ` · Due ${view.project.dueOn}`}
+              </p>
+            )}
+            {view.project.closedAt && (
+              <span className="workspace-status">Closed</span>
+            )}
+          </div>
         </header>
         <nav
-          className="workspace-tabs workspace-print-hide"
+          className="workspace-tabs workspace-tabs-desktop workspace-print-hide"
           aria-label="Project navigation"
         >
-          {tabs.map(([label, suffix]) => (
-            <Link
-              key={label}
-              aria-current={active === label.toLowerCase() ? "page" : undefined}
-              href={base + suffix}
-            >
-              {label}
-            </Link>
-          ))}
+          {sectionLinks}
         </nav>
+        <details
+          key={section}
+          className="workspace-tabs-mobile workspace-print-hide"
+        >
+          <summary>
+            {active} <span>· Project sections</span>
+          </summary>
+          <nav className="workspace-tabs" aria-label="Project navigation">
+            {sectionLinks}
+          </nav>
+        </details>
         {!enabled && (
           <p className="workspace-answer">
             Project changes are paused. Saved work remains available.
@@ -461,6 +533,7 @@ export async function WorkspacePage({
             view={view}
             path={path}
             items={view.projectQuestions}
+            projectLevel
             manage={manage}
             contribute={contribute}
           />

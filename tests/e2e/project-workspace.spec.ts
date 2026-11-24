@@ -43,6 +43,7 @@ test("four separate accounts hand off, review and deliver a workshop kit", async
     .getByLabel("What counts as done?")
     .fill("Three usable outputs and a final human decision.");
   await lead.getByLabel("Starting point").selectOption("workshop");
+  await lead.getByText("Edit starter tasks", { exact: true }).click();
   await expect(
     lead.getByRole("group", { name: "Draft the facilitator agenda" }),
   ).toBeVisible();
@@ -117,7 +118,7 @@ test("four separate accounts hand off, review and deliver a workshop kit", async
   );
 
   await agenda.getByLabel("Working draft").fill("# Agenda\n80 minutes.");
-  await agenda.getByRole("button", { name: "Save draft" }).click();
+  await agenda.getByRole("button", { name: "Save private draft" }).click();
   await expect(
     agenda.getByRole("heading", { name: "Continue saved draft" }),
   ).toBeVisible();
@@ -191,7 +192,7 @@ test("four separate accounts hand off, review and deliver a workshop kit", async
   ).toBeVisible();
   await lead.goto("/projects");
   await lead
-    .getByRole("link", { name: "Can attendees work in pairs?" })
+    .getByRole("link", { name: /Answer .*Can attendees work in pairs/ })
     .click();
   await lead.getByLabel("Your answer").fill("Yes, use seated pairs.");
   await lead.getByRole("button", { name: "Send answer" }).click();
@@ -237,7 +238,9 @@ test("four separate accounts hand off, review and deliver a workshop kit", async
   await expect(
     handout.getByRole("heading", { name: "Facilitator agenda · Version 2" }),
   ).toBeVisible();
-  await handout.getByRole("button", { name: "Approve package" }).click();
+  await handout
+    .getByRole("button", { name: "Approve package", exact: true })
+    .click();
   await expect(
     handout.getByText("Approved package", { exact: true }),
   ).toBeVisible();
@@ -302,6 +305,25 @@ test("four separate accounts hand off, review and deliver a workshop kit", async
     responderId: reviewer.id,
     blocking: true,
   });
+  const live = await db.project.findUniqueOrThrow({
+    where: { id: project.id },
+  });
+  await act({
+    kind: "BRIEF_EDITED",
+    revision: live.planRevision,
+    title: live.title,
+    brief: live.brief,
+    doneWhen: "Updated criteria for future deliveries",
+  });
+  await go(lead, release);
+  await expect(
+    lead.getByText("Three usable outputs and a final human decision.", {
+      exact: false,
+    }),
+  ).toBeVisible();
+  await expect(
+    lead.getByText("Updated criteria for future deliveries"),
+  ).toHaveCount(0);
   expect(await (await lead.request.get(release + "/download")).text()).toBe(
     contents,
   );
@@ -746,3 +768,394 @@ test("one agent can work with a lead, pin inputs, and deliver a second package",
       .body,
   ).toBe("First synthesis.");
 });
+
+test("a project shows its own actionable work and the person holding a blocker", async ({
+  browser,
+}) => {
+  const page = await browser.newPage();
+  await register(page, "ux_queue_lead", "OWNER");
+  const lead = await db.account.findUniqueOrThrow({
+    where: { handle: "ux_queue_lead" },
+  });
+  const responder = await db.account.create({
+    data: {
+      handle: "ux_queue_responder",
+      type: "OWNER",
+      owner: { create: { displayName: "Workshop responder" } },
+    },
+  });
+  const create = (title: string) =>
+    createWorkspace(lead.id, {
+      title,
+      brief: "Workshop",
+      doneWhen: "Tasks finished",
+      operationKey: randomUUID(),
+      template: "blank",
+    });
+  const subject = await create("Workshop queue");
+  const busy = await create("Unrelated queue");
+  await db.projectMembership.create({
+    data: {
+      accountId: responder.id,
+      projectId: subject,
+      contributor: true,
+      status: "ACCEPTED",
+    },
+  });
+  const first = await db.workspaceTask.create({
+    data: {
+      projectId: subject,
+      title: "Prepare materials",
+      brief: "Make a list",
+      doneWhen: "Ready to use",
+      ownerId: lead.id,
+      position: 1,
+      output: { create: { title: "Materials list" } },
+    },
+  });
+  await db.workspaceTask.createMany({
+    data: Array.from({ length: 21 }, (_, position) => ({
+      projectId: busy,
+      title: `Unrelated task ${position}`,
+      brief: "Another project",
+      doneWhen: "Ready",
+      ownerId: lead.id,
+      position,
+    })),
+  });
+  await go(page, `/projects/${subject}`);
+  await expect(
+    page
+      .getByRole("region", { name: "For you" })
+      .getByRole("link", { name: "Start · Prepare materials" }),
+  ).toBeVisible();
+  const post = await db.workspacePost.create({
+    data: {
+      projectId: subject,
+      taskId: first.id,
+      blocking: true,
+      responderId: responder.id,
+      authorId: lead.id,
+      body: "Do we have markers?",
+    },
+  });
+  await page.reload();
+  await expect(page.getByRole("region", { name: "For you" })).toHaveCount(0);
+  await expect(
+    page.getByRole("link", {
+      name: "Waiting for an answer from @ux_queue_responder",
+    }),
+  ).toHaveAttribute("href", `/projects/${subject}/questions/${post.id}`);
+  const queue = await workspaceQueue(responder.id, { projectId: subject });
+  expect(queue.decisions[0]).toMatchObject({
+    label: "Answer “Do we have markers?”",
+  });
+  expect(await db.workspaceVisit.count({ where: { projectId: subject } })).toBe(
+    0,
+  );
+  await page.close();
+});
+
+for (const viewport of [
+  { width: 390, height: 844 },
+  { width: 1440, height: 900 },
+]) {
+  test(`workshop from Home using visible links at ${viewport.width}px`, async ({
+    browser,
+  }, testInfo) => {
+    test.setTimeout(120_000);
+    const lead = await browser.newPage({ viewport });
+    let drafter = await browser.newPage({ viewport });
+    const reviewer = await browser.newPage({ viewport });
+    const approver = await browser.newPage({ viewport });
+    const suffix = String(viewport.width);
+    const accounts = [
+      [lead, `ux_lead_${suffix}`, "OWNER"],
+      [drafter, `ux_drafter_${suffix}`, "AGENT"],
+      [reviewer, `ux_reviewer_${suffix}`, "AGENT"],
+      [approver, `ux_approver_${suffix}`, "OWNER"],
+    ] as const;
+    for (const [page, handle, role] of accounts)
+      await register(page, handle, role);
+    const title = `Workshop kit ${suffix}`;
+    const home = (page: Page) =>
+      page.getByRole("link", { name: "Home", exact: true }).click();
+    const projects = (page: Page) =>
+      page.getByRole("region", { name: "Projects", exact: true });
+    async function section(page: Page, name: string) {
+      await expect(page.locator(".workspace-v2")).toBeVisible();
+      const mobile = page.locator(".workspace-tabs-mobile");
+      if (await mobile.isVisible()) await mobile.locator("summary").click();
+      await page
+        .getByRole("navigation", { name: "Project navigation" })
+        .getByRole("link", { name, exact: true })
+        .click();
+    }
+    async function record(page: Page, name: string) {
+      const file = testInfo.outputPath(`${name}.png`);
+      await page.screenshot({
+        path: file,
+        fullPage: name === "03-pending-approval",
+      });
+      await testInfo.attach(name, { path: file, contentType: "image/png" });
+    }
+
+    await lead.getByRole("link", { name: "Start a project" }).click();
+    await lead.getByLabel("Project name").fill(title);
+    await lead
+      .getByLabel("What are we making?")
+      .fill("A kit for a 60-minute workshop for new facilitators.");
+    await lead
+      .getByLabel("What counts as done?")
+      .fill("Agenda, exercises and handout fit a 60-minute workshop.");
+    const create = lead.getByRole("button", { name: "Create private project" });
+    const blankTop = (await create.boundingBox())!.y;
+    await lead.getByLabel("Starting point").selectOption("workshop");
+    const starterOffset = (await create.boundingBox())!.y - blankTop;
+    expect(starterOffset).toBeLessThanOrEqual(300);
+    const starter = lead.getByText("Edit starter tasks", { exact: true });
+    await starter.click();
+    const firstStarter = lead
+      .getByRole("group", { name: "Draft the facilitator agenda" })
+      .getByLabel("Brief");
+    const brief = await firstStarter.inputValue();
+    await firstStarter.fill(brief + " Use a clear materials list.");
+    await lead.getByLabel("Starting point").selectOption("blank");
+    await lead.getByLabel("Starting point").selectOption("workshop");
+    await expect(firstStarter).toHaveValue(/materials list/);
+    await starter.click();
+    await record(lead, "01-kickoff");
+    await create.click();
+    await lead
+      .getByRole("link", { name: "Invite teammates", exact: true })
+      .click();
+    for (const [page, handle] of accounts.slice(1)) {
+      await lead.getByLabel("Search by name or handle").fill(handle);
+      await lead.getByRole("button", { name: "Search", exact: true }).click();
+      await lead.getByRole("button", { name: `Invite @${handle}` }).click();
+      await expect(
+        lead
+          .getByRole("heading", { name: "Pending invitations" })
+          .locator("..")
+          .getByText(`@${handle}`, { exact: true }),
+      ).toBeVisible();
+      await home(page);
+      await projects(page)
+        .getByRole("link", { name: `Review invitation to ${title}` })
+        .click();
+      await expect(
+        page.getByText("A kit for a 60-minute workshop for new facilitators."),
+      ).toHaveCount(0);
+      await page.getByRole("button", { name: "Join project" }).click();
+      await expect(
+        page.getByRole("heading", { name: title, exact: true }),
+      ).toBeVisible();
+    }
+    await section(lead, "Tasks");
+    const agendaTitle = "Draft the facilitator agenda";
+    const exerciseTitle = "Design the exercises";
+    const handoutTitle = "Write the participant handout";
+    const taskLink = (page: Page, name: string) =>
+      page.getByRole("link", { name, exact: true });
+    const row = taskLink(lead, agendaTitle).locator("xpath=ancestor::li[1]");
+    await expect(row).toBeInViewport({ ratio: 1 });
+    await testInfo.attach("layout measurements", {
+      body: JSON.stringify({
+        viewport,
+        starterOffset,
+        firstTask: await row.boundingBox(),
+      }),
+      contentType: "application/json",
+    });
+    await record(lead, "02-task-list");
+    for (const [name, owner, reader] of [
+      [agendaTitle, accounts[1][1], accounts[2][1]],
+      [exerciseTitle, accounts[2][1], accounts[0][1]],
+      [handoutTitle, accounts[3][1], ""],
+    ] as const) {
+      const task = taskLink(lead, name).locator("xpath=ancestor::li[1]");
+      await task.getByText("Assign task", { exact: true }).click();
+      await task
+        .getByLabel("Owner", { exact: true })
+        .selectOption({ label: `@${owner}` });
+      if (reader)
+        await task
+          .getByLabel("Reviewer")
+          .selectOption(
+            reader === accounts[0][1]
+              ? { label: `@${reader}` }
+              : { label: `@${reader}` },
+          );
+      await task.getByRole("button", { name: "Save assignment" }).click();
+      await expect(
+        task.getByText(new RegExp(`@${owner}`)).first(),
+      ).toBeVisible();
+    }
+    async function start(page: Page, name: string) {
+      await home(page);
+      await projects(page)
+        .getByRole("link", { name: `Start · ${name}` })
+        .click();
+      await page
+        .getByRole("button", { name: "Start task", exact: true })
+        .click();
+      await expect(page.getByLabel("Working draft")).toBeVisible();
+    }
+    async function submit(
+      page: Page,
+      version: number,
+      body: string,
+      note: string,
+    ) {
+      await page.getByLabel("Working draft").fill(body);
+      await page
+        .getByLabel("What changed? Required when submitting")
+        .fill(note);
+      await page
+        .getByRole("button", { name: new RegExp(`^Submit version ${version}`) })
+        .click();
+      await expect(page).toHaveURL(new RegExp(`/versions/${version}$`));
+    }
+    await start(drafter, agendaTitle);
+    await start(reviewer, exerciseTitle);
+    await drafter.getByLabel("Working draft").fill("# Agenda\n80 minutes.");
+    await drafter.getByRole("button", { name: "Save private draft" }).click();
+    await expect(
+      drafter.getByText("Private draft saved. Only you can read it."),
+    ).toBeVisible();
+    await drafter.close();
+    drafter = await browser.newPage({ viewport });
+    await login(drafter, accounts[1][1]);
+    await projects(drafter)
+      .getByRole("link", { name: `Continue · ${agendaTitle}` })
+      .click();
+    await expect(drafter.getByLabel("Working draft")).toHaveValue(/80 minutes/);
+    await submit(drafter, 1, "# Agenda\n80 minutes.", "First timing draft.");
+
+    await home(reviewer);
+    await projects(reviewer)
+      .getByRole("link", { name: "Review Facilitator agenda v1" })
+      .click();
+    await reviewer.getByText("Request changes", { exact: true }).click();
+    await reviewer
+      .getByLabel("What needs to change?")
+      .fill("Cut 20 minutes from the agenda.");
+    await reviewer.getByRole("button", { name: "Send change request" }).click();
+    await expect(
+      reviewer.getByText("Cut 20 minutes from the agenda."),
+    ).toBeVisible();
+    await home(drafter);
+    await projects(drafter)
+      .getByRole("link", { name: `Revise · ${agendaTitle}` })
+      .click();
+    await expect(
+      drafter.locator("#draft").getByText("Cut 20 minutes from the agenda."),
+    ).toBeVisible();
+    await submit(drafter, 2, "# Agenda\n60 minutes.", "Cut 20 minutes.");
+
+    await home(reviewer);
+    await projects(reviewer)
+      .getByRole("link", { name: `Continue · ${exerciseTitle}` })
+      .click();
+    await reviewer.getByText("Ask for a decision", { exact: true }).click();
+    await reviewer
+      .getByLabel("Question", { exact: true })
+      .fill("Can attendees work in pairs?");
+    await reviewer
+      .getByLabel("Needs an answer from")
+      .selectOption({ label: `@${accounts[0][1]}` });
+    await reviewer.getByLabel("Block this task until answered").check();
+    await reviewer.getByRole("button", { name: "Send question" }).click();
+    await expect(
+      reviewer.getByRole("button", { name: /^Submit version/ }),
+    ).toBeDisabled();
+    await home(lead);
+    await projects(lead)
+      .getByRole("link", { name: /Answer .*Can attendees work in pairs/ })
+      .click();
+    await lead.getByLabel("Your answer").fill("Yes, use seated pairs.");
+    await lead.getByRole("button", { name: "Send answer" }).click();
+    await expect(lead.getByText("Yes, use seated pairs.")).toBeVisible();
+    await home(reviewer);
+    await projects(reviewer)
+      .getByRole("link", { name: "Read the answer to your question" })
+      .click();
+    await expect(reviewer.getByText("Yes, use seated pairs.")).toBeVisible();
+    await taskLink(reviewer, exerciseTitle).click();
+    await submit(
+      reviewer,
+      1,
+      "# Exercises\nWork in seated pairs.",
+      "Followed the lead’s decision.",
+    );
+
+    async function recommend(page: Page, name: string, version: number) {
+      await home(page);
+      await projects(page)
+        .getByRole("link", { name: `Review ${name} v${version}` })
+        .click();
+      await page
+        .getByLabel("Recommendation", { exact: true })
+        .fill("Ready for the kit.");
+      await page
+        .getByRole("button", { name: `Recommend version ${version}` })
+        .click();
+      await expect(page.getByText(/recommended this version/)).toBeVisible();
+    }
+    await recommend(lead, "Exercise sheet", 1);
+    await recommend(reviewer, "Facilitator agenda", 2);
+    await start(approver, handoutTitle);
+    await expect(taskLink(approver, "Exercise sheet v1")).toBeVisible();
+    await submit(
+      approver,
+      1,
+      "# Handout\nPick a partner before starting.",
+      "Uses exercise sheet v1.",
+    );
+
+    await home(lead);
+    await projects(lead).getByRole("link", { name: "Your projects" }).click();
+    await taskLink(lead, title).click();
+    await section(lead, "Results");
+    await lead
+      .getByRole("navigation", { name: "Results views" })
+      .getByRole("link", { name: "Packages" })
+      .click();
+    await lead
+      .getByLabel("Release approver")
+      .selectOption({ label: `@${accounts[3][1]}` });
+    await lead
+      .getByRole("button", { name: "Submit package for approval" })
+      .click();
+    await expect(lead.getByText("Awaiting human approval")).toBeVisible();
+    await approver.getByRole("link", { name: "Messages", exact: true }).click();
+    await approver.getByRole("link", { name: "Updates", exact: true }).click();
+    const openApproval = projects(approver).getByRole("link", {
+      name: `Review ${title} for approval`,
+    });
+    await openApproval.focus();
+    await approver.keyboard.press("Enter");
+    await expect(
+      approver.getByRole("heading", { name: "Facilitator agenda · Version 2" }),
+    ).toBeVisible();
+    await record(approver, "03-pending-approval");
+    await approver
+      .getByRole("button", { name: "Approve package", exact: true })
+      .focus();
+    await approver.keyboard.press("Enter");
+    await expect(
+      approver.getByText("Approved package", { exact: true }),
+    ).toBeVisible();
+    await approver.getByRole("link", { name: "Download Markdown" }).focus();
+    await expect(
+      approver.getByRole("link", { name: "Download Markdown" }),
+    ).toBeFocused();
+    const download = approver.waitForEvent("download");
+    await approver.keyboard.press("Enter");
+    expect((await download).suggestedFilename()).toBe("minglo-delivery.md");
+    await approver.evaluate(() => window.scrollTo(0, 0));
+    await record(approver, "04-approved-package");
+
+    for (const page of [lead, drafter, reviewer, approver]) await page.close();
+  });
+}

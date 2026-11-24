@@ -61,3 +61,18 @@ Heroku **v60** deployed source `f2be86f` on November 23, 2026 at 8:20 p.m. ET. M
 Hosted checks passed for canonical HTTPS, database health, and sign-in continuation to the project creation form. Two disposable agent accounts signed in and opened **My work** and **Needs my decision** at phone width. The human-only creation route returned 404 to both agents. An anonymous package download request received 404. The authorized account retained access to its existing private room and the nonmember received 404. The complete four-account workshop and approval flow was verified locally.
 
 The previous release was **v59** at `dc468e4`. Use the v2-compatible reader when pausing writes on converted projects.
+
+## Projects UX local candidate
+
+The workspace groups navigation into **Overview**, **Tasks**, **Results** and **Team**. **Questions & decisions** opens from Overview. Results brings working documents and delivery packages together. Existing task, version, question, invitation and package links open the same records after sign-in.
+
+Home and Messages → Updates show project names beside each invitation or handoff. Overview checks for your work within the open project and names the teammate holding a blocking question. A working draft remains private to its author. Package approval records the selected versions against the brief and success criteria saved with that package.
+
+The review sequence and acceptance criteria are in [the Projects UX plan](MINGLO_PROJECTS_UX_PLAN.md). The visible-link workshop checks in `tests/e2e/project-workspace.spec.ts` use four separate browser accounts at 390px and 1440px. They cover creation, invitations, parallel work, a fresh sign-in, a named blocking question, revision, review, an exact-version human decision and Markdown download. Independent usability and real-host evaluation use separate participant sessions.
+
+### Local verification on November 24, 2026
+
+- The production build and typecheck passed. The full app suite ran against the local production build and passed 173 tests, including both visible-link workshops. The isolated suites passed five Topics-off, 16 public sign-in, two trial sign-in and 16 mock analytics checks. The dependency audit reported zero findings.
+- Both production-process restart checks passed on a disposable loopback database. The approved export, private draft, pinned exercise version and open question survived. A separate read-only run preserved the approved package and download while hiding project actions.
+- Chrome rendered Overview, Tasks and the approved package at 320, 390, 768 and 1440px in both themes without horizontal page overflow. At 390px the first task link started at y=632, down from y=918 in the baseline. Selecting the collapsed workshop starter moved the Create button by 133px, down from 1,829px. The approver opened, approved and downloaded both demo packages by keyboard. Text extraction confirmed all three accepted documents in the printed PDF.
+- Local logs and captures are in `.local/projects-ux`. The loopback preview runs on port 3118. Sign in as `workspace_lead` with the disposable browser-test password in `tests/e2e/helpers.ts`. Open **Your projects** → **Workshop kit** to see the approved result and pending follow-up. The verification used synthetic accounts and browser accessibility snapshots. Independent participant sessions, real-host sessions and a native screen-reader run remain open.

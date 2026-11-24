@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { PageHead } from "@/components/ui";
 import { getProjectReturns } from "@/lib/projects";
-import { WorkItems } from "./workspace/workspace";
+import { ProjectRows } from "@/components/project-returns";
 import { workspaceQueue } from "@/lib/projects/queries";
 import { safeNext } from "@/lib/validation";
 import { requireAccount } from "@/lib/session";
@@ -13,6 +13,7 @@ export default async function ProjectsPage({
 }: {
   searchParams: Promise<{
     after?: string;
+    inviteAfter?: string;
     workAfter?: string;
     decisionAfter?: string;
   }>;
@@ -34,12 +35,21 @@ export default async function ProjectsPage({
   const path = page({});
   if (safeNext(path) !== path) notFound();
   const account = await requireAccount(path);
-  const [{ items, next }, queue] = await Promise.all([
-    getProjectReturns(account.id, { all: true, after: query.after }),
+  const [{ items, next }, invitations, queue] = await Promise.all([
+    getProjectReturns(account.id, {
+      all: true,
+      after: query.after,
+      kind: "memberships",
+    }),
+    getProjectReturns(account.id, {
+      all: true,
+      after: query.inviteAfter,
+      kind: "invitations",
+    }),
     workspaceQueue(account.id, query),
   ]);
   return (
-    <AppShell account={account} active="projects" title="Your projects">
+    <AppShell account={account} active="projects" title={null}>
       <div className="project-workspace">
         <Link className="text-link" href="/dashboard">
           Back to Home
@@ -54,36 +64,32 @@ export default async function ProjectsPage({
             )
           }
         />
-        <div className="workspace-split">
+        {(invitations.items.length > 0 || query.inviteAfter) && (
           <section className="card project-panel">
-            <h2>My work</h2>
-            <WorkItems
-              items={queue.work}
-              empty="No assigned work on this page."
-            />
-            <nav className="workspace-inline" aria-label="My work pages">
-              {query.workAfter && (
-                <Link className="text-link" href={page({ workAfter: null })}>
-                  First work page
+            <h2>Invitations</h2>
+            <ProjectRows items={invitations.items} />
+            <div className="project-links">
+              {query.inviteAfter && (
+                <Link className="text-link" href={page({ inviteAfter: null })}>
+                  First invitations page
                 </Link>
               )}
-              {queue.workNext && (
+              {invitations.next && (
                 <Link
                   className="text-link"
-                  href={page({ workAfter: queue.workNext })}
+                  href={page({ inviteAfter: invitations.next })}
                 >
-                  More work
+                  More invitations
                 </Link>
               )}
-            </nav>
+            </div>
           </section>
+        )}
+        {(queue.decisions.length > 0 || query.decisionAfter) && (
           <section className="card project-panel">
             <h2>Needs my decision</h2>
-            <WorkItems
-              items={queue.decisions}
-              empty="Nothing needs your decision."
-            />
-            <nav className="workspace-inline" aria-label="Decision pages">
+            <ProjectRows items={queue.decisions} />
+            <nav className="project-links" aria-label="Decision pages">
               {query.decisionAfter && (
                 <Link
                   className="text-link"
@@ -102,7 +108,42 @@ export default async function ProjectsPage({
               )}
             </nav>
           </section>
-        </div>
+        )}
+        {(queue.work.length > 0 || query.workAfter) && (
+          <section className="card project-panel">
+            {queue.work.some((item) => item.kind !== "waiting") && (
+              <>
+                <h2>My work</h2>
+                <ProjectRows
+                  items={queue.work.filter((item) => item.kind !== "waiting")}
+                />
+              </>
+            )}
+            {queue.work.some((item) => item.kind === "waiting") && (
+              <>
+                <h2>Waiting on others</h2>
+                <ProjectRows
+                  items={queue.work.filter((item) => item.kind === "waiting")}
+                />
+              </>
+            )}
+            <nav className="project-links" aria-label="My work pages">
+              {query.workAfter && (
+                <Link className="text-link" href={page({ workAfter: null })}>
+                  First work page
+                </Link>
+              )}
+              {queue.workNext && (
+                <Link
+                  className="text-link"
+                  href={page({ workAfter: queue.workNext })}
+                >
+                  More work
+                </Link>
+              )}
+            </nav>
+          </section>
+        )}
         <div className="card project-panel">
           <h2>Project list</h2>
           {items.length ? (
@@ -128,7 +169,7 @@ export default async function ProjectsPage({
           )}
           <nav className="project-links" aria-label="Project pages">
             {query.after && (
-              <Link className="text-link" href="/projects">
+              <Link className="text-link" href={page({ after: null })}>
                 First page
               </Link>
             )}

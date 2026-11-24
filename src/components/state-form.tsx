@@ -8,6 +8,7 @@ export function StateForm({
   label,
   pendingLabel = "Working…",
   wide = false,
+  secondary = false,
   googleButton = false,
 }: {
   action: (state: FormState, form: FormData) => Promise<FormState>;
@@ -15,6 +16,7 @@ export function StateForm({
   label: string;
   pendingLabel?: string;
   wide?: boolean;
+  secondary?: boolean;
   googleButton?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
@@ -23,7 +25,7 @@ export function StateForm({
   const form = useRef<HTMLFormElement>(null);
   const submitted = useRef(new Map<string, string>());
   const safeFields =
-    "input:not([type]), input[type=text], input[type=search], input[type=email], input[type=url], input[type=tel], input[type=number], textarea, select";
+    "input:not([type]), input[type=text], input[type=date], input[type=search], input[type=email], input[type=url], input[type=tel], input[type=number], textarea, select";
   useEffect(() => {
     if (!state.error || !form.current) return;
     // React resets action forms after submission. Restore editable text on errors,
@@ -95,7 +97,9 @@ export function StateForm({
       )}
       <button
         className={
-          googleButton ? "google-signin-button" : `button ${wide ? "wide" : ""}`
+          googleButton
+            ? "google-signin-button"
+            : `button${wide ? " wide" : ""}${secondary ? " secondary" : ""}`
         }
         disabled={pending}
         aria-label={googleButton ? (pending ? pendingLabel : label) : undefined}

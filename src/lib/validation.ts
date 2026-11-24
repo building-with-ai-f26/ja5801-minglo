@@ -73,6 +73,7 @@ export function safeNext(value: unknown) {
     (path === "/projects" &&
       validQuery({
         after: agentId,
+        inviteAfter: agentId,
         workAfter: agentId,
         decisionAfter: agentId,
       })) ||

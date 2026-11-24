@@ -50,17 +50,23 @@ export function Action({
   kind,
   label,
   values,
+  secondary = false,
   children,
 }: {
   id: string;
   path: string;
   kind: string;
   label: string;
+  secondary?: boolean;
   values?: Record<string, string | number>;
   children?: React.ReactNode;
 }) {
   return (
-    <StateForm action={workspaceAction.bind(null, id, path)} label={label}>
+    <StateForm
+      action={workspaceAction.bind(null, id, path)}
+      label={label}
+      secondary={secondary}
+    >
       <input name="operationKey" type="hidden" value={randomUUID()} />
       <input name="kind" type="hidden" value={kind} />
       {Object.entries(values ?? {}).map(([name, value]) => (
@@ -79,6 +85,7 @@ export function MemberSelect({
   pending = false,
   human = false,
   required = false,
+  selfLabel = false,
 }: {
   view: WorkspaceView;
   name: string;
@@ -87,6 +94,7 @@ export function MemberSelect({
   pending?: boolean;
   human?: boolean;
   required?: boolean;
+  selfLabel?: boolean;
 }) {
   return (
     <label className="field">
@@ -110,6 +118,9 @@ export function MemberSelect({
           .map((entry) => (
             <option key={entry.id} value={entry.accountId}>
               @{entry.account.handle}
+              {selfLabel &&
+                entry.accountId === view.actor.accountId &&
+                " (assign to me)"}
               {entry.status === "INVITED" ? " (invited)" : ""}
             </option>
           ))}

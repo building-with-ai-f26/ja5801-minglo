@@ -16,21 +16,35 @@ export type WorkItem = {
   project: string;
   href: string;
   label: string;
-  decision: boolean;
+  kind: "work" | "waiting" | "answer" | "decision";
   status?: string;
 };
 
 export async function workspaceQueue(
   accountId: string,
-  options: { limit?: number; workAfter?: string; decisionAfter?: string } = {},
+  options: {
+    projectId?: string;
+    limit?: number;
+    workAfter?: string;
+    decisionAfter?: string;
+  } = {},
 ) {
   const limit = options.limit ?? 20;
   const accessible = {
+    id: options.projectId,
     workspaceFormat: 2,
     closedAt: null,
     memberships: { some: { accountId, status: "ACCEPTED", contributor: true } },
   } satisfies Prisma.ProjectWhereInput;
-  if (!workspaceFlag())
+  if (
+    !workspaceFlag() ||
+    (
+      await db.agent.findUnique({
+        where: { accountId },
+        select: { participationPausedAt: true },
+      })
+    )?.participationPausedAt
+  )
     return { work: [], decisions: [], workNext: null, decisionNext: null };
   const project = { select: { title: true } } as const;
   const after = (cursor?: string) => (cursor ? { id: { lt: cursor } } : {});
@@ -53,9 +67,13 @@ export async function workspaceQueue(
           { reviewerId: accountId, status: "REVIEW" },
           { approverId: accountId, status: "APPROVAL" },
         ],
+        output: { currentVersion: { gt: 0 } },
         ...after(options.decisionAfter),
       },
-      include: { project, output: { select: { currentVersion: true } } },
+      include: {
+        project,
+        output: { select: { currentVersion: true, title: true } },
+      },
       ...window,
     }),
     db.workspacePost.findMany({
@@ -79,92 +97,111 @@ export async function workspaceQueue(
       include: { project },
       ...window,
     }),
-    db.workspacePost.findMany({
-      where: {
-        project: accessible,
-        authorId: accountId,
-        answeredAt: { not: null },
-        ...after(options.workAfter),
-      },
-      include: { project },
-      ...window,
-    }),
+    // Apply the per-project read position and event cursor before bounding answers.
+    db.$queryRaw<
+      {
+        id: string;
+        projectId: string;
+        project: string;
+        postId: string;
+        question: string;
+      }[]
+    >(Prisma.sql`
+      SELECT e.id, e."projectId", p.title AS project, e."postId", left(q.body, 92) AS question
+      FROM "WorkspaceEvent" e
+      JOIN "Project" p ON p.id = e."projectId"
+      JOIN "WorkspacePost" q ON q.id = e."postId" AND q."projectId" = p.id
+      JOIN "ProjectMembership" m ON m."projectId" = p.id AND m."accountId" = ${accountId}
+      LEFT JOIN "WorkspaceVisit" v ON v."projectId" = p.id AND v."accountId" = m."accountId"
+      WHERE e.kind = 'QUESTION_ANSWERED' AND q."authorId" = m."accountId"
+        AND m.status = 'ACCEPTED' AND m.contributor
+        AND p."workspaceFormat" = 2 AND p."closedAt" IS NULL
+        AND (v."seenThrough" IS NULL OR e.id > v."seenThrough")
+        ${options.projectId ? Prisma.sql`AND p.id = ${options.projectId}` : Prisma.empty}
+        ${options.workAfter ? Prisma.sql`AND e.id < ${options.workAfter}` : Prisma.empty}
+      ORDER BY e.id DESC LIMIT ${limit + 1}
+    `),
   ]);
-  const visits = await db.workspaceVisit.findMany({
-    where: {
-      accountId,
-      projectId: { in: answers.map((entry) => entry.projectId) },
-    },
-  });
-  const answerEvents = await db.workspaceEvent.findMany({
-    where: {
-      postId: { in: answers.map((entry) => entry.id) },
-      kind: "QUESTION_ANSWERED",
-      project: accessible,
-    },
-    select: { id: true, postId: true },
-  });
-  const answered = answers.flatMap((entry) => {
-    const event = answerEvents.find((item) => item.postId === entry.id);
-    const visit = visits.find((seen) => seen.projectId === entry.projectId);
-    return event &&
-      (!visit || event.id > visit.seenThrough) &&
-      (!options.workAfter || event.id < options.workAfter)
-      ? [{ event, entry }]
-      : [];
-  });
   const work: WorkItem[] = [
     ...(await Promise.all(
-      tasks.map(async (task) => ({
-        id: task.id,
-        project: task.project.title,
-        href: `/projects/${task.projectId}/tasks/${task.id}`,
-        label: task.title,
-        decision: false,
-        status: (await openBlockers(db, task.projectId, task.id)).length
-          ? "Waiting for an answer"
-          : (await taskInputs(db, task)).some((input) => !input.latest)
-            ? "Waiting for input"
-            : task.status === "OPEN"
-              ? "Ready to start"
-              : task.status === "REVISION"
-                ? "Changes requested"
-                : "In progress",
-      })),
+      tasks.map(async (task): Promise<WorkItem> => {
+        const [blockers, inputs] = await Promise.all([
+          openBlockers(db, task.projectId, task.id),
+          taskInputs(db, task),
+        ]);
+        const blocker = blockers[0];
+        const missing = inputs.find((input) => !input.latest);
+        const changed = inputs.find((input) => input.changed);
+        const path = workspaceTaskPath(task.projectId, task.id);
+        if (blocker || missing) {
+          const responder = blocker?.responderId
+            ? await db.account.findUnique({
+                where: { id: blocker.responderId },
+                select: { handle: true },
+              })
+            : null;
+          return {
+            id: task.id,
+            project: task.project.title,
+            href: blocker
+              ? `/projects/${task.projectId}/questions/${blocker.id}`
+              : path,
+            label: task.title,
+            kind: "waiting",
+            status: blocker
+              ? responder
+                ? `Waiting for an answer from @${responder.handle}`
+                : "Waiting for an answer"
+              : `Waiting for ${missing?.title}`,
+          };
+        }
+        return {
+          id: task.id,
+          project: task.project.title,
+          href: path,
+          label: changed
+            ? `Resolve new input for ${task.title}`
+            : `${task.status === "OPEN" ? "Start" : task.status === "REVISION" ? "Revise" : "Continue"} · ${task.title}`,
+          kind: "work",
+        };
+      }),
     )),
-    ...answered.map(({ entry: post, event }) => ({
-      id: event.id,
-      project: post.project.title,
-      href: `/projects/${post.projectId}/questions/${post.id}`,
+    ...answers.map((entry): WorkItem => ({
+      id: entry.id,
+      project: entry.project,
+      href: `/projects/${entry.projectId}/questions/${entry.postId}`,
       label: "Read the answer to your question",
-      decision: false,
+      kind: "answer",
+      status: entry.question,
     })),
   ];
   const decisions: WorkItem[] = [
-    ...reviews.map((item) => ({
-      id: item.id,
-      project: item.project.title,
-      href: workspaceTaskPath(
-        item.projectId,
-        item.id,
-        item.output?.currentVersion || undefined,
-      ),
-      label: `${item.status === "REVIEW" ? "Review" : "Approve"} ${item.title}`,
-      decision: true,
-    })),
+    ...reviews
+      .filter((item) => item.output?.currentVersion)
+      .map((item) => ({
+        id: item.id,
+        project: item.project.title,
+        href: workspaceTaskPath(
+          item.projectId,
+          item.id,
+          item.output?.currentVersion || undefined,
+        ),
+        label: `${item.status === "REVIEW" ? "Review" : "Approve"} ${item.output?.title ?? item.title} v${item.output?.currentVersion}`,
+        kind: "decision" as const,
+      })),
     ...questions.map((item) => ({
       id: item.id,
       project: item.project.title,
       href: `/projects/${item.projectId}/questions/${item.id}`,
-      label: item.body.slice(0, 92),
-      decision: true,
+      label: `Answer “${item.body.length > 92 ? item.body.slice(0, 91) + "…" : item.body}”`,
+      kind: "decision" as const,
     })),
     ...releases.map((item) => ({
       id: item.id,
       project: item.project.title,
       href: `/projects/${item.projectId}/delivery/${item.id}`,
-      label: `Approve ${item.title}`,
-      decision: true,
+      label: `Review ${item.title} for approval`,
+      kind: "decision" as const,
     })),
   ];
   const page = (items: WorkItem[]) =>
@@ -221,6 +258,8 @@ export async function readWorkspace(
       activity,
       visit,
       releases,
+      latestApproved,
+      pendingRelease,
       projectQuestions,
       briefs,
     ] = await Promise.all([
@@ -260,6 +299,13 @@ export async function readWorkspace(
         orderBy: { id: "desc" },
         take: 20,
       }),
+      tx.workspaceRelease.findFirst({
+        where: { projectId, approvedAt: { not: null } },
+        orderBy: [{ approvedAt: "desc" }, { id: "desc" }],
+      }),
+      tx.workspaceRelease.findFirst({
+        where: { projectId, approvedAt: null, supersededAt: null },
+      }),
       tx.workspacePost.findMany({
         where: {
           projectId,
@@ -279,7 +325,7 @@ export async function readWorkspace(
     ]);
     const openQuestions = await tx.workspacePost.findMany({
       where: { projectId, blocking: true, answeredAt: null },
-      select: { id: true, taskId: true, responderId: true },
+      select: { id: true, taskId: true, responderId: true, body: true },
     });
     const plan = await Promise.all(
       tasks.map(async (task) => ({
@@ -423,6 +469,8 @@ export async function readWorkspace(
         ...versionEvents.map((entry) => entry.actorId),
         ...releaseEvents.map((entry) => entry.actorId),
         release?.approverId,
+        release?.submittedById,
+        pendingRelease?.approverId,
       ].filter((id): id is string => !!id),
     );
     const names = await tx.account.findMany({
@@ -431,6 +479,9 @@ export async function readWorkspace(
     });
     return {
       project,
+      latestApproved,
+      pendingRelease,
+      deliveryQuestions: openQuestions.filter((post) => !post.taskId),
       actor,
       tasks: plan,
       milestones,
@@ -518,14 +569,26 @@ export function staffing(project: Workspace, task: WorkspaceTaskView) {
     );
   const owner = joined(task.ownerId);
   if (task.status === "COMPLETE") return "Completed";
-  if (task.status === "REVIEW")
-    return joined(task.reviewerId) ? "Needs review" : "Waiting for a reviewer";
+  if (task.status === "REVIEW") {
+    const reviewer = joined(task.reviewerId);
+    if (!reviewer) return "Waiting for a reviewer";
+    return reviewer.account.agent?.participationPausedAt
+      ? `Reviewer @${reviewer.account.handle} is paused`
+      : `Needs review from @${reviewer.account.handle}`;
+  }
   if (task.status === "APPROVAL")
     return joined(task.approverId)
-      ? "Needs approval"
+      ? `Needs approval from @${joined(task.approverId)?.account.handle}`
       : "Waiting for an approver";
-  if (!owner)
-    return task.ownerId ? "Waiting for assignee to join" : "Unassigned";
+  if (!owner) {
+    const invited = project.memberships.find(
+      (member) =>
+        member.accountId === task.ownerId && member.status === "INVITED",
+    );
+    return invited
+      ? `Waiting for @${invited.account.handle} to join`
+      : "Unassigned";
+  }
   if (owner.account.agent?.participationPausedAt)
     return "Assigned agent paused";
   if (task.blockers.length) return "Waiting for an answer";

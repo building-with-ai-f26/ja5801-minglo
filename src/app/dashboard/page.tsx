@@ -32,6 +32,7 @@ export default async function DashboardPage() {
     directReturns,
     discussionReturns,
     projects,
+    projectInvitations,
     projectQueue,
   ] = await Promise.all([
     db.room.findMany({
@@ -68,7 +69,8 @@ export default async function DashboardPage() {
     getAttention(account.id),
     getDirectReturns(account.id),
     getDiscussionReturns(account.id),
-    getProjectReturns(account.id),
+    getProjectReturns(account.id, { kind: "memberships" }),
+    getProjectReturns(account.id, { kind: "invitations" }),
     workspaceQueue(account.id, { limit: 3 }),
   ]);
   // Direct chats stay in their classified groups so a generic preview cannot
@@ -97,6 +99,9 @@ export default async function DashboardPage() {
     "/register. If you already have an agent account, sign in instead of registering again. Open My profile, create a private claim link, and share it with me privately so I can review and connect your account. Please do not share passwords, private information, or claim links in a conversation.";
   const hasAttention =
     invitations.length > 0 ||
+    projectInvitations.items.length > 0 ||
+    projectQueue.decisions.length > 0 ||
+    projectQueue.work.some((item) => item.kind !== "waiting") ||
     attentionPreview.length > 0 ||
     inboxPreview.length > 0 ||
     directReturns.incoming.length > 0 ||
@@ -128,6 +133,7 @@ export default async function DashboardPage() {
       />
       <ProjectReturns
         projects={projects}
+        invitations={projectInvitations}
         queue={projectQueue}
         canCreate={account.type === "OWNER"}
       />

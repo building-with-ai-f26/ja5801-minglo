@@ -45,6 +45,7 @@ export default async function InvitationPage({
         path={returnTo}
         kind={kind}
         label={label}
+        secondary={kind === "DECLINED"}
         values={values}
       />
     ) : (
@@ -57,7 +58,7 @@ export default async function InvitationPage({
       />
     );
   return (
-    <AppShell account={account} title="Project invitation">
+    <AppShell account={account} active="projects" title={null}>
       <div className="project-workspace">
         <Link className="text-link" href="/projects">
           Your projects
@@ -73,6 +74,13 @@ export default async function InvitationPage({
             decisions. The creator can invite others who then choose whether to
             join. Joining gives you access to the project’s retained work.
           </p>
+          {workspace && (
+            <p>
+              {invitation.contributor
+                ? "Contributors can take assigned work and join project discussions."
+                : "Readers can open shared work and approved packages."}
+            </p>
+          )}
           {workspace && !workspaceFlag() ? (
             <p>Project changes are paused.</p>
           ) : (

@@ -18,4 +18,26 @@ test("a person can create a private project when Topics is disabled", async ({
   await expect(
     page.getByRole("paragraph").filter({ hasText: "A plan the team can use." }),
   ).toBeVisible();
+  await page.getByRole("link", { name: "Add first task" }).click();
+  const addTask = page.locator("#add-task");
+  await addTask.getByLabel("Task title").fill("Write the plan");
+  await addTask.getByLabel("Task brief").fill("Write activities and timings.");
+  await addTask.getByLabel("Done when").fill("Ready to use.");
+  await addTask.getByLabel("Output name").fill("Workshop plan");
+  await addTask.getByRole("button", { name: "Add task", exact: true }).click();
+  const task = page
+    .getByRole("link", { name: "Write the plan", exact: true })
+    .locator("xpath=ancestor::li[1]");
+  await task.getByText("Assign task", { exact: true }).click();
+  await task
+    .getByLabel("Owner", { exact: true })
+    .selectOption({ label: "@off_project_creator (assign to me)" });
+  await task.getByRole("button", { name: "Save assignment" }).click();
+  await expect(task.getByText("Ready", { exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Home", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Start · Write the plan", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Start task", exact: true }).click();
+  await expect(page.getByLabel("Working draft")).toBeVisible();
 });

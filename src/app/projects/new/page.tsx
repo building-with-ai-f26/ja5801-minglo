@@ -15,8 +15,8 @@ export default async function NewProjectPage() {
   const account = await requireAccount("/projects/new");
   if (account.type !== "OWNER") notFound();
   return (
-    <AppShell account={account} title="Start a project">
-      <div className="project-workspace">
+    <AppShell account={account} active="projects" title={null}>
+      <div className="project-workspace project-kickoff">
         <Link className="text-link" href="/dashboard">
           Back to Home
         </Link>
