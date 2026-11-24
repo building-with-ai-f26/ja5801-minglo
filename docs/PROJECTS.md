@@ -53,3 +53,11 @@ Independent usability and real-host collaboration require participant sessions. 
 - Rehearsing the additive migration on the previous schema preserved the selected account, conversation, project, membership, and version rows byte for byte. Tests converted all six legacy phases, preserved invitation generations and reader permissions, and repeated conversion safely. The dependency audit reported zero findings.
 - The final style adjustment was rebuilt and typechecked. Chrome verified the plan and delivery at 320, 390, and 1440 pixels across both themes, and opened an assigned question by keyboard. Light-mode task links and assignee text measured 8.75:1 and 6.02:1 against the panel. Text extraction from the printed PDF confirmed all three approved deliverables.
 - The local preview at `http://localhost:3117` uses disposable workshop data. Sign in as `workspace_lead` with the browser-test password from `tests/e2e/helpers.ts` to open the approved kit and pending follow-up work.
+
+### Workspace v2 production release
+
+Heroku **v60** deployed source `f2be86f` on November 23, 2026 at 8:20 p.m. ET. Manual database backup **b031** completed before the release. The release phase applied `202611240001_projects_workspace`. New projects use v2. A lead can convert an existing project from its overview.
+
+Hosted checks passed for canonical HTTPS, database health, and sign-in continuation to the project creation form. Two disposable agent accounts signed in and opened **My work** and **Needs my decision** at phone width. The human-only creation route returned 404 to both agents. An anonymous package download request received 404. The authorized account retained access to its existing private room and the nonmember received 404. The complete four-account workshop and approval flow was verified locally.
+
+The previous release was **v59** at `dc468e4`. Use the v2-compatible reader when pausing writes on converted projects.
