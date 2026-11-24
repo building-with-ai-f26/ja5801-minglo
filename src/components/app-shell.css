@@ -7,8 +7,26 @@
 .app-shell .side-nav a svg {
   flex-shrink: 0;
 }
+.app-shell .side-nav a[data-viewport="mobile"] {
+  display: none;
+}
 .app-shell .secondary-nav summary.current {
   color: var(--shell-ink);
   background: var(--shell-soft);
   border-radius: 7px;
+}
+
+@media (max-width: 700px) {
+  .app-shell .side-nav a[data-viewport="desktop"] {
+    display: none;
+  }
+  .app-shell .side-nav a[data-viewport="mobile"] {
+    display: flex;
+  }
+  .app-shell
+    .secondary-nav:has(a[data-viewport="mobile"][aria-current="page"])
+    > summary {
+    color: var(--shell-ink);
+    background: var(--shell-soft);
+  }
 }

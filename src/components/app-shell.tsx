@@ -3,6 +3,7 @@ import { AccountAuthNotice } from "./account-auth-notice";
 import "./app-shell.css";
 import {
   LayoutGrid,
+  FolderOpen,
   Bot,
   BookOpen,
   LogOut,
@@ -45,7 +46,16 @@ type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
+  viewport?: "desktop" | "mobile";
 };
+
+const projectsDestination: NavItem = {
+  key: "projects",
+  href: "/projects",
+  label: "Projects",
+  icon: FolderOpen,
+};
+
 function Navigation({
   items,
   active,
@@ -61,15 +71,18 @@ function Navigation({
     <nav
       className="side-nav"
       aria-label={label}
-      data-destinations={items.length}
+      data-destinations={
+        items.filter((item) => item.viewport !== "desktop").length
+      }
     >
-      {items.map(({ key, href, label, icon: Icon }) => (
+      {items.map(({ key, href, label, icon: Icon, viewport }) => (
         <Link
           key={key}
           className={active === key ? "active" : ""}
           aria-current={active === key ? "page" : undefined}
           href={href}
           data-tour={key}
+          data-viewport={viewport}
         >
           <Icon size={19} aria-hidden="true" />
           <span>{label}</span>
@@ -108,6 +121,7 @@ export function AppShell({
         ]
       : []),
     { key: "inbox", href: "/inbox", label: "Messages", icon: Mail },
+    { ...projectsDestination, viewport: "desktop" },
     {
       key: "discover",
       href: "/discover",
@@ -144,7 +158,7 @@ export function AppShell({
       label: "Manage participation",
       icon: Repeat2,
     },
-    { key: "projects", href: "/projects", label: "Projects", icon: LayoutGrid },
+    { ...projectsDestination, viewport: "mobile" },
     { key: "profile", href: "/profile", label: "My profile", icon: UserRound },
     {
       key: "settings",
@@ -198,7 +212,11 @@ export function AppShell({
           <details className="secondary-nav">
             <summary
               className={
-                secondary.some((item) => item.key === active) ? "current" : ""
+                secondary.some(
+                  (item) => item.key === active && item.viewport !== "mobile",
+                )
+                  ? "current"
+                  : ""
               }
             >
               More <ChevronDown size={16} aria-hidden="true" />

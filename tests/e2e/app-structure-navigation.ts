@@ -52,36 +52,33 @@ export async function checkStructureNavigation(
   info: TestInfo,
 ) {
   const nav = page.getByRole("navigation", { name: "Workspace", exact: true });
-  const expected = [
-    "Home",
-    ...(topics ? ["Topics"] : []),
-    "Messages",
-    "People & agents",
-    "Public chat",
-  ];
   for (const theme of ["light", "dark"]) {
     await page.evaluate((value) => {
       localStorage.setItem("minglo-theme", value);
       document.documentElement.dataset.theme = value;
     }, theme);
     for (const width of [1440, 360, 320]) {
+      const mobile = width <= 700;
       await page.setViewportSize({ width, height: 960 });
       await page.goto("/dashboard");
       await page.evaluate(() => document.fonts.ready);
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-      for (const label of expected)
-        await expect(
-          nav.getByRole("link", { name: label, exact: true }),
-        ).toBeVisible();
+      expect(await nav.getByRole("link").allTextContents()).toEqual([
+        "Home",
+        ...(topics ? ["Topics"] : []),
+        "Messages",
+        ...(!mobile ? ["Projects"] : []),
+        "People & agents",
+        "Public chat",
+      ]);
       await expect(
         nav.getByRole("link", { name: "Home", exact: true }),
       ).toHaveAttribute("aria-current", "page");
       await expect(nav.locator('a[href="/topics"]')).toHaveCount(
         topics ? 1 : 0,
       );
-      if (width <= 360) {
+      if (mobile) {
         const links = nav.getByRole("link");
-        expect(await links.allTextContents()).toEqual(expected);
         const columns = await nav.evaluate(
           (el) => getComputedStyle(el).gridTemplateColumns.split(" ").length,
         );
@@ -105,7 +102,7 @@ export async function checkStructureNavigation(
         exact: true,
       });
       await expect(publicChat).toHaveAttribute("href", "/public-room");
-      if (width <= 360 && topics) {
+      if (mobile && topics) {
         expect(
           await publicChat.evaluate((el) => getComputedStyle(el).gridColumn),
         ).toBe("1 / -1");
@@ -135,6 +132,14 @@ export async function checkStructureNavigation(
         name: "More destinations and account",
         exact: true,
       });
+      const menuProjects = menu.getByRole("link", {
+        name: "Projects",
+        exact: true,
+      });
+      await expect(menuProjects).toHaveCount(mobile ? 1 : 0);
+      await expect(
+        page.locator('.sidebar a[href="/projects"]:visible'),
+      ).toHaveCount(1);
       for (const label of [
         "Agent rooms",
         "My profile",
@@ -154,7 +159,7 @@ export async function checkStructureNavigation(
           menu.getByRole("link", { name: "Manage participation", exact: true }),
         ).toBeVisible();
       }
-      if (width <= 360) {
+      if (mobile) {
         const visibleHrefs = await page
           .locator(".sidebar a:visible")
           .evaluateAll((links) =>
@@ -206,6 +211,29 @@ export async function checkStructureNavigation(
       await page.keyboard.press("Enter");
       await expect(page).toHaveURL("/public-room");
       await expect(publicChat).toHaveAttribute("aria-current", "page");
+
+      if (mobile) {
+        await more.focus();
+        await page.keyboard.press("Enter");
+        await expect(details).toHaveAttribute("open", "");
+      }
+      const projects = mobile
+        ? menuProjects
+        : nav.getByRole("link", { name: "Projects", exact: true });
+      await projects.focus();
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL("/projects");
+      await expect(
+        page.getByRole("heading", { name: "Your projects" }),
+      ).toBeVisible();
+      const moreHighlighted = await more.evaluate(
+        (summary) =>
+          getComputedStyle(summary).backgroundColor !== "rgba(0, 0, 0, 0)",
+      );
+      expect(moreHighlighted).toBe(mobile);
+      if (mobile && (await details.getAttribute("open")) === null)
+        await more.click();
+      await expect(projects).toHaveAttribute("aria-current", "page");
     }
   }
 }
