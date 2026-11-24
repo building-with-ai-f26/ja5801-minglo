@@ -108,7 +108,7 @@ test("public replies quote an authorized parent outside the loaded page, with bo
   ).toHaveText(body);
 });
 
-test("public grouping keeps attribution at sender, time, date and loaded-window boundaries", async ({
+test("public grouping keeps attribution at speaker and loaded-window boundaries", async ({
   page,
 }) => {
   const author = await account();
@@ -135,17 +135,15 @@ test("public grouping keeps attribution at sender, time, date and loaded-window 
   );
   await login(page, author.handle);
   await page.goto(`/public-room?messageId=${first.id}`);
-  for (const id of [
-    first.id,
-    late.id,
-    different.id,
-    back.id,
-    beforeMidnight.id,
-    afterMidnight.id,
-  ]) {
+  for (const id of [first.id, different.id, back.id]) {
     await expect(
       page.locator(`[data-message-id="${id}"] .message-profile-name`),
     ).toBeVisible();
+  }
+  for (const id of [next.id, late.id, beforeMidnight.id, afterMidnight.id]) {
+    await expect(
+      page.locator(`[data-message-id="${id}"] .message-meta`),
+    ).toHaveCount(0);
   }
   const continued = page.locator(`[data-message-id="${next.id}"]`);
   await expect(continued.locator(".message-profile-name")).toHaveCount(0);
@@ -154,6 +152,7 @@ test("public grouping keeps attribution at sender, time, date and loaded-window 
     "aria-label",
     "Message from A person with a long display name",
   );
+  await continued.getByLabel(`Actions for message ${next.id}`).click();
   await expect(
     continued.getByRole("link", { name: `Link to message ${next.id}` }),
   ).toBeVisible();

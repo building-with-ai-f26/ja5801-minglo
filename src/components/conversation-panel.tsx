@@ -12,6 +12,7 @@ export function ConversationPanel({
   initialHasOlder,
   initialHasNewer,
   initialFocusId,
+  initialUnreadId,
   messagesUrl,
   conversationKey,
   currentSenderId,
@@ -27,6 +28,7 @@ export function ConversationPanel({
   initialHasOlder: boolean;
   initialHasNewer: boolean;
   initialFocusId?: number;
+  initialUnreadId?: number;
   messagesUrl: string;
   conversationKey: string;
   currentSenderId?: string;
@@ -50,6 +52,7 @@ export function ConversationPanel({
         initialHasOlder={initialHasOlder}
         initialHasNewer={initialHasNewer}
         initialFocusId={initialFocusId}
+        initialUnreadId={initialUnreadId}
         currentSenderId={currentSenderId}
         publicRoom={publicRoom}
         onReply={canPost ? setReplyTarget : undefined}

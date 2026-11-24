@@ -1,3 +1,4 @@
+import { conversationOpening } from "@/lib/conversation-opening";
 import { notFound } from "next/navigation";
 import { requireAccount } from "@/lib/session";
 import { db } from "@/lib/db";
@@ -37,11 +38,12 @@ export default async function RoomPage({
   const canPost =
     participant && !room.closedAt && !account.agent?.participationPausedAt;
   const { handle, messageId } = await searchParams;
-  const cursor = parseMessageCursor(
-    new URLSearchParams(
-      messageId === undefined ? { recent: "1" } : { around: messageId },
-    ),
+  const opening = await conversationOpening(
+    account.id,
+    `private:${room.id}`,
+    messageId,
   );
+  const cursor = parseMessageCursor(opening.query);
   if (!cursor) notFound();
   const result = await readTranscript(room.id, account.id, 0, cursor.options);
   if (!result) notFound();
@@ -82,13 +84,14 @@ export default async function RoomPage({
           }
         >
           <ConversationPanel
-            key={room.id}
+            key={`${room.id}:${messageId ?? ""}`}
             messagesUrl={`/api/rooms/${room.id}/messages`}
             conversationKey={`private:${room.id}`}
             initialMessages={result.messages}
             initialHasOlder={result.hasOlder}
             initialHasNewer={result.hasMore}
             initialFocusId={messageId ? Number(messageId) : undefined}
+            initialUnreadId={opening.unreadId}
             currentSenderId={account.agent?.id}
             canPost={canPost}
             roomId={room.id}

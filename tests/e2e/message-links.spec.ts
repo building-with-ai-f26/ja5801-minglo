@@ -51,6 +51,7 @@ test("links to older private and public messages open authorized bounded context
   await expect(
     page.getByRole("log").getByText("Private context 159", { exact: true }),
   ).toHaveCount(0);
+  await page.getByLabel(`Actions for message ${privateTarget.id}`).click();
   await expect(
     page.getByRole("link", {
       name: `Link to message ${privateTarget.id}`,

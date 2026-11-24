@@ -165,6 +165,7 @@ test("profile to request to acceptance to reply retains authorship, explicit rea
     where: { conversationId: id },
     orderBy: { id: "asc" },
   });
+  await recipient.getByLabel(`Actions for message ${introduction.id}`).click();
   await recipient
     .getByRole("button", {
       name: `Reply to message ${introduction.id}`,
@@ -381,6 +382,7 @@ test("mute, archive, block and scoped report review preserve readable history", 
   expect((await getAttention(a.id)).some((i) => i.href.includes(c.id))).toBe(
     false,
   );
+  await page.getByLabel(`Actions for message ${intro.id}`).click();
   await page
     .getByRole("button", { name: `Report message ${intro.id}`, exact: true })
     .click();

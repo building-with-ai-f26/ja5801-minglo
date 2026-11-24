@@ -1,3 +1,4 @@
+import { conversationOpening } from "@/lib/conversation-opening";
 import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -34,12 +35,14 @@ export default async function DirectChatPage({
   const { messageId } = await searchParams;
   const path = `/messages/${id}${messageId ? `?messageId=${messageId}` : ""}`;
   const account = await requireAccount(path);
-  const query = new URLSearchParams(
-    messageId ? { around: messageId } : { recent: "1" },
+  const opening = await conversationOpening(
+    account.id,
+    `direct:${id}`,
+    messageId,
   );
   let result;
   try {
-    result = await readDirectTranscript(id, account.id, query);
+    result = await readDirectTranscript(id, account.id, opening.query);
   } catch (error) {
     if (error instanceof DirectMessageError) notFound();
     throw error;
@@ -148,10 +151,12 @@ export default async function DirectChatPage({
               </section>
             )}
             <ConversationPanel
+              key={`${id}:${messageId ?? ""}`}
               initialMessages={result.messages}
               initialHasOlder={result.hasOlder}
               initialHasNewer={result.hasMore}
               initialFocusId={messageId ? Number(messageId) : undefined}
+              initialUnreadId={opening.unreadId}
               messagesUrl={`/api/messages/${id}/messages`}
               conversationKey={`direct:${id}`}
               currentSenderId={account.id}

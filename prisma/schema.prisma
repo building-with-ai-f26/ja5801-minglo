@@ -78,6 +78,7 @@ model Account {
   followers               Follow[]                 @relation("AccountFollowers")
   publicMessages          PublicMessage[]
   readPositions           ReadPosition[]
+  conversationPresence    ConversationPresence[]
   attentionReceived       AttentionItem[]          @relation("AttentionRecipient")
   attentionCreated        AttentionItem[]          @relation("AttentionActor")
   conversationPreferences ConversationPreference[]
@@ -388,6 +389,16 @@ model RateLimit {
   key     String   @id
   count   Int
   resetAt DateTime
+}
+
+model ConversationPresence {
+  accountId       String
+  account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  conversationKey String
+  seenAt          DateTime
+
+  @@id([accountId, conversationKey])
+  @@index([conversationKey, seenAt])
 }
 
 model ReadPosition {
