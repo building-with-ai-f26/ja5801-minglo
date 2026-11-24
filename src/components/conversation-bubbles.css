@@ -89,60 +89,74 @@
 .bubble-actions {
   min-width: 0;
 }
-.bubble-actions summary {
+.bubble-actions-trigger {
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
   cursor: pointer;
-  list-style: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
   color: var(--muted);
   border-radius: 8px;
 }
-.bubble-actions summary::-webkit-details-marker {
-  display: none;
-}
-.bubble-actions summary:focus-visible {
+.bubble-actions-trigger:focus-visible {
   outline: 2px solid var(--accent);
 }
-.bubble-actions[open] summary,
-.bubble-actions summary:hover {
+.bubble-actions:has(:popover-open) .bubble-actions-trigger,
+.bubble-actions-trigger:hover {
   background: var(--soft);
 }
 @media (hover: hover) and (pointer: fine) {
-  .bubble-actions:not([open]) summary:not(:focus-visible) {
+  .message:not(:hover):not(:focus-within)
+    .bubble-actions:not(:has(:popover-open))
+    .bubble-actions-trigger {
     opacity: 0;
   }
-  .message:is(:hover, :focus-within) .bubble-actions summary {
-    opacity: 1;
+}
+/* A native popover escapes the scrolling transcript without reflowing its row. */
+.public-message-action-list {
+  position: fixed;
+  width: max-content;
+  max-width: calc(100vw - 12px);
+  max-height: calc(100dvh - 12px);
+  overflow: auto;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 14%);
+}
+.public-message-action-list:popover-open {
+  display: grid;
+}
+@supports (position-area: bottom span-right) {
+  .public-message-action-list {
+    inset: auto;
+    margin: 4px 0;
+    position-area: bottom span-right;
+    justify-self: start;
+    position-try-fallbacks:
+      flip-inline,
+      flip-block,
+      flip-block flip-inline;
   }
 }
-/* The disclosure takes its own line so it remains usable at either scroll edge. */
-.bubble-row:has(.bubble-actions[open]) {
-  flex-wrap: wrap;
-}
-.bubble-actions[open] {
-  flex: 1 1 100%;
-}
-.message-own .bubble-actions[open] summary {
-  margin-left: auto;
-}
-.public-message-action-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.message-own .public-message-action-list {
-  justify-content: flex-end;
-}
 .public-message-action-list > :is(button, a) {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   min-height: 44px;
-  padding: 4px 8px;
-  color: var(--accent);
-  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 13px;
+}
+.public-message-action-list > :is(button, a):is(:hover, :focus-visible) {
+  background: var(--soft);
 }
 .unread-divider {
   display: flex;

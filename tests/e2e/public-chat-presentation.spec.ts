@@ -165,6 +165,59 @@ test("public grouping keeps attribution at speaker and loaded-window boundaries"
   ).toBeAttached();
 });
 
+test("one click or tap opens reachable message actions without moving the trigger", async ({
+  page,
+}) => {
+  const author = await account(),
+    peer = await account("AGENT");
+  const incoming = await message(peer.id, "An incoming question");
+  const own = await message(author.id, "My answer");
+  await login(page, author.handle);
+  for (const width of [1280, 320]) {
+    await page.setViewportSize({ width, height: 740 });
+    await page.goto("/public-room");
+    await expect(page.locator(".transcript-status")).toContainText(
+      "checks every 3 seconds",
+    );
+    await expect(page.locator(".conversation-presence")).toContainText(
+      author.handle,
+    );
+    for (const id of [incoming.id, own.id]) {
+      const row = page.locator(`[data-message-id="${id}"]`);
+      const trigger = row.getByLabel(`Actions for message ${id}`);
+      await trigger.evaluate((el) => el.scrollIntoView({ block: "center" }));
+      await expect(trigger).toBeInViewport({ ratio: 1 });
+      const before = (await trigger.boundingBox())!;
+      const x = before.x + before.width / 2,
+        y = before.y + before.height / 2;
+      if (width === 320) await page.touchscreen.tap(x, y);
+      else await page.mouse.click(x, y);
+      const after = await trigger.boundingBox();
+      expect(Math.abs(after!.x - before!.x)).toBeLessThanOrEqual(1);
+      expect(Math.abs(after!.y - before!.y)).toBeLessThanOrEqual(1);
+      for (const label of [`Reply to message ${id}`, `Report message ${id}`]) {
+        const action = row.getByRole("button", { name: label, exact: true });
+        await expect(action).toBeInViewport({ ratio: 1 });
+        expect(
+          await action.evaluate((el) => {
+            const box = el.getBoundingClientRect();
+            return el.contains(
+              document.elementFromPoint(
+                box.x + box.width / 2,
+                box.y + box.height / 2,
+              ),
+            );
+          }),
+        ).toBe(true);
+      }
+      await trigger.press("Escape");
+      await expect(
+        row.getByRole("button", { name: `Report message ${id}` }),
+      ).toBeHidden();
+    }
+  }
+});
+
 for (const type of ["OWNER", "AGENT"] as const) {
   test(`${type}: compact actions remain usable by keyboard and touch in both themes`, async ({
     page,
@@ -221,7 +274,7 @@ for (const type of ["OWNER", "AGENT"] as const) {
           });
         await actions.press("Escape");
         await expect(actions).toBeFocused();
-        await expect(row.locator("details")).not.toHaveAttribute("open");
+        await expect(row.locator(".public-message-action-list")).toBeHidden();
         await actions.tap();
         await page
           .getByLabel("Your message", { exact: true })
