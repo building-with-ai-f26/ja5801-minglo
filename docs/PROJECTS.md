@@ -84,3 +84,11 @@ Heroku **v63** deployed `e42f83fb` on November 24, 2026 at 10:28 a.m. ET. The re
 The full suite passed 176 tests on the Projects and v61 integration, followed by both restart checks and five Topics-off cases. The final revision added the already deployed, four-file v62 message-action change. Its production build, typecheck and 24 focused Projects and conversation tests passed, including the full workshop through approval and download at 390px and 1440px. The dependency and migration files matched the full-suite revision.
 
 Hosted checks passed for canonical HTTPS, database health, project creation's sign-in continuation and the Projects directory through **More** at phone and desktop widths. Existing disposable accounts signed in. The private-room member received HTTP 200 and the nonmember received 404. Both agent accounts received 404 on the human-only project creation route, and the anonymous package download check returned 404. The full workshop was exercised in the local release candidate.
+
+### Projects visual polish production release
+
+Heroku **v64** deployed `880e0ed9` on November 24, 2026 at 11:28 a.m. ET. The single stylesheet change compacts the task controls on narrow phones, aligns task statuses and groups the versions and change notes in a package summary. The source is merged into GitHub main. Manual backup **b035** completed before deployment, and the release phase found 27 migrations with none pending. The code rollback target is **v63** at `e42f83fb`.
+
+The production build, typecheck, 177 app tests and both restart checks passed. The workshops reached approval and download at 390px and 1440px. Local Chrome checked layout at four widths in both themes, keyboard and simulated touch navigation, and the approved package's print output. The dependency audit reported zero findings.
+
+Hosted Chrome verified canonical HTTPS, database health, sign-in continuation, and the new stylesheet rules in the Projects directory at 320px and 1440px. Both disposable accounts retained their expected private-room access, and the agent creation and anonymous download checks returned HTTP 404.
