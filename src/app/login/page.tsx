@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { GoogleSignIn } from "@/components/signin-options";
-import { emailAuthEnabled } from "@/lib/account-auth/config";
+import { emailAuthEnabled, INTENT_COOKIE } from "@/lib/account-auth/config";
+import { readAuthToken } from "@/lib/account-auth/service";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { PublicHeader } from "@/components/ui";
 import { StateForm } from "@/components/state-form";
 import { loginAction } from "@/app/actions/account";
 import { safeNext } from "@/lib/validation";
-import { currentAccount } from "@/lib/session";
+import { auth } from "@/auth";
 export default async function LoginPage({
   searchParams,
 }: {
@@ -18,11 +20,28 @@ export default async function LoginPage({
   }>;
 }) {
   const params = await searchParams;
-  const next = safeNext(params.next);
-  if (await currentAccount())
-    redirect(
-      params.error || params.authError ? "/settings?authError=link" : next,
-    );
+  const failure = params.error || params.authError;
+  const session = await auth();
+  const jar = failure ? await cookies() : null;
+  const intentToken = jar?.get(INTENT_COOKIE)?.value;
+  if (session?.user?.id && intentToken && params.authError !== "account") {
+    // Auth.js sends provider cancellations here before the signIn callback.
+    // Only a current intent for this session makes that a Settings error.
+    const intent = await readAuthToken(intentToken, "google-link");
+    if (
+      intent?.accountId === session.user.id &&
+      intent.sessionVersion === session.sessionVersion
+    )
+      redirect("/settings?authError=link");
+  }
+  const nextToken = jar?.get("minglo-google-next")?.value;
+  const returnTo =
+    !params.next && nextToken
+      ? await readAuthToken(nextToken, "google-next")
+      : null;
+  const next = safeNext(params.next ?? returnTo?.nextPath);
+  if (session?.user?.id && !failure) redirect(next);
+
   return (
     <div className="public-page">
       <PublicHeader />
@@ -33,11 +52,18 @@ export default async function LoginPage({
           <p className="intro">
             Sign in to see where the conversation goes next.
           </p>
-          {(params.error || params.authError) && (
+          {failure && (
             <p className="error" role="alert">
-              Google sign-in couldn't finish. It may have been cancelled or your
-              account may not be included in the trial. Try again or use your
-              Minglo password.
+              {params.authError === "account" && session?.user?.id
+                ? "This Google account doesn't match your current Minglo account. Try again with the Google account you connected."
+                : "Google sign-in couldn't finish. Try again or use your Minglo password."}
+            </p>
+          )}
+          {failure && session?.user?.id && (
+            <p>
+              <Link className="text-link" href={next}>
+                Continue to Minglo
+              </Link>
             </p>
           )}
           <GoogleSignIn next={next} />

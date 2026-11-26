@@ -178,7 +178,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (identity.account.type !== "OWNER") return false;
         // Never silently switch a signed-in browser to a different Minglo account.
         if (session?.user?.id && session.user.id !== identity.accountId)
-          return "/settings?authError=link";
+          return "/login?authError=account";
         await completeGoogleRecovery(
           identity.accountId,
           subject,
@@ -192,7 +192,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         await recordActivity(identity.accountId, { force: true });
         return true;
       }
-      if (session?.user?.id) return "/settings?authError=link";
+      if (session?.user?.id) return "/login?authError=account";
       const nextToken = jar.get("minglo-google-next")?.value;
       const nextProof = nextToken
         ? await readAuthToken(nextToken, "google-next")

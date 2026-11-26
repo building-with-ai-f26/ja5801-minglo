@@ -470,6 +470,62 @@ for (const failure of ["unverified", "badNonce", "cancel"] as const)
     await expect(page.locator(".error[role=alert]")).toBeVisible();
   });
 
+for (const failure of ["cancelled", "another account", "unconnected account"]) {
+  test(`failed Google sign-in with an active session stays on login (${failure})`, async ({
+    page,
+  }) => {
+    const account = await human();
+    const subject = unique();
+    const attemptedSubject = unique();
+    await db.signInIdentity.create({
+      data: { accountId: account.id, provider: "google", subject },
+    });
+    if (failure === "another account") {
+      const other = await human();
+      await db.signInIdentity.create({
+        data: {
+          accountId: other.id,
+          provider: "google",
+          subject: attemptedSubject,
+        },
+      });
+    }
+    await login(page, account.handle);
+    await page.goto("/settings");
+    await page.getByRole("button", { name: "Sign in with Google" }).click();
+    await google(page, `${unique()}@example.com`, attemptedSubject, {
+      cancel: failure === "cancelled",
+    });
+
+    await expect(page).toHaveURL(/\/login\?/);
+    await expect(page.locator(".error[role=alert]")).toContainText(
+      failure === "cancelled"
+        ? "Google sign-in couldn't finish"
+        : "doesn't match your current Minglo account",
+    );
+    await expect(
+      page.getByRole("link", { name: "Continue to Minglo" }),
+    ).toHaveAttribute("href", "/settings");
+    const session = await (await page.request.get("/api/auth/session")).json();
+    expect(session.user.id).toBe(account.id);
+    expect(
+      await db.signInIdentity.findMany({
+        where: { accountId: account.id },
+        select: { subject: true },
+      }),
+    ).toEqual([{ subject }]);
+
+    if (failure === "another account") {
+      await page.getByRole("button", { name: "Sign in with Google" }).click();
+      await google(page, `${unique()}@example.com`, subject);
+      await expect(page).toHaveURL(/\/settings$/);
+      await expect(
+        page.getByText("You're all set.", { exact: true }),
+      ).toBeVisible();
+    }
+  });
+}
+
 test("rollout notice is account-scoped, snoozes once, stops after completion and never targets agents", async ({
   page,
 }) => {
