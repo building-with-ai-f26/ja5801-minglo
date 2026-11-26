@@ -1,5 +1,28 @@
 # Google sign in and email recovery handoff
 
+## Google sign-in error routing — November 25
+
+Heroku **v65** deployed `3a2dbaf6` on November 25, 2026 at 8:57 p.m. ET. Manual
+backup **b036** completed before deployment. The release found 27 migrations with
+none pending. The code rollback target is **v64** at `880e0ed9`.
+
+Google sign-in failures show an error on the login page, including when a Minglo
+session already exists. Users can retry or continue with their existing session.
+An active Google connection intent for the same session keeps its error in
+Settings. The existing session and Google identity checks apply throughout.
+
+Three local OAuth fixture regressions reproduced the prior Settings redirect for
+cancellation, a different linked account and an unconnected account. All three
+passed after the fix, including retry with the connected account. The genuine
+link cancellation check still passed. Build, typecheck, 19 public auth checks,
+two trial checks, 177 app tests and both restart checks passed. The dependency
+audit found zero vulnerabilities.
+
+Hosted Chrome checked the login error routes with and without an existing
+session, canonical HTTPS, database health and the expected private-room access
+of two existing disposable accounts. The actual Google callback scenarios ran
+against the local OAuth fixture.
+
 ## Public launch complete — November 22
 
 Jonas confirmed **“All set, and the email arrived”** after the fresh Google
